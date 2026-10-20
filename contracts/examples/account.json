@@ -1,0 +1,8 @@
+{
+  "active": true,
+  "displayName": "Synthetic Student",
+  "hospitalId": "demo_hospital",
+  "role": "patient",
+  "schemaVersion": "1.0",
+  "uid": "patient_1"
+}

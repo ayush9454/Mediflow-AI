@@ -1,0 +1,35 @@
+{
+  "approved": {
+    "analysisId": "analysis_1",
+    "analysisVersion": 1,
+    "reportId": "report_1",
+    "reviewId": "review_1",
+    "reviewedAt": "2026-10-20T11:00:00Z",
+    "reviewerId": "doctor_1",
+    "rows": [
+      {
+        "abnormalityFlag": null,
+        "analyte": "Synthetic Marker",
+        "collectionDate": null,
+        "evidence": [
+          {
+            "extractionMethod": "native",
+            "page": 1,
+            "quotation": "Synthetic Marker <0.50 SYN-U 0.00–1.00"
+          }
+        ],
+        "issues": [],
+        "referenceRange": "0.00–1.00",
+        "result": "<0.50",
+        "rowId": "row_1",
+        "unit": "SYN-U"
+      }
+    ],
+    "schemaVersion": "1.0",
+    "summary": null,
+    "unresolvedAcknowledgements": []
+  },
+  "draft": null,
+  "kind": "approved",
+  "schemaVersion": "1.0"
+}

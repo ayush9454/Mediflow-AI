@@ -1,0 +1,11 @@
+{
+  "analysisId": "analysis_1",
+  "comment": null,
+  "corrections": [],
+  "decision": "approved",
+  "expectedAnalysisVersion": 1,
+  "expectedCaseVersion": 1,
+  "expectedReviewVersion": 0,
+  "schemaVersion": "1.0",
+  "unresolvedAcknowledgements": []
+}

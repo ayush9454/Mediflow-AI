@@ -1,0 +1,64 @@
+name: Project checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install backend and test dependencies
+        run: |
+          python -m pip install uv==0.13.4
+          uv sync --project backend --locked --extra dev
+      - name: Check Python formatting and lint
+        run: |
+          backend/.venv/bin/ruff format --check --config backend/pyproject.toml backend tools
+          backend/.venv/bin/ruff check --config backend/pyproject.toml backend tools
+      - name: Typecheck backend
+        run: backend/.venv/bin/mypy --config-file backend/pyproject.toml backend/src
+      - name: Compile Python sources
+        run: backend/.venv/bin/python -m compileall -q backend/src tools
+      - name: Test contracts, safe API errors and fail-closed adapters
+        run: backend/.venv/bin/python -m pytest backend/tests
+      - name: Check generated contracts
+        run: backend/.venv/bin/python tools/export_contracts.py --check
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.5'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      - run: dart format --output=none --set-exit-if-changed lib test tool
+      - run: flutter analyze --no-pub
+      - run: flutter test --no-pub
+      - run: dart run tool/contract_smoke.dart
+      - name: Build foundation debug APK
+        run: flutter build apk --debug --no-pub

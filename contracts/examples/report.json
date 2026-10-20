@@ -1,0 +1,18 @@
+{
+  "approvedAnalysisId": null,
+  "assignedDoctorId": null,
+  "caseId": "case_1",
+  "caseVersion": 1,
+  "createdAt": "2026-10-20T10:00:00Z",
+  "expiresAt": "2026-11-19T10:00:00Z",
+  "fileName": "synthetic.pdf",
+  "hospitalId": "demo_hospital",
+  "latestAnalysisId": null,
+  "pageCount": null,
+  "patientId": "patient_1",
+  "processingStatus": "queued",
+  "reportId": "report_1",
+  "reviewStatus": "not_ready",
+  "reviewVersion": 0,
+  "schemaVersion": "1.0"
+}

@@ -25,9 +25,9 @@ Use Python 3.12, Flutter 3.35.5/Dart 3.9.2, and JDK 17 for the documented build 
 From the repository root:
 
 ```sh
-python3.12 -m venv backend/.venv
-backend/.venv/bin/python -m pip install -e 'backend[dev]'
-backend/.venv/bin/python -m uvicorn mediflow.main:app --app-dir backend/src --reload
+python3.12 -m pip install uv==0.13.4
+uv sync --project backend --locked --extra dev
+backend/.venv/bin/python -m uvicorn mediflow.main:app --reload
 ```
 
 The API exposes:
@@ -52,6 +52,9 @@ No account can sign in yet. Debug builds expose clearly labeled interface previe
 ## Checks
 
 ```sh
+backend/.venv/bin/ruff format --check --config backend/pyproject.toml backend tools
+backend/.venv/bin/ruff check --config backend/pyproject.toml backend tools
+backend/.venv/bin/mypy --config-file backend/pyproject.toml backend/src
 backend/.venv/bin/python -m pytest backend/tests
 backend/.venv/bin/python tools/export_contracts.py --check
 cd app
@@ -62,7 +65,7 @@ dart run tool/contract_smoke.dart
 flutter build apk --debug --no-pub
 ```
 
-See [local validation notes](docs/development.md#foundation-validation) for checks actually run and environment restrictions. CI configuration exists but has not run on a remote repository yet.
+See [local validation notes](docs/development.md#verification-record) for checks actually run and their limits. CI configuration exists but has not run on a remote repository yet.
 
 ## Project layout
 
@@ -78,4 +81,3 @@ tools/               Contract exporter and local Flutter wrapper
 ```
 
 Provider keys, service accounts and signing keys stay outside source control. No patient or student credentials are needed to run the foundation contracts and tests.
-

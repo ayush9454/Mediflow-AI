@@ -1,0 +1,35 @@
+{
+  "analysisId": "analysis_1",
+  "createdAt": "2026-10-20T10:00:00Z",
+  "issues": [],
+  "jobId": "job_1",
+  "provenance": {
+    "modelProvider": "fixture-only",
+    "modelVersion": "not-a-model-result",
+    "pipelineVersion": "foundation",
+    "promptVersion": "not-configured"
+  },
+  "reportId": "report_1",
+  "rows": [
+    {
+      "abnormalityFlag": null,
+      "analyte": "Synthetic Marker",
+      "collectionDate": null,
+      "evidence": [
+        {
+          "extractionMethod": "native",
+          "page": 1,
+          "quotation": "Synthetic Marker <0.50 SYN-U 0.00–1.00"
+        }
+      ],
+      "issues": [],
+      "referenceRange": "0.00–1.00",
+      "result": "<0.50",
+      "rowId": "row_1",
+      "unit": "SYN-U"
+    }
+  ],
+  "schemaVersion": "1.0",
+  "summary": "One synthetic laboratory row was extracted.",
+  "version": 1
+}

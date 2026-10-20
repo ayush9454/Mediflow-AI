@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Mobile clients use the authorized API. Trusted Admin SDK calls bypass rules.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
