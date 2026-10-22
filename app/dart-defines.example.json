@@ -1,4 +1,5 @@
 {
   "API_BASE_URL": "",
-  "ENABLE_ROLE_PREVIEW": true
+  "ENABLE_ROLE_PREVIEW": true,
+  "FIREBASE_API_KEY": ""
 }

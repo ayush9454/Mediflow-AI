@@ -1589,7 +1589,7 @@
     }
   },
   "info": {
-    "description": "Synthetic laboratory document workflow. Foundation build: liveness and contracts are available; authentication, storage, queue and AI adapters are not connected.",
+    "description": "Synthetic laboratory document workflow. Foundation build: liveness and contracts are available. Firebase authorization is configurable; document workflows are pending.",
     "title": "MediFlow AI API",
     "version": "0.1.0"
   },

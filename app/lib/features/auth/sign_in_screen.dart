@@ -7,12 +7,33 @@ import '../../core/config/app_config.dart';
 import '../../core/contracts/contracts.g.dart';
 import '../../core/theme/app_theme.dart';
 import 'preview_controller.dart';
+import 'session.dart';
 
-class SignInScreen extends ConsumerWidget {
+class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
+  @override
+  ConsumerState<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends ConsumerState<SignInScreen> {
+  final email = TextEditingController();
+  final password = TextEditingController();
+  @override
+  void dispose() {
+    email.dispose();
+    password.clear();
+    password.dispose();
+    super.dispose();
+  }
+
+  Future<void> submit() async {
+    final secret = password.text;
+    password.clear();
+    await ref.read(sessionProvider.notifier).signIn(email.text, secret);
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
+  Widget build(BuildContext context) => Scaffold(
     body: SafeArea(
       child: Center(
         child: ConstrainedBox(
@@ -106,16 +127,23 @@ class SignInScreen extends ConsumerWidget {
                         'Use the account provided by your hospital administrator.',
                       ),
                       const SizedBox(height: 20),
-                      const TextField(
-                        enabled: false,
+                      TextField(
+                        controller: email,
+                        enabled: !ref.watch(sessionProvider).busy,
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
                         decoration: InputDecoration(
                           labelText: 'Email address',
                           prefixIcon: Icon(Icons.mail_outline),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const TextField(
-                        enabled: false,
+                      TextField(
+                        controller: password,
+                        enabled: !ref.watch(sessionProvider).busy,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        onSubmitted: (_) => submit(),
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -123,14 +151,16 @@ class SignInScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const FilledButton(
-                        onPressed: null,
+                      FilledButton(
+                        onPressed: ref.watch(sessionProvider).busy
+                            ? null
+                            : submit,
                         child: Text('Sign in'),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Account access is being set up. Sign-in is not available in this foundation build.',
-                      ),
+                      if (ref.watch(sessionProvider).message
+                          case final message?)
+                        Text(message, key: const Key('session-message')),
                     ],
                   ),
                 ),
