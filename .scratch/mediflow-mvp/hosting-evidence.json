@@ -1,0 +1,86 @@
+{
+  "checkedAtUtc": "2026-10-20T19:21:54.258899+00:00",
+  "region": "centralindia",
+  "syntheticOnly": true,
+  "laptopOffAndroidTest": {
+    "status": "passed",
+    "evidenceSource": "account-owner report after instructed physical Android/laptop-off test",
+    "serverTimeUtc": "2026-10-20T19:34:35.415060+00:00",
+    "receipt": "bead827307388142"
+  },
+  "healthStatus": 200,
+  "missingCredentialStatus": 401,
+  "wrongCredentialStatus": 401,
+  "authenticatedProbeStatus": 200,
+  "authenticatedProbe": true,
+  "enqueueStatus": 200,
+  "anonymousBlobDefaultVersionStatus": 409,
+  "anonymousBlobDefaultVersionError": "PublicAccessNotPermitted",
+  "anonymousBlobStatus": 401,
+  "anonymousBlobError": "NoAuthenticationInformation",
+  "completionState": "completed",
+  "completionHashMatches": true,
+  "completedAtUtc": "2026-10-20T19:21:19.697026+00:00",
+  "durableReceiptStable": true,
+  "hostedExecutionStatuses": [
+    "Succeeded"
+  ],
+  "apiScale": {
+    "cooldownPeriod": 300,
+    "maxReplicas": 1,
+    "minReplicas": 0,
+    "pollingInterval": 30,
+    "rules": [
+      {
+        "http": {
+          "metadata": {
+            "concurrentRequests": "1"
+          }
+        },
+        "name": "http"
+      }
+    ]
+  },
+  "jobTriggerType": "Event",
+  "jobMaxExecutions": 1,
+  "jobRetryLimit": 0,
+  "jobTimeoutSeconds": 180,
+  "passed": true,
+  "spendingLimit": "On",
+  "studentCreditExpiresOn": "2027-10-20",
+  "environmentMode": "WorkloadProfiles",
+  "environmentConsumptionCoreQuota": 100,
+  "temporaryResourceTypes": [
+    "Microsoft.App/managedEnvironments",
+    "Microsoft.App/containerApps",
+    "Microsoft.App/jobs",
+    "Microsoft.Storage/storageAccounts",
+    "Microsoft.ManagedIdentity/userAssignedIdentities"
+  ],
+  "unexpectedExpressEnvironmentRemoved": true,
+  "runtimeSha256": "be17fc1a0b9f7e309780412addc30f37f67939a21b04e176597b16975e663ac1",
+  "geminiSyntheticCheck": {
+    "model": "gemini-3.5-flash-lite",
+    "httpStatus": 200,
+    "exactSyntheticFieldsMatch": true,
+    "promptTokens": 63,
+    "outputTokens": 41
+  },
+  "firebaseSparkVerified": true,
+  "geminiNumericQuotaVerified": true,
+  "temporaryResourcesDeleted": true,
+  "googleCloudBillingEnabled": false,
+  "googleBillingAccountLinked": false,
+  "geminiModelQuotas": {
+    "model": "gemini-3.5-flash-lite",
+    "requestsPerMinute": 15,
+    "inputTokensPerMinute": 250000,
+    "requestsPerDay": 500,
+    "source": "owner-authorized Service Usage API, model-specific free-tier effective limits"
+  },
+  "finalSourceRuntimeSha256": "1f5051b12c486e55bfb4587913635de1a2ab98b7cfa552374ef6c77b94b5bd55",
+  "finalSourceRuntimeAstMatchesDeployed": true,
+  "temporaryResourceGroupExists": false,
+  "cleanupVerifiedAtUtc": "2026-10-20T20:03:51.201818+00:00",
+  "firebaseProjectRetained": true
+}

@@ -16,7 +16,7 @@ The foundation includes:
 
 Authentication, report upload, cloud adapters, OCR, AI extraction and clinical review are **not connected yet**. Preview selection never authenticates a user or loads patient records. Release builds cannot enable role previews.
 
-Azure student credit was verified in the signed-in portal: USD100 remaining, expiry 20 October 2027, USD0 usage at the time of inspection. Regional quotas, spending protection and the hosted processing slice remain to be verified. No cloud resources were deployed during the foundation work.
+The issue-01 synthetic hosting probe verified protected Azure student access, Central India capacity, authenticated HTTPS, private Blob access and an automatic queue-triggered job. The owner reported a successful Android request with the laptop off. Firebase Spark and Gemini Free access/quotas are verified; the temporary Azure resources were deleted and group absence was verified. See [hosting evidence](.scratch/mediflow-mvp/hosting-evidence.json) and [cost/expiry notes](.scratch/mediflow-mvp/hosting-costs.md). This probe does not connect or deploy the application workflows above.
 
 ## Quick start
 
@@ -56,6 +56,7 @@ backend/.venv/bin/ruff format --check --config backend/pyproject.toml backend to
 backend/.venv/bin/ruff check --config backend/pyproject.toml backend tools
 backend/.venv/bin/mypy --config-file backend/pyproject.toml backend/src
 backend/.venv/bin/python -m pytest backend/tests
+backend/.venv/bin/python -m unittest discover -s tools/hosting_spike -p 'test_*.py'
 backend/.venv/bin/python tools/export_contracts.py --check
 cd app
 dart format --output=none --set-exit-if-changed lib test tool

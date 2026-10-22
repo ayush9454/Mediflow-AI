@@ -35,6 +35,8 @@ jobs:
         run: backend/.venv/bin/python -m compileall -q backend/src tools
       - name: Test contracts, safe API errors and fail-closed adapters
         run: backend/.venv/bin/python -m pytest backend/tests
+      - name: Test hosting probe authentication and cloud guards
+        run: backend/.venv/bin/python -m unittest discover -s tools/hosting_spike -p 'test_*.py'
       - name: Check generated contracts
         run: backend/.venv/bin/python tools/export_contracts.py --check
 

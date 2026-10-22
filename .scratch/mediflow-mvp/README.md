@@ -15,7 +15,7 @@ This directory records the shared understanding confirmed by the user. The origi
 
 | Ticket | Work | Status | Blocked by |
 | --- | --- | --- | --- |
-| [01](issues/01-verify-student-hosting.md) | Verify student hosting and deploy a minimal cloud slice | ready-for-human | None |
+| [01](issues/01-verify-student-hosting.md) | Verify student hosting and deploy a minimal cloud slice | completed | None |
 | [02](issues/02-foundation-contracts-ci.md) | App/backend foundation, contracts, and checks | completed | None |
 | [03](issues/03-synthetic-dataset-evaluation.md) | Synthetic documents, annotations, and evaluation harness | completed | 02 |
 | [04](issues/04-authentication-authorization.md) | Authentication, seeded accounts, and permissions | ready-for-agent | 02 |
@@ -31,7 +31,7 @@ This directory records the shared understanding confirmed by the user. The origi
 | [14](issues/14-release-evaluation-hardening.md) | Held-out evaluation and release verification | ready-for-agent | 03, 07, 08, 10, 11, 12, 13 |
 | [15](issues/15-android-release-handoff.md) | Signed APK, documentation, and recorded demonstration | ready-for-agent | 01, 14 |
 
-A readiness label describes whether the ticket is specified for its intended implementer. It does not override dependencies: start a ticket only when every listed blocker is completed. Review the acceptance criteria before marking work complete. Tickets 02 and 03 are complete, so tickets 04 and 07 are unblocked. Ticket 01 remains in progress; other tickets remain unimplemented. Its cloud-feasibility gate still blocks cloud-dependent work.
+A readiness label describes whether the ticket is specified for its intended implementer. It does not override dependencies: start a ticket only when every listed blocker is completed. Review the acceptance criteria before marking work complete. Tickets 01, 02 and 03 are complete; tickets 04 and 07 are unblocked. Other tickets remain unimplemented. Tickets 05/06 still require 04, and ticket 15 still requires 14; completing the hosting probe does not complete those features.
 
 ## Design tree
 
@@ -40,7 +40,7 @@ College demonstration; synthetic records; ₹0
 ├── Delivery: Android APK shared free with classmates/examiners
 │   └── One APK, three role-specific experiences
 ├── Availability: hosted backend; laptop may be off
-│   ├── Azure student benefits; activation and quotas to verify
+│   ├── Azure student benefits verified; track credit expiry and quotas
 │   ├── Cold starts accepted
 │   └── Stop at allowance/credit exhaustion; no paid upgrade
 ├── Mandatory workflow: one laboratory PDF → one case

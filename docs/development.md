@@ -101,4 +101,6 @@ The previous restricted-session socket, package-download and Git-write limitatio
 
 Student activation was verified on 2026-10-20: USD100 credit available, expiry 20 October 2027, and displayed October costs USD0.00. No account/subscription identifiers or personal details are recorded.
 
-Spending protection, regional quotas, private Blob access, queue-triggered job execution, resource cost estimates and laptop-off HTTPS access remain ticket 01 gates. The foundation does not establish cloud readiness or perform a deployment.
+Ticket 01's isolated synthetic probe verified spending protection On, Central India capacity (100 Consumption-core quota), authenticated HTTPS, denied anonymous Blob access and automatic queue-triggered completion. The owner reported the physical Android/laptop-off request succeeded. Firebase is ACTIVE on Spark with no linked Cloud Billing account; Gemini 3.5 Flash-Lite's model-specific Free limits are 15 requests/minute, 250,000 input tokens/minute and 500 requests/day. Temporary Azure teardown is complete and group absence was verified; Firebase remains for authentication work in ticket 04.
+
+See [sanitized evidence](../.scratch/mediflow-mvp/hosting-evidence.json), [costs and expiry](../.scratch/mediflow-mvp/hosting-costs.md) and [probe deployment/cleanup commands](../tools/hosting_spike/README.md). The probe uses its own temporary test credential and fixed object. The actual application still requires real Firebase verification, storage/queue adapters and processing; readiness remains fail-closed.
