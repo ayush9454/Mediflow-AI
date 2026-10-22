@@ -24,7 +24,7 @@ jobs:
       - name: Install backend and test dependencies
         run: |
           python -m pip install uv==0.13.4
-          uv sync --project backend --locked --extra dev
+          uv sync --project backend --locked --extra dev --extra evaluation
       - name: Check Python formatting and lint
         run: |
           backend/.venv/bin/ruff format --check --config backend/pyproject.toml backend tools

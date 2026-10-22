@@ -1,0 +1,1176 @@
+[
+  {
+    "document_id": "dev-01",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10300,
+    "layout": "table",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Hemoglobin",
+          "result": "12.30",
+          "unit": "g/dL",
+          "reference_range": "12.00-16.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-01"
+        },
+        {
+          "analyte": "WBC",
+          "result": "7.20",
+          "unit": "10^9/L",
+          "reference_range": "4.00-11.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-01"
+        },
+        {
+          "analyte": "Platelets",
+          "result": "145",
+          "unit": "10^9/L",
+          "reference_range": "150-400",
+          "abnormality_flag": "L",
+          "collection_date": "2026-09-01"
+        }
+      ],
+      [
+        {
+          "analyte": "Hematocrit",
+          "result": "38.0",
+          "unit": "%",
+          "reference_range": "36.0-46.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-01"
+        },
+        {
+          "analyte": "MCV",
+          "result": "89.2",
+          "unit": "fL",
+          "reference_range": "80.0-100.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-01"
+        },
+        {
+          "analyte": "Hemoglobin",
+          "result": "10.00",
+          "unit": "g/dL",
+          "reference_range": "12.00-16.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-01"
+        },
+        {
+          "analyte": "Hemoglobin",
+          "result": "11.00",
+          "unit": "g/dL",
+          "reference_range": "12.00-16.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-02"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-02",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10301,
+    "layout": "compact",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Glucose",
+          "result": "103.00",
+          "unit": "mg/dL",
+          "reference_range": "70.00-99.00",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-02"
+        },
+        {
+          "analyte": "Urea",
+          "result": "28.5",
+          "unit": "mg/dL",
+          "reference_range": "15.0-40.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-02"
+        },
+        {
+          "analyte": "Creatinine",
+          "result": "0.80",
+          "unit": "mg/dL",
+          "reference_range": "0.60-1.20",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-02"
+        },
+        {
+          "analyte": "Sodium",
+          "result": "139",
+          "unit": "mmol/L",
+          "reference_range": "135-145",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-02"
+        },
+        {
+          "analyte": "Potassium",
+          "result": "4.10",
+          "unit": "mmol/L",
+          "reference_range": "3.50-5.10",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-02"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-03",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10302,
+    "layout": "ledger",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "TSH",
+          "result": "<0.010",
+          "unit": "mIU/L",
+          "reference_range": "0.400-4.000",
+          "abnormality_flag": "L",
+          "collection_date": null
+        },
+        {
+          "analyte": "Free T4",
+          "result": "1.20",
+          "unit": "ng/dL",
+          "reference_range": "0.80-1.80",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-03"
+        },
+        {
+          "analyte": "Free T3",
+          "result": "3.10",
+          "unit": "pg/mL",
+          "reference_range": "2.00-4.40",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-03"
+        },
+        {
+          "analyte": "Thyroid antibody",
+          "result": "Not detected",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-03"
+        },
+        {
+          "analyte": "Comment marker",
+          "result": "Negative",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-03"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-04",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10303,
+    "layout": "table",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Urine glucose",
+          "result": "Negative",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-04"
+        },
+        {
+          "analyte": "Urine protein",
+          "result": "Trace",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-04"
+        },
+        {
+          "analyte": "Urine pH",
+          "result": "6.0",
+          "unit": null,
+          "reference_range": "5.0-8.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-04"
+        }
+      ],
+      [
+        {
+          "analyte": "Specific gravity",
+          "result": "1.020",
+          "unit": null,
+          "reference_range": "1.005-1.030",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-04"
+        },
+        {
+          "analyte": "Urine ketones",
+          "result": "Not detected",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-04"
+        },
+        {
+          "analyte": "Urine glucose",
+          "result": "10.00",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-01"
+        },
+        {
+          "analyte": "Urine glucose",
+          "result": "11.00",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-02"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-05",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10304,
+    "layout": "compact",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "ALT",
+          "result": "42",
+          "unit": "U/L",
+          "reference_range": "0-40",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-05"
+        },
+        {
+          "analyte": "AST",
+          "result": "31",
+          "unit": "U/L",
+          "reference_range": "0-40",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-05"
+        },
+        {
+          "analyte": "Bilirubin total",
+          "result": "0.70",
+          "unit": "mg/dL",
+          "reference_range": "0.20-1.20",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-05"
+        },
+        {
+          "analyte": "Albumin",
+          "result": "4.20",
+          "unit": "g/dL",
+          "reference_range": "3.50-5.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-05"
+        },
+        {
+          "analyte": "Alkaline phosphatase",
+          "result": "85",
+          "unit": "U/L",
+          "reference_range": "40-130",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-05"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-06",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10305,
+    "layout": "ledger",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Total cholesterol",
+          "result": "190.0",
+          "unit": "mg/dL",
+          "reference_range": "<200.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-06"
+        },
+        {
+          "analyte": "Triglycerides",
+          "result": ">500",
+          "unit": "mg/dL",
+          "reference_range": "<150",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-06"
+        },
+        {
+          "analyte": "HDL cholesterol",
+          "result": "42.0",
+          "unit": "mg/dL",
+          "reference_range": ">=40.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-06"
+        },
+        {
+          "analyte": "LDL cholesterol",
+          "result": "Not calculated",
+          "unit": "mg/dL",
+          "reference_range": null,
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-06"
+        },
+        {
+          "analyte": "Non-HDL cholesterol",
+          "result": "148.0",
+          "unit": "mg/dL",
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-06"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-07",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10306,
+    "layout": "table",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "CRP",
+          "result": "<0.50",
+          "unit": "mg/L",
+          "reference_range": "<5.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-07"
+        },
+        {
+          "analyte": "ESR",
+          "result": "21",
+          "unit": "mm/h",
+          "reference_range": "0-20",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-07"
+        },
+        {
+          "analyte": "Rheumatoid factor",
+          "result": "Negative",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-07"
+        }
+      ],
+      [
+        {
+          "analyte": "Screening marker",
+          "result": "Non-reactive",
+          "unit": null,
+          "reference_range": "Non-reactive",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-07"
+        },
+        {
+          "analyte": "Antibody titre",
+          "result": "1:80",
+          "unit": null,
+          "reference_range": "<1:80",
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-07"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-08",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10307,
+    "layout": "compact",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Glucose",
+          "result": "5.60",
+          "unit": "mmol/L",
+          "reference_range": "3.90-5.50",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-08"
+        },
+        {
+          "analyte": "Calcium",
+          "result": "9.10",
+          "unit": "mg/dL",
+          "reference_range": "8.50-10.50",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-08"
+        }
+      ],
+      [
+        {
+          "analyte": "Phosphate",
+          "result": "3.40",
+          "unit": "mg/dL",
+          "reference_range": "2.50-4.50",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-08"
+        },
+        {
+          "analyte": "Magnesium",
+          "result": "1.90",
+          "unit": "mg/dL",
+          "reference_range": "1.60-2.60",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-08"
+        }
+      ],
+      [
+        {
+          "analyte": "Chloride",
+          "result": "102",
+          "unit": "mmol/L",
+          "reference_range": "98-107",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-08"
+        },
+        {
+          "analyte": "Glucose",
+          "result": "10.00",
+          "unit": "mmol/L",
+          "reference_range": "3.90-5.50",
+          "abnormality_flag": "H",
+          "collection_date": "2026-07-01"
+        },
+        {
+          "analyte": "Glucose",
+          "result": "11.00",
+          "unit": "mmol/L",
+          "reference_range": "3.90-5.50",
+          "abnormality_flag": "H",
+          "collection_date": "2026-07-02"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-09",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10308,
+    "layout": "ledger",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Ferritin",
+          "result": "8.50",
+          "unit": "ng/mL",
+          "reference_range": "15.00-150.00",
+          "abnormality_flag": "L",
+          "collection_date": null
+        },
+        {
+          "analyte": "Iron",
+          "result": "55.0",
+          "unit": "ug/dL",
+          "reference_range": "50.0-170.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-09"
+        },
+        {
+          "analyte": "Vitamin B12",
+          "result": "305",
+          "unit": "pg/mL",
+          "reference_range": "200-900",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-09"
+        },
+        {
+          "analyte": "Folate",
+          "result": "7.20",
+          "unit": "ng/mL",
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-09"
+        },
+        {
+          "analyte": "Reticulocytes",
+          "result": "1.10",
+          "unit": "%",
+          "reference_range": "0.50-2.50",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-09"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-10",
+    "split": "development",
+    "medium": "digital",
+    "seed": 10309,
+    "layout": "table",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Culture",
+          "result": "No growth",
+          "unit": null,
+          "reference_range": "No growth",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-10"
+        },
+        {
+          "analyte": "Protein screen",
+          "result": "Not detected",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-10"
+        },
+        {
+          "analyte": "HbA1c",
+          "result": "5.80",
+          "unit": "%",
+          "reference_range": "4.00-5.60",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-10"
+        }
+      ],
+      [
+        {
+          "analyte": "Estimated marker",
+          "result": "Pending",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-10"
+        },
+        {
+          "analyte": "Sample quality",
+          "result": "Acceptable",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-10"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-11",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10310,
+    "layout": "compact",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Hemoglobin",
+          "result": "13.70",
+          "unit": "g/dL",
+          "reference_range": "12.00-16.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-11"
+        },
+        {
+          "analyte": "WBC",
+          "result": "11.20",
+          "unit": "10^9/L",
+          "reference_range": "4.00-11.00",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-11"
+        },
+        {
+          "analyte": "Platelets",
+          "result": "250",
+          "unit": "10^9/L",
+          "reference_range": "150-400",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-11"
+        },
+        {
+          "analyte": "Hematocrit",
+          "result": "41.0",
+          "unit": "%",
+          "reference_range": "36.0-46.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-11"
+        },
+        {
+          "analyte": "MCV",
+          "result": "92.0",
+          "unit": "fL",
+          "reference_range": "80.0-100.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-11"
+        },
+        {
+          "analyte": "Hemoglobin",
+          "result": "10.00",
+          "unit": "g/dL",
+          "reference_range": "12.00-16.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-01"
+        },
+        {
+          "analyte": "Hemoglobin",
+          "result": "11.00",
+          "unit": "g/dL",
+          "reference_range": "12.00-16.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-02"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-12",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10311,
+    "layout": "ledger",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Glucose",
+          "result": "88.00",
+          "unit": "mg/dL",
+          "reference_range": "70.00-99.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-12"
+        },
+        {
+          "analyte": "Urea",
+          "result": "39.0",
+          "unit": "mg/dL",
+          "reference_range": "15.0-40.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-12"
+        },
+        {
+          "analyte": "Creatinine",
+          "result": "1.25",
+          "unit": "mg/dL",
+          "reference_range": "0.60-1.20",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-12"
+        },
+        {
+          "analyte": "Sodium",
+          "result": "134",
+          "unit": "mmol/L",
+          "reference_range": "135-145",
+          "abnormality_flag": "L",
+          "collection_date": "2026-09-12"
+        },
+        {
+          "analyte": "Potassium",
+          "result": "4.80",
+          "unit": "mmol/L",
+          "reference_range": "3.50-5.10",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-12"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-13",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10312,
+    "layout": "table",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "TSH",
+          "result": "4.800",
+          "unit": "mIU/L",
+          "reference_range": "0.400-4.000",
+          "abnormality_flag": "H",
+          "collection_date": null
+        },
+        {
+          "analyte": "Free T4",
+          "result": "0.75",
+          "unit": "ng/dL",
+          "reference_range": "0.80-1.80",
+          "abnormality_flag": "L",
+          "collection_date": "2026-09-13"
+        },
+        {
+          "analyte": "Free T3",
+          "result": "2.90",
+          "unit": "pg/mL",
+          "reference_range": "2.00-4.40",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-13"
+        }
+      ],
+      [
+        {
+          "analyte": "Thyroid antibody",
+          "result": "Detected",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-13"
+        },
+        {
+          "analyte": "Comment marker",
+          "result": "Positive",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-13"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-14",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10313,
+    "layout": "compact",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Urine glucose",
+          "result": "Trace",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-14"
+        },
+        {
+          "analyte": "Urine protein",
+          "result": "Negative",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-14"
+        },
+        {
+          "analyte": "Urine pH",
+          "result": "7.5",
+          "unit": null,
+          "reference_range": "5.0-8.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-14"
+        },
+        {
+          "analyte": "Specific gravity",
+          "result": "1.010",
+          "unit": null,
+          "reference_range": "1.005-1.030",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-14"
+        },
+        {
+          "analyte": "Urine ketones",
+          "result": "Negative",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-14"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-15",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10314,
+    "layout": "ledger",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "ALT",
+          "result": "18",
+          "unit": "U/L",
+          "reference_range": "0-40",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-15"
+        },
+        {
+          "analyte": "AST",
+          "result": "22",
+          "unit": "U/L",
+          "reference_range": "0-40",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-15"
+        },
+        {
+          "analyte": "Bilirubin total",
+          "result": "1.30",
+          "unit": "mg/dL",
+          "reference_range": "0.20-1.20",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-15"
+        },
+        {
+          "analyte": "Albumin",
+          "result": "3.40",
+          "unit": "g/dL",
+          "reference_range": "3.50-5.00",
+          "abnormality_flag": "L",
+          "collection_date": "2026-09-15"
+        },
+        {
+          "analyte": "Alkaline phosphatase",
+          "result": "105",
+          "unit": "U/L",
+          "reference_range": "40-130",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-15"
+        },
+        {
+          "analyte": "ALT",
+          "result": "10.00",
+          "unit": "U/L",
+          "reference_range": "0-40",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-01"
+        },
+        {
+          "analyte": "ALT",
+          "result": "11.00",
+          "unit": "U/L",
+          "reference_range": "0-40",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-02"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-16",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10315,
+    "layout": "table",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Total cholesterol",
+          "result": "205.0",
+          "unit": "mg/dL",
+          "reference_range": "<200.0",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-16"
+        },
+        {
+          "analyte": "Triglycerides",
+          "result": "140.0",
+          "unit": "mg/dL",
+          "reference_range": "<150.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-16"
+        },
+        {
+          "analyte": "HDL cholesterol",
+          "result": "39.0",
+          "unit": "mg/dL",
+          "reference_range": ">=40.0",
+          "abnormality_flag": "L",
+          "collection_date": "2026-09-16"
+        }
+      ],
+      [
+        {
+          "analyte": "LDL cholesterol",
+          "result": "120.0",
+          "unit": "mg/dL",
+          "reference_range": "<100.0",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-16"
+        },
+        {
+          "analyte": "Non-HDL cholesterol",
+          "result": "166.0",
+          "unit": "mg/dL",
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-16"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-17",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10316,
+    "layout": "compact",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "CRP",
+          "result": ">10.00",
+          "unit": "mg/L",
+          "reference_range": "<5.00",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-17"
+        },
+        {
+          "analyte": "ESR",
+          "result": "8",
+          "unit": "mm/h",
+          "reference_range": "0-20",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-17"
+        },
+        {
+          "analyte": "Rheumatoid factor",
+          "result": "Positive",
+          "unit": null,
+          "reference_range": "Negative",
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-17"
+        },
+        {
+          "analyte": "Screening marker",
+          "result": "Reactive",
+          "unit": null,
+          "reference_range": "Non-reactive",
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-17"
+        },
+        {
+          "analyte": "Antibody titre",
+          "result": "<1:40",
+          "unit": null,
+          "reference_range": "<1:80",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-17"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-18",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10317,
+    "layout": "ledger",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Glucose",
+          "result": "4.90",
+          "unit": "mmol/L",
+          "reference_range": "3.90-5.50",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-18"
+        },
+        {
+          "analyte": "Calcium",
+          "result": "10.60",
+          "unit": "mg/dL",
+          "reference_range": "8.50-10.50",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-18"
+        },
+        {
+          "analyte": "Phosphate",
+          "result": "2.40",
+          "unit": "mg/dL",
+          "reference_range": "2.50-4.50",
+          "abnormality_flag": "L",
+          "collection_date": "2026-09-18"
+        },
+        {
+          "analyte": "Magnesium",
+          "result": "2.10",
+          "unit": "mg/dL",
+          "reference_range": "1.60-2.60",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-18"
+        },
+        {
+          "analyte": "Chloride",
+          "result": "108",
+          "unit": "mmol/L",
+          "reference_range": "98-107",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-18"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-19",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10318,
+    "layout": "table",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Ferritin",
+          "result": "32.00",
+          "unit": "ng/mL",
+          "reference_range": "15.00-150.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-19"
+        },
+        {
+          "analyte": "Iron",
+          "result": "92.0",
+          "unit": "ug/dL",
+          "reference_range": "50.0-170.0",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-19"
+        },
+        {
+          "analyte": "Vitamin B12",
+          "result": "199",
+          "unit": "pg/mL",
+          "reference_range": "200-900",
+          "abnormality_flag": "L",
+          "collection_date": "2026-09-19"
+        }
+      ],
+      [
+        {
+          "analyte": "Folate",
+          "result": "4.10",
+          "unit": "ng/mL",
+          "reference_range": null,
+          "abnormality_flag": null,
+          "collection_date": "2026-09-19"
+        },
+        {
+          "analyte": "Reticulocytes",
+          "result": "2.60",
+          "unit": "%",
+          "reference_range": "0.50-2.50",
+          "abnormality_flag": "H",
+          "collection_date": "2026-09-19"
+        },
+        {
+          "analyte": "Ferritin",
+          "result": "10.00",
+          "unit": "ng/mL",
+          "reference_range": "15.00-150.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-01"
+        },
+        {
+          "analyte": "Ferritin",
+          "result": "11.00",
+          "unit": "ng/mL",
+          "reference_range": "15.00-150.00",
+          "abnormality_flag": null,
+          "collection_date": "2026-07-02"
+        }
+      ]
+    ],
+    "text_lines": []
+  },
+  {
+    "document_id": "dev-20",
+    "split": "development",
+    "medium": "scanned",
+    "seed": 10319,
+    "layout": "compact",
+    "kind": "valid",
+    "pages": [
+      [
+        {
+          "analyte": "Culture",
+          "result": "Growth detected",
+          "unit": null,
+          "reference_range": "No growth",
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-20"
+        },
+        {
+          "analyte": "Protein screen",
+          "result": "Detected",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-20"
+        },
+        {
+          "analyte": "HbA1c",
+          "result": "5.10",
+          "unit": "%",
+          "reference_range": "4.00-5.60",
+          "abnormality_flag": null,
+          "collection_date": "2026-09-20"
+        },
+        {
+          "analyte": "Estimated marker",
+          "result": "Unavailable",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-20"
+        },
+        {
+          "analyte": "Sample quality",
+          "result": "Repeat requested",
+          "unit": null,
+          "reference_range": null,
+          "abnormality_flag": "*",
+          "collection_date": "2026-09-20"
+        }
+      ]
+    ],
+    "text_lines": []
+  }
+]

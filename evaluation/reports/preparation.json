@@ -1,0 +1,22 @@
+{
+  "counts": {
+    "development": {
+      "digital": 10,
+      "scanned": 10
+    },
+    "held-out": {
+      "digital": 5,
+      "scanned": 5
+    },
+    "negative": {
+      "digital": 7,
+      "scanned": 3
+    }
+  },
+  "dataset_version": "synthetic-labs-v1",
+  "held_out_frozen": true,
+  "measured_extraction_accuracy": null,
+  "mode": "harness_check_only",
+  "provider_requests": 0,
+  "sample_count": 40
+}

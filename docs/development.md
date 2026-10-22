@@ -8,11 +8,16 @@ From the repository root:
 
 ```sh
 python3.12 -m pip install uv==0.13.4
-uv sync --project backend --locked --extra dev
+uv sync --project backend --locked --extra dev --extra evaluation
 backend/.venv/bin/python -m uvicorn mediflow.main:app --reload
 ```
 
 The backend environment template is [backend/.env.example](../backend/.env.example). Export configuration through your shell or deployment environment; the application does not implicitly load `.env` files. Never commit account keys or service-account files.
+
+The evaluation extra supplies offline synthetic PDF generation/rendering tools for
+ticket 03's tests; production installation does not need it. See the
+[benchmark guide](../evaluation/README.md) for fixture regeneration, frozen held-out
+data, scoring rules and evaluation commands. No extraction accuracy is measured yet.
 
 The liveness endpoint is `http://127.0.0.1:8000/health/live`; Swagger UI is `/api/v1/docs` and OpenAPI is `/api/v1/openapi.json`. Readiness intentionally returns 503 until working adapters exist. Protected routes return 401 without a token and 503 for token-shaped text until real Firebase verification is implemented. There is no fake authenticated account or production in-memory clinical store.
 

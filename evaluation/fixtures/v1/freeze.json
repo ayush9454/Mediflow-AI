@@ -1,0 +1,23 @@
+{
+  "authoring_note": "Initial v1 freeze after visual layout correction and font embedding; no extraction or tuning run exists.",
+  "dataset_version": "synthetic-labs-v1",
+  "definition_sha256": {
+    "development.json": "6982fb96ef8307fc97b74f4b7532cba298d43d5b8c77aaa017ec346ee1a77741",
+    "held-out.json": "6d0328da6caea88ab72a76e7e429d7fa3e2e79a9892f98d261e15c319468cb7c",
+    "negative.json": "883ecd34b157dab4fa3d737b938362aa6b31c332bf510956424e03533054a5e2"
+  },
+  "frozen_on": "2026-10-23",
+  "held_out_artifacts": {
+    "hold-01": "9674fe6dcb540b896900045aaecb766280689b06eaec1fbdd1366ef7c0f6bddd",
+    "hold-02": "62d5dede14cb228c84a04863cb527d7d046561bec5fa8b384639270c8a5389b4",
+    "hold-03": "d513c3b02c562fd89aba14f1b4b66b8a524b36e2ff46cf7e68a86facbf69e0af",
+    "hold-04": "2adb6226ba27f222f98d4cbcdbf545dd349f25048d1c16f0ae1bbcd90f2f53c1",
+    "hold-05": "92c4ffd9923f52a2a8a1eb7fcc187c2423a12b8ebbc4c609edd77947fa496afb",
+    "hold-06": "63ffcc4c915134574a62bec23287d7bfad059812749e154a0a3f662730053384",
+    "hold-07": "03221522b305a07ca4754a2e7df7d468b77a1026869a5c5d2207159b1fba1079",
+    "hold-08": "9968da26494ec5dfded9115801379f41ed3be52d093d6c7b596499be470e113f",
+    "hold-09": "c0eebd0f55f4691b315b44b1c762a3ae712542113d128a6d483068e43c736094",
+    "hold-10": "0af423fb6202ea92690bc6c0cf005acd9ad43ca42e02fd6113158cb129dcf06b"
+  },
+  "render_version": "1"
+}

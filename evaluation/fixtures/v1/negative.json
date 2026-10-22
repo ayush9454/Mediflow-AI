@@ -1,0 +1,121 @@
+[
+  {
+    "document_id": "neg-01",
+    "split": "negative",
+    "medium": "digital",
+    "seed": 20300,
+    "layout": "table",
+    "kind": "corrupt",
+    "pages": [],
+    "text_lines": []
+  },
+  {
+    "document_id": "neg-02",
+    "split": "negative",
+    "medium": "digital",
+    "seed": 20301,
+    "layout": "table",
+    "kind": "truncated",
+    "pages": [],
+    "text_lines": []
+  },
+  {
+    "document_id": "neg-03",
+    "split": "negative",
+    "medium": "scanned",
+    "seed": 20302,
+    "layout": "table",
+    "kind": "unreadable",
+    "pages": [],
+    "text_lines": []
+  },
+  {
+    "document_id": "neg-04",
+    "split": "negative",
+    "medium": "scanned",
+    "seed": 20303,
+    "layout": "table",
+    "kind": "unreadable",
+    "pages": [],
+    "text_lines": []
+  },
+  {
+    "document_id": "neg-05",
+    "split": "negative",
+    "medium": "digital",
+    "seed": 20304,
+    "layout": "table",
+    "kind": "unsupported_category",
+    "pages": [],
+    "text_lines": [
+      "SYNTHETIC RADIOLOGY REPORT",
+      "CT chest",
+      "Findings: invented teaching opacity. No laboratory table."
+    ]
+  },
+  {
+    "document_id": "neg-06",
+    "split": "negative",
+    "medium": "digital",
+    "seed": 20305,
+    "layout": "table",
+    "kind": "unsupported_category",
+    "pages": [],
+    "text_lines": [
+      "SYNTHETIC APPOINTMENT RECEIPT",
+      "Appointment: 2026-09-01",
+      "Department: teaching clinic. No laboratory results."
+    ]
+  },
+  {
+    "document_id": "neg-07",
+    "split": "negative",
+    "medium": "digital",
+    "seed": 20306,
+    "layout": "table",
+    "kind": "unsupported_language",
+    "pages": [],
+    "text_lines": [
+      "RAPPORT DE LABORATOIRE FICTIF",
+      "Patient fictif : SYNTHETIQUE-07",
+      "Glycémie 105,0 mg/dL",
+      "Résultat positif. Rapport uniquement en français."
+    ]
+  },
+  {
+    "document_id": "neg-08",
+    "split": "negative",
+    "medium": "digital",
+    "seed": 20307,
+    "layout": "table",
+    "kind": "password_protected",
+    "pages": [],
+    "text_lines": [
+      "SYNTHETIC LOCKED LABORATORY REPORT",
+      "Hemoglobin 12.00 g/dL"
+    ]
+  },
+  {
+    "document_id": "neg-09",
+    "split": "negative",
+    "medium": "scanned",
+    "seed": 20308,
+    "layout": "table",
+    "kind": "over_size",
+    "pages": [],
+    "text_lines": []
+  },
+  {
+    "document_id": "neg-10",
+    "split": "negative",
+    "medium": "digital",
+    "seed": 20309,
+    "layout": "table",
+    "kind": "over_pages",
+    "pages": [],
+    "text_lines": [
+      "SYNTHETIC LABORATORY PAGE LIMIT FIXTURE",
+      "Glucose 90.00 mg/dL"
+    ]
+  }
+]
