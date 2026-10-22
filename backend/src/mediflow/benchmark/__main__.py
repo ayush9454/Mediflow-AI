@@ -99,6 +99,8 @@ def markdown_report(report: dict[str, Any]) -> str:
                 "",
                 f"Resource observations: {result['resource_measured_documents']} documents.",
             ]
+            if result["resources"]:
+                lines.append("")
             for resource in result["resources"]:
                 lines.append(f"- {resource['name']}: {resource['amount']} {resource['unit']}")
     return "\n".join(lines) + "\n"

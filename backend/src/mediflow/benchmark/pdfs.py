@@ -20,6 +20,7 @@ from reportlab.pdfbase.ttfonts import TTFont  # type: ignore[import-untyped]
 from reportlab.pdfgen.canvas import Canvas  # type: ignore[import-untyped]
 
 from mediflow.benchmark.models import SourceDocument
+from mediflow.benchmark.page_content import compose_page
 
 RENDER_VERSION = "1"
 SCAN_RECIPES = (
@@ -59,51 +60,22 @@ def _native(document: SourceDocument) -> bytes:
     columns = (44, 178, 281, 335, 418, 445)
     widths = (130, 99, 50, 79, 23, 106)
     font = "FixtureLedger" if document.layout == "ledger" else "Fixture"
-    french = document.kind == "unsupported_language"
-    heading = (
-        "LABORATOIRE FICTIF"
-        if french
-        else {
-            "unsupported_category": "SYNTHETIC DOCUMENT",
-        }.get(document.kind, "SYNTHETIC LABORATORY")
-    )
     for page_number, rows in enumerate(pages, 1):
+        content = compose_page(document, page_number, len(pages))
         canvas.setFillColorRGB(0.10, 0.23, 0.29)
         canvas.rect(0, 746, A4[0], 96, fill=1, stroke=0)
         canvas.setFillColorRGB(1, 1, 1)
         canvas.setFont("FixtureBold", 17)
-        canvas.drawString(44, 801, heading)
+        canvas.drawString(44, 801, content.heading)
         canvas.setFont("Fixture", 10)
-        canvas.drawString(
-            44,
-            779,
-            "Exercice fictif - aucune utilisation clinique"
-            if french
-            else "Teaching fixture - invented records - no clinical use",
-        )
+        canvas.drawString(44, 779, content.subtitle)
         canvas.setFillColorRGB(0.15, 0.15, 0.15)
         canvas.setFont("Fixture", 10)
-        canvas.drawString(
-            44,
-            720,
-            f"Document: {document.document_id}   Patient: "
-            f"{'FICTIF' if french else 'SYNTHETIC'}-{document.document_id}",
-        )
-        canvas.drawString(
-            44,
-            700,
-            f"Page {page_number} / {len(pages)}"
-            if french
-            else f"Layout: {document.layout}   Source page {page_number} of {len(pages)}",
-        )
+        canvas.drawString(44, 720, content.identity)
+        canvas.drawString(44, 700, content.layout)
         canvas.setFont("FixtureBold", 8)
-        for x, label in zip(
-            columns,
-            ("Analyte", "Result", "Unit", "Printed interval", "Flag", "Collected"),
-            strict=True,
-        ):
-            if rows:
-                canvas.drawString(x, 661, label)
+        for x, label in zip(columns, content.headers, strict=False):
+            canvas.drawString(x, 661, label)
         y = 626
         spacing = 40 if document.layout == "compact" else 58
         for index, row in enumerate(rows):
@@ -123,20 +95,14 @@ def _native(document: SourceDocument) -> bytes:
                 canvas.drawString(x, y, value)
             y -= spacing
         canvas.setFont("Fixture", 11)
-        for line in document.text_lines:
+        for line in content.text_lines:
             canvas.drawString(44, y, line)
             y -= 28
         canvas.setStrokeColorRGB(0.65, 0.70, 0.72)
         canvas.line(44, 80, 551, 80)
         canvas.setFont("Fixture", 9)
-        canvas.drawString(
-            44,
-            60,
-            "Tous les noms et résultats sont fictifs."
-            if french
-            else "All names, identifiers and findings are invented for software evaluation.",
-        )
-        canvas.drawRightString(551, 40, f"{page_number} / {len(pages)}")
+        canvas.drawString(44, 60, content.footer)
+        canvas.drawRightString(551, 40, content.page_label)
         canvas.showPage()
     canvas.save()
     return buffer.getvalue()

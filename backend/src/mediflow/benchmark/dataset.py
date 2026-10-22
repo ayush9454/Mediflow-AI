@@ -10,6 +10,7 @@ from typing import Any
 from pydantic import TypeAdapter
 
 from mediflow.benchmark.models import DATASET_VERSION, Annotation, SourceDocument, Split
+from mediflow.benchmark.page_content import compose_page
 from mediflow.benchmark.pdfs import RENDER_VERSION, scan_recipe, write_pdf
 from mediflow.contracts import EvidenceReference, LaboratoryRow, ValidationIssue
 
@@ -62,7 +63,7 @@ def annotate(document: SourceDocument) -> Annotation:
     rows = []
     pages = []
     for page_number, page in enumerate(document.pages, 1):
-        pages.append("\n".join(row.quotation() for row in page))
+        pages.append(compose_page(document, page_number, len(document.pages)).transcript())
         for row_number, row in enumerate(page, 1):
             row_id = f"{document.document_id}-p{page_number}-r{row_number}"
             issues = tuple(
@@ -166,7 +167,7 @@ def prepare(output: Path, sources: Path = SOURCES) -> dict[str, Any]:
         "generator_sha256": digest(
             b"".join(
                 Path(__file__).with_name(name).read_bytes()
-                for name in ("dataset.py", "pdfs.py", "models.py")
+                for name in ("dataset.py", "pdfs.py", "models.py", "page_content.py")
             )
         ),
         "dependencies": {

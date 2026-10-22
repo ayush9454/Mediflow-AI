@@ -48,8 +48,9 @@ it does not represent the variety of real laboratory layouts.
 Valid scans are rasterized from the authored digital originals, converted to
 grayscale, rotated slightly, contrast-reduced, blurred, speckled and JPEG-compressed.
 The three bounded recipes and each seed are recorded in the generated manifest.
-Scanned PDFs have image streams and no hidden laboratory text layer. Their gold
-page text is an authoring transcript, not an OCR performance result.
+Scanned PDFs have image streams and no hidden laboratory text layer. Gold page
+transcripts include headings, table labels, rows and footers, composed from the
+same authored content used for rendering. They are not OCR performance results.
 
 | Negative IDs | Expected rejection | Construction |
 | --- | --- | --- |

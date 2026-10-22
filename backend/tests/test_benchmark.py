@@ -261,6 +261,9 @@ def test_native_annotations_match_actual_pages_and_scans_have_no_hidden_text(gen
                     not page.extract_text().strip() and len(page.images) >= 1 for page in pdf.pages
                 )
             else:
+                for number, page in enumerate(pdf.pages):
+                    expected_text = annotations[entry["document_id"]]["pages"][number]
+                    assert " ".join(expected_text.split()) == " ".join(page.extract_text().split())
                 for row in annotations[entry["document_id"]]["rows"]:
                     reference = row["evidence"][0]
                     text = " ".join(pdf.pages[reference["page"] - 1].extract_text().split())
@@ -272,6 +275,20 @@ def test_native_annotations_match_actual_pages_and_scans_have_no_hidden_text(gen
         "g/dL",
         "12.00-16.00",
     )
+
+
+def test_authentic_full_page_quotations_with_headers_are_valid_evidence(generated):
+    gold = json.loads((generated / "development" / "annotations.json").read_text())[0]
+    rows = copy.deepcopy(gold["rows"])
+    pdf = PdfReader(generated / "development" / "dev-01.pdf")
+    for row in rows:
+        evidence = row["evidence"][0]
+        evidence["quotation"] = pdf.pages[evidence["page"] - 1].extract_text()
+    group = evaluate([gold], [{"document_id": "dev-01", "outcome": "succeeded", "rows": rows}])[
+        "groups"
+    ]["development/all"]
+    assert group["strict_rows"]["correct"] == 7
+    assert group["evidence_mismatches"] == 0
 
 
 def test_negative_artifacts_exercise_real_parser_encryption_and_upload_limits(generated):
