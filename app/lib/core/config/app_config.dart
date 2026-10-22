@@ -2,7 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AppConfig {
-  const AppConfig({required this.apiBaseUrl, required this.enableRolePreview});
+  const AppConfig({
+    required this.apiBaseUrl,
+    required this.enableRolePreview,
+    this.firebaseApiKey = '',
+  });
 
   factory AppConfig.fromEnvironment() {
     const configuredUrl = String.fromEnvironment('API_BASE_URL');
@@ -26,11 +30,13 @@ class AppConfig {
     }
     return AppConfig(
       apiBaseUrl: url,
+      firebaseApiKey: const String.fromEnvironment('FIREBASE_API_KEY'),
       enableRolePreview: kDebugMode && requestedPreview,
     );
   }
 
   final Uri? apiBaseUrl;
+  final String firebaseApiKey;
   final bool enableRolePreview;
 }
 

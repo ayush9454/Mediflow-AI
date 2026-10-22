@@ -5,16 +5,38 @@ import 'package:go_router/go_router.dart';
 import '../../core/contracts/contracts.g.dart';
 import '../../core/theme/app_theme.dart';
 import '../auth/preview_controller.dart';
+import '../auth/session.dart';
 
 class WorkspaceScreen extends ConsumerStatefulWidget {
-  const WorkspaceScreen({required this.role, super.key});
+  const WorkspaceScreen({required this.role, this.preview = true, super.key});
   final Role role;
+  final bool preview;
 
   @override
   ConsumerState<WorkspaceScreen> createState() => _WorkspaceScreenState();
 }
 
-class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
+class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!widget.preview && state == AppLifecycleState.resumed) {
+      ref.read(sessionProvider.notifier).revalidate();
+    }
+  }
+
   int selectedTab = 0;
 
   @override
@@ -35,9 +57,10 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
           TextButton(
             onPressed: () {
               ref.read(previewRoleProvider.notifier).close();
+              if (!widget.preview) ref.read(sessionProvider.notifier).signOut();
               context.go('/sign-in');
             },
-            child: const Text('Leave preview'),
+            child: Text(widget.preview ? 'Leave preview' : 'Sign out'),
           ),
           const SizedBox(width: 8),
         ],
@@ -55,8 +78,10 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                     color: paleTeal,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Text(
-                    'Interface preview · no sign-in or patient data',
+                  child: Text(
+                    widget.preview
+                        ? 'Interface preview · no sign-in or patient data'
+                        : 'Synthetic demonstration · ${ref.watch(sessionProvider).account?.displayName ?? ''}',
                     style: TextStyle(
                       color: brandTeal,
                       fontWeight: FontWeight.w600,
@@ -76,11 +101,14 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                 }),
                 const SizedBox(height: 26),
                 if (selectedTab == 2)
-                  const _Panel(
+                  _Panel(
                     icon: Icons.person_outline,
-                    title: 'No signed-in account',
-                    body:
-                        'This is an interface preview. Account details will appear after secure sign-in is connected.',
+                    title: widget.preview
+                        ? 'No signed-in account'
+                        : '${ref.watch(sessionProvider).account?.displayName}',
+                    body: widget.preview
+                        ? 'This is an interface preview. Account details will appear after secure sign-in is connected.'
+                        : 'Signed in as ${role.label}. Your hospital controls account access.',
                   )
                 else if (selectedTab == 1)
                   _Panel(

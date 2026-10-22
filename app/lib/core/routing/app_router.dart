@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/preview_controller.dart';
+import '../../features/auth/session.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/workspace/workspace_screen.dart';
 import '../config/app_config.dart';
@@ -11,12 +12,17 @@ import '../contracts/contracts.g.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier(0);
   ref.listen(previewRoleProvider, (_, __) => refresh.value++);
+  ref.listen(sessionProvider, (_, __) => refresh.value++);
   final router = GoRouter(
     initialLocation: '/sign-in',
     refreshListenable: refresh,
     redirect: (context, state) {
       final path = state.uri.path;
-      if (path == '/') return '/sign-in';
+      final account = ref.read(sessionProvider).account;
+      if (path == '/' || path == '/sign-in') {
+        if (account != null) return '/${account.role.value}';
+        return path == '/' ? '/sign-in' : null;
+      }
       if (path.startsWith('/preview/')) {
         final role = ref.read(previewRoleProvider);
         if (!ref.read(appConfigProvider).enableRolePreview ||
@@ -27,7 +33,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
       // A selected preview role never authenticates a real protected route.
       if (Role.values.any((role) => path == '/${role.value}')) {
-        return '/sign-in';
+        if (account == null) return '/sign-in';
+        if (path != '/${account.role.value}') return '/${account.role.value}';
       }
       return null;
     },
@@ -42,7 +49,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       for (final role in Role.values)
         GoRoute(
           path: '/${role.value}',
-          builder: (_, __) => const SignInScreen(),
+          builder: (_, __) => WorkspaceScreen(role: role, preview: false),
         ),
     ],
   );

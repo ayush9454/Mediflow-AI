@@ -11,9 +11,11 @@ dependencies = [
   "fastapi==0.116.1",
   "pydantic==2.11.7",
   "uvicorn==0.35.0",
+  "firebase-admin>=7,<8",
 ]
 
 [project.optional-dependencies]
+processing = ["pypdf>=6,<7", "pypdfium2>=5,<6", "pillow>=12,<13"]
 evaluation = [
   "reportlab>=4.4,<5",
   "pillow>=12,<13",
@@ -57,3 +59,7 @@ warn_unused_ignores = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
+
+[[tool.mypy.overrides]]
+module = ["firebase_admin", "firebase_admin.*"]
+ignore_missing_imports = true

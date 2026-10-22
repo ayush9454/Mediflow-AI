@@ -20,6 +20,32 @@ class ApiClient {
   final Uri baseUrl;
   final http.Client _client;
 
+  Future<Account> currentAccount(String token) async {
+    try {
+      final response = await _client
+          .get(
+            baseUrl.resolve('/api/v1/me'),
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 20));
+      if (response.statusCode != 200) {
+        throw const ApiFailure('Account access is unavailable. Sign in again.');
+      }
+      return Account.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
+    } on ApiFailure {
+      rethrow;
+    } catch (_) {
+      throw const ApiFailure(
+        'Account services are unavailable. Try again shortly.',
+      );
+    }
+  }
+
   Future<HealthResponse> liveness() async {
     try {
       final response = await _client

@@ -2,9 +2,10 @@
 
 from typing import Annotated, NoReturn
 
-from fastapi import APIRouter, Depends, Header, Path, Query, Response
+from fastapi import APIRouter, Depends, Header, Path, Query, Request, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from mediflow.authorization import Authorization
 from mediflow.contracts import (
     Account,
     AssignmentRequest,
@@ -21,6 +22,7 @@ from mediflow.contracts import (
     ReprocessingRequest,
     ReviewRecord,
     ReviewRequest,
+    Role,
     UploadSession,
 )
 from mediflow.errors import ApplicationError
@@ -39,17 +41,22 @@ IdempotencyKey = Annotated[
 ResourceId = Annotated[str, Path(pattern=r"^[A-Za-z0-9_-]{1,128}$")]
 
 
+def authorization(request: Request) -> Authorization:
+    module = request.app.state.authorization
+    if module is None:
+        raise ApplicationError(
+            ErrorCode.INTEGRATION_NOT_CONFIGURED, 503, "Account verification is not configured yet."
+        )
+    return module
+
+
 async def current_account(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
 ) -> Account:
     if credentials is None:
         raise ApplicationError(ErrorCode.UNAUTHENTICATED, 401, "Sign in to continue.")
-    # A string shaped like a token is never treated as an authenticated account.
-    raise ApplicationError(
-        ErrorCode.INTEGRATION_NOT_CONFIGURED,
-        503,
-        "Account verification is not configured yet.",
-    )
+    return authorization(request).authenticate(credentials.credentials, request.state.request_id)
 
 
 router = APIRouter(
@@ -80,10 +87,12 @@ async def me(account: Account = Depends(current_account)) -> Account:
 
 @router.post("/reports", response_model=UploadSession, status_code=201, tags=["reports"])
 async def register_report(
+    request: Request,
     body: ReportRegistration,
     idempotency_key: IdempotencyKey,
     account: Account = Depends(current_account),
 ) -> UploadSession:
+    authorization(request).require_role(account, {Role.PATIENT}, request.state.request_id)
     pending()
 
 
@@ -100,9 +109,11 @@ async def register_report(
     },
 )
 async def upload_file(
+    request: Request,
     report_id: ResourceId,
     account: Account = Depends(current_account),
 ) -> Response:
+    authorization(request).report_access(account, report_id, "upload", request.state.request_id)
     pending()
 
 
@@ -113,27 +124,35 @@ async def upload_file(
     tags=["reports"],
 )
 async def complete_upload(
+    request: Request,
     report_id: ResourceId,
     body: CompletionRequest,
     idempotency_key: IdempotencyKey,
     account: Account = Depends(current_account),
 ) -> ProcessingJob:
+    authorization(request).report_access(account, report_id, "upload", request.state.request_id)
     pending()
 
 
 @router.get("/reports/{report_id}", response_model=ReportMetadata, tags=["reports"])
 async def report_metadata(
+    request: Request,
     report_id: ResourceId,
     account: Account = Depends(current_account),
 ) -> ReportMetadata:
-    pending()
+    record = authorization(request).report_access(
+        account, report_id, "metadata", request.state.request_id
+    )
+    return record
 
 
 @router.get("/reports/{report_id}/result", response_model=ReportResult, tags=["reports"])
 async def report_result(
+    request: Request,
     report_id: ResourceId,
     account: Account = Depends(current_account),
 ) -> ReportResult:
+    authorization(request).report_access(account, report_id, "result", request.state.request_id)
     pending()
 
 
@@ -146,9 +165,11 @@ async def report_result(
     },
 )
 async def original_document(
+    request: Request,
     report_id: ResourceId,
     account: Account = Depends(current_account),
 ) -> Response:
+    authorization(request).report_access(account, report_id, "document", request.state.request_id)
     pending()
 
 
@@ -159,11 +180,13 @@ async def original_document(
     tags=["reports"],
 )
 async def reprocess(
+    request: Request,
     report_id: ResourceId,
     body: ReprocessingRequest,
     idempotency_key: IdempotencyKey,
     account: Account = Depends(current_account),
 ) -> ProcessingJob:
+    authorization(request).report_access(account, report_id, "reprocess", request.state.request_id)
     pending()
 
 
@@ -171,16 +194,19 @@ async def reprocess(
     "/reports/{report_id}/review", response_model=ReviewRecord, status_code=201, tags=["reviews"]
 )
 async def review(
+    request: Request,
     report_id: ResourceId,
     body: ReviewRequest,
     idempotency_key: IdempotencyKey,
     account: Account = Depends(current_account),
 ) -> ReviewRecord:
+    authorization(request).report_access(account, report_id, "review", request.state.request_id)
     pending()
 
 
 @router.get("/cases", response_model=CasePage, tags=["cases"])
 async def list_cases(
+    request: Request,
     cursor: str | None = Query(default=None, max_length=1000),
     limit: int = Query(default=20, ge=1, le=100),
     account: Account = Depends(current_account),
@@ -190,18 +216,23 @@ async def list_cases(
 
 @router.get("/doctors", response_model=DoctorPage, tags=["cases"])
 async def list_doctors(
+    request: Request,
     cursor: str | None = Query(default=None, max_length=1000),
     limit: int = Query(default=20, ge=1, le=100),
     account: Account = Depends(current_account),
 ) -> DoctorPage:
+    authorization(request).require_role(account, {Role.ADMINISTRATOR}, request.state.request_id)
     pending()
 
 
 @router.post("/cases/{case_id}/assignment", response_model=CaseSummary, tags=["cases"])
 async def assign_case(
+    request: Request,
     case_id: ResourceId,
     body: AssignmentRequest,
     idempotency_key: IdempotencyKey,
     account: Account = Depends(current_account),
 ) -> CaseSummary:
+    authorization(request).require_role(account, {Role.ADMINISTRATOR}, request.state.request_id)
+    authorization(request).case_access(account, case_id, request.state.request_id)
     pending()

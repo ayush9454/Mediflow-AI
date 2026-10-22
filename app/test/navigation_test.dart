@@ -6,6 +6,24 @@ import 'package:mediflow_ai/core/config/app_config.dart';
 import 'package:mediflow_ai/core/contracts/contracts.g.dart';
 import 'package:mediflow_ai/core/routing/app_router.dart';
 import 'package:mediflow_ai/features/auth/preview_controller.dart';
+import 'package:mediflow_ai/features/auth/session.dart';
+
+class SeededGateway implements SessionGateway {
+  SeededGateway(this.role);
+  final Role role;
+  @override
+  Future<IdentityToken> signIn(String email, String password) async =>
+      IdentityToken('verified', DateTime.now().add(const Duration(hours: 1)));
+  @override
+  Future<Account> account(String token) async => Account(
+    uid: role.value,
+    hospitalId: 'hospital_demo',
+    displayName: 'Synthetic account',
+    role: role,
+    active: true,
+    schemaVersion: '1.0',
+  );
+}
 
 ProviderContainer container({bool preview = true}) => ProviderContainer(
   overrides: [
@@ -16,6 +34,49 @@ ProviderContainer container({bool preview = true}) => ProviderContainer(
 );
 
 void main() {
+  for (final role in Role.values) {
+    testWidgets('signed in ${role.value} reaches only its trusted role shell', (
+      tester,
+    ) async {
+      final scope = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(
+            const AppConfig(apiBaseUrl: null, enableRolePreview: false),
+          ),
+          sessionGatewayProvider.overrideWithValue(SeededGateway(role)),
+        ],
+      );
+      addTearDown(scope.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(container: scope, child: const MediFlowApp()),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(TextField).at(0),
+        'seeded@example.test',
+      );
+      await tester.enterText(
+        find.byType(TextField).at(1),
+        'synthetic-password',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.text('${role.label} workspace'), findsOneWidget);
+      scope
+          .read(appRouterProvider)
+          .go('/${role == Role.patient ? 'administrator' : 'patient'}');
+      await tester.pumpAndSettle();
+      expect(
+        scope.read(appRouterProvider).routeInformationProvider.value.uri.path,
+        '/${role.value}',
+      );
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sign in'), findsOneWidget);
+      expect(find.text('${role.label} workspace'), findsNothing);
+    });
+  }
+
   testWidgets(
     'preview navigation is explicitly labeled and does not authenticate',
     (tester) async {
@@ -33,7 +94,7 @@ void main() {
       for (final field in tester.widgetList<TextField>(
         find.byType(TextField),
       )) {
-        expect(field.enabled, isFalse);
+        expect(field.enabled, isTrue);
       }
       await tester.scrollUntilVisible(
         find.text('Patient'),

@@ -12,6 +12,7 @@ from starlette.responses import Response
 
 from mediflow import __version__
 from mediflow.api import router
+from mediflow.authorization import Authorization
 from mediflow.config import Settings
 from mediflow.contracts import ErrorCode, ErrorDetail, ErrorField, ErrorResponse, HealthResponse
 from mediflow.errors import ApplicationError
@@ -40,19 +41,29 @@ def error_response(
     )
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None, *, authorization: Authorization | None = None
+) -> FastAPI:
     application = FastAPI(
         title="MediFlow AI API",
         version=__version__,
         description=(
             "Synthetic laboratory document workflow. Foundation build: liveness and contracts "
-            "are available; authentication, storage, queue and AI adapters are not connected."
+            "are available. Firebase authorization is configurable; document workflows are pending."
         ),
         openapi_url="/api/v1/openapi.json",
         docs_url="/api/v1/docs",
         redoc_url=None,
     )
     application.state.settings = settings or Settings.from_environment()
+
+    if authorization is not None and application.state.settings.environment != "test":
+        raise ValueError("Injected authorization adapters are allowed only in tests.")
+    application.state.authorization = authorization
+    if authorization is None and application.state.settings.firebase_project_id:
+        from mediflow.firebase import create_authorization
+
+        application.state.authorization = create_authorization(application.state.settings)
 
     @application.middleware("http")
     async def request_identity(
@@ -63,6 +74,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         request.state.request_id = str(uuid4())
         response = await call_next(request)
         response.headers["X-Request-ID"] = request.state.request_id
+        if request.url.path.startswith("/api/v1/"):
+            response.headers["Cache-Control"] = "no-store"
         return response
 
     @application.exception_handler(ApplicationError)
