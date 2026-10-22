@@ -17,7 +17,7 @@ This directory records the shared understanding confirmed by the user. The origi
 | --- | --- | --- | --- |
 | [01](issues/01-verify-student-hosting.md) | Verify student hosting and deploy a minimal cloud slice | ready-for-human | None |
 | [02](issues/02-foundation-contracts-ci.md) | App/backend foundation, contracts, and checks | completed | None |
-| [03](issues/03-synthetic-dataset-evaluation.md) | Synthetic documents, annotations, and evaluation harness | ready-for-agent | 02 |
+| [03](issues/03-synthetic-dataset-evaluation.md) | Synthetic documents, annotations, and evaluation harness | completed | 02 |
 | [04](issues/04-authentication-authorization.md) | Authentication, seeded accounts, and permissions | ready-for-agent | 02 |
 | [05](issues/05-private-report-upload.md) | Private upload, verification, duplicates, and upload limits | ready-for-agent | 01, 04 |
 | [06](issues/06-durable-processing-jobs.md) | Durable jobs, queue delivery, retries, and recovery | ready-for-agent | 01, 04 |
@@ -31,7 +31,7 @@ This directory records the shared understanding confirmed by the user. The origi
 | [14](issues/14-release-evaluation-hardening.md) | Held-out evaluation and release verification | ready-for-agent | 03, 07, 08, 10, 11, 12, 13 |
 | [15](issues/15-android-release-handoff.md) | Signed APK, documentation, and recorded demonstration | ready-for-agent | 01, 14 |
 
-A readiness label describes whether the ticket is specified for its intended implementer. It does not override dependencies: start a ticket only when every listed blocker is completed. Review the acceptance criteria before marking work complete. Ticket 02 is complete, so tickets 03 and 04 are unblocked. Ticket 01 remains in progress; other tickets remain unimplemented. Its cloud-feasibility gate still blocks cloud-dependent work.
+A readiness label describes whether the ticket is specified for its intended implementer. It does not override dependencies: start a ticket only when every listed blocker is completed. Review the acceptance criteria before marking work complete. Tickets 02 and 03 are complete, so tickets 04 and 07 are unblocked. Ticket 01 remains in progress; other tickets remain unimplemented. Its cloud-feasibility gate still blocks cloud-dependent work.
 
 ## Design tree
 
