@@ -37,6 +37,14 @@ def main() -> None:
         "neg-10": "over_pages",
         "supplemental-unreadable": "unreadable",
     }
+    expected_ids = {f"dev-{index:02d}" for index in range(1, 21)}
+    expected_ids |= {f"neg-{index:02d}" for index in range(1, 11)}
+    expected_ids |= {
+        "supplemental-" + name for name in ("mixed", "overlay", "scanned", "ten-page", "unreadable")
+    }
+    ids = [document["document_id"] for document in report["documents"]]
+    if len(ids) != len(expected_ids) or set(ids) != expected_ids:
+        raise RuntimeError("Synthetic benchmark report must contain all 35 unique fixtures")
     for document in report["documents"]:
         expected_reason = expected_rejections.get(document["document_id"])
         expected_outcome = "rejected" if expected_reason else "succeeded"

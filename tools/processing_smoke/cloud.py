@@ -173,6 +173,15 @@ class Probe:
                 },
             },
         )
+        self.az(
+            "registry-provider-register",
+            "provider",
+            "register",
+            "--namespace",
+            "Microsoft.ContainerRegistry",
+            "--wait",
+            timeout=600,
+        )
         registry = self.az(
             "registry-create",
             "acr",
@@ -388,7 +397,18 @@ class Probe:
             self.docker_run("push", "push", image, timeout=1200)
         finally:
             self.docker_run("registry-logout", "logout", state["registry_server"])
-        state["image"] = image
+        repository = self.az(
+            "registry-image",
+            "acr",
+            "repository",
+            "show",
+            "--name",
+            state["registry"],
+            "--image",
+            "processing-smoke:" + state["spike_id"],
+        )
+        state["image_digest"] = repository["digest"]
+        state["image"] = state["registry_server"] + "/processing-smoke@" + repository["digest"]
         self.save("state.json", state)
         print(
             "Final integrated Linux/amd64 worker built and pushed to private registry",
@@ -409,9 +429,10 @@ class Probe:
             or properties.get("environmentMode") != "WorkloadProfiles"
         ):
             raise RuntimeError("Standard WorkloadProfiles environment is not ready")
-        if properties.get("workloadProfiles") != [
-            {"name": "Consumption", "workloadProfileType": "Consumption"}
-        ]:
+        profiles = properties.get("workloadProfiles", [])
+        if len(profiles) != 1 or any(
+            profiles[0].get(key) != "Consumption" for key in ("name", "workloadProfileType")
+        ):
             raise RuntimeError("Only a Consumption workload profile is allowed")
         identity = state["identity_id"]
         job = {
