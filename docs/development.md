@@ -8,7 +8,7 @@ From the repository root:
 
 ```sh
 python3.12 -m pip install uv==0.13.4
-uv sync --project backend --locked --extra dev --extra evaluation
+uv sync --project backend --locked --extra dev --extra evaluation --extra processing
 backend/.venv/bin/python -m uvicorn mediflow.main:app --reload
 ```
 
@@ -19,7 +19,7 @@ ticket 03's tests; production installation does not need it. See the
 [benchmark guide](../evaluation/README.md) for fixture regeneration, frozen held-out
 data, scoring rules and evaluation commands. No extraction accuracy is measured yet.
 
-The liveness endpoint is `http://127.0.0.1:8000/health/live`; Swagger UI is `/api/v1/docs` and OpenAPI is `/api/v1/openapi.json`. Readiness intentionally returns 503 until working adapters exist. Protected routes return 401 without a token and 503 for token-shaped text until real Firebase verification is implemented. There is no fake authenticated account or production in-memory clinical store.
+The liveness endpoint is `http://127.0.0.1:8000/health/live`; Swagger UI is `/api/v1/docs` and OpenAPI is `/api/v1/openapi.json`. Overall readiness remains 503 while document workflows are pending. Configure `MEDIFLOW_FIREBASE_PROJECT_ID` and backend-only Application Default Credentials for real token verification and server-owned account permissions. Missing/invalid tokens are denied; an unconfigured identity adapter fails closed. See [authentication setup and emulator checks](authentication.md).
 
 In another terminal:
 
@@ -87,7 +87,21 @@ backend/.venv/bin/python -m mediflow.worker --check-config
 
 The actual worker deliberately exits unsuccessfully until the durable queue/processing adapter exists.
 
-Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Sign-in and workflow controls are placeholders for subsequent tickets.
+Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Real sign-in requires the public `FIREBASE_API_KEY` and an API configured with Firebase/Firestore credentials. Workflow panels remain placeholders for their later tickets. Tokens and temporary clinical bytes stay in memory and are cleared on logout/account change/expiry.
+
+## PDF/OCR worker and verification
+
+Install the processing extra and Tesseract English to run real OCR tests. The API
+image omits the native OCR engine; `backend/Dockerfile.worker` installs it for the
+isolated processing module. See [processing limits and benchmark commands](document-processing.md).
+The benchmark uses only development/negative fixtures and dedicated supplements.
+Do not use the held-out set for processing heuristics or extraction tuning.
+
+CI runs native/OCR behavior tests, a container benchmark at 0.5 vCPU / 1 GiB, and
+the report gate in `tools/check_processing_report.py`. A separate Firebase job uses
+Node 24, Java 25 and the pinned Firebase CLI to exercise actual emulator token and
+Firestore-rule behavior. These tests need no production credentials. Local Android
+builds continue to use JDK 17.
 
 `API_BASE_URL` must be an origin URL without credentials, query or fragment. Local HTTP is debug-only; profile/release requires HTTPS. Android backup is disabled. Release signing remains unconfigured until ticket 15; debug signing is never used for a release. The debug APK is a foundation interface build.
 
@@ -101,6 +115,6 @@ The previous restricted-session socket, package-download and Git-write limitatio
 
 Student activation was verified on 2026-10-20: USD100 credit available, expiry 20 October 2027, and displayed October costs USD0.00. No account/subscription identifiers or personal details are recorded.
 
-Ticket 01's isolated synthetic probe verified spending protection On, Central India capacity (100 Consumption-core quota), authenticated HTTPS, denied anonymous Blob access and automatic queue-triggered completion. The owner reported the physical Android/laptop-off request succeeded. Firebase is ACTIVE on Spark with no linked Cloud Billing account; Gemini 3.5 Flash-Lite's model-specific Free limits are 15 requests/minute, 250,000 input tokens/minute and 500 requests/day. Temporary Azure teardown is complete and group absence was verified; Firebase remains for authentication work in ticket 04.
+Ticket 01's isolated synthetic probe verified spending protection On, Central India capacity (100 Consumption-core quota), authenticated HTTPS, denied anonymous Blob access and automatic queue-triggered completion. The owner reported the physical Android/laptop-off request succeeded. Firebase is ACTIVE on Spark with no linked Cloud Billing account; Gemini 3.5 Flash-Lite's model-specific Free limits are 15 requests/minute, 250,000 input tokens/minute and 500 requests/day. The probe's temporary Azure teardown is complete. Ticket 04 subsequently configured email/password, a Standard Firestore database and deny-all client rules; five synthetic live sign-ins and server-side policy checks pass. Public API configuration and owner credentials stay ignored under `.tooling/issue-4/`.
 
-See [sanitized evidence](../.scratch/mediflow-mvp/hosting-evidence.json), [costs and expiry](../.scratch/mediflow-mvp/hosting-costs.md) and [probe deployment/cleanup commands](../tools/hosting_spike/README.md). The probe uses its own temporary test credential and fixed object. The actual application still requires real Firebase verification, storage/queue adapters and processing; readiness remains fail-closed.
+See [sanitized evidence](../.scratch/mediflow-mvp/hosting-evidence.json), [costs and expiry](../.scratch/mediflow-mvp/hosting-costs.md) and [probe deployment/cleanup commands](../tools/hosting_spike/README.md). The probe uses its own temporary test credential and fixed object. The application still requires storage/queue adapters and durable workflow integration; overall readiness remains fail-closed.

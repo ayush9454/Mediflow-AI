@@ -131,3 +131,13 @@ across the run was 172,625,920 bytes (164.6 MiB), with no OOM. See
 [`page-processing.json`](../evaluation/reports/page-processing.json) for full sanitized
 observations. This establishes the local capped image's compatibility with the
 modeled allocation. Actual Azure job execution is recorded separately when verified.
+
+## Observed OCR limits
+
+Representative scanned-development and native-heading-over-raster pages were
+rendered and compared with real Tesseract output. The raster table was processed
+through OCR even when its heading had adequate native text. Observed character
+confusions included `g/dL` becoming `g/dl` and `10^9/L` becoming `10*9/L`.
+The output preserves these original OCR strings and marks OCR pages for visual
+review. This confirms the need for later field validation and doctor review;
+processing success is not an extraction-fidelity or clinical-accuracy claim.

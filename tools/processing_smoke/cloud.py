@@ -329,6 +329,9 @@ class Probe:
         smoke = context / "smoke"
         smoke.mkdir(exist_ok=True)
         shutil.copy2(Path(__file__).with_name("runtime.py"), smoke / "runtime.py")
+        shutil.copy2(
+            self.root / "tools/check_processing_report.py", smoke / "check_processing_report.py"
+        )
         shutil.copy2(self.root / "tools/hosting_spike/runtime.py", smoke / "hosting_runtime.py")
         # The source directory is generated from development+negative definitions only.
         fixtures = self.private / "fixtures"

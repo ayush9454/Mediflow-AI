@@ -1,6 +1,7 @@
 # 07: Extract bounded page text with native parsing and OCR fallback
 
 Status: in-progress
+Progress: integrated and locally verified; actual Azure job execution awaits owner reauthentication
 Type: task
 Blocked by: 03
 Estimate: 12 hours
@@ -60,3 +61,5 @@ The exact capped Linux/amd64 worker fits the allocation modeled in ticket 01. Ac
 - 2026-10-20: Created from the user-confirmed project plan. No implementation performed.
 
 - 2026-10-23: Implementation active on isolated `implement/ticket-07` worktree while ticket 04 proceeds independently. Container/resource verification is coordinated by the integration agent.
+
+- 2026-10-23: Integrated with ticket 04. Combined Linux suite: 74 passed, one opt-in emulator skip; real OCR exercised. Standards and Spec implementation reviews found no actionable findings. Azure guard stopped at owner authentication error `AADSTS530035` before mutation; no temporary resources were created. Guarded cloud build/run/collection/cleanup tooling is in `tools/processing_smoke/`. Actual Azure job acceptance remains unchecked.

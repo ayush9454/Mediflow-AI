@@ -1,7 +1,7 @@
 # 04: Implement seeded authentication and deny-by-default permissions
 
-Status: in-progress
-Progress: implementation and local verification complete; live Firebase configuration and integration review in progress
+Status: completed
+Progress: integrated, live Firebase verified, and combined implementation reviewed
 Type: task
 Blocked by: 02
 Estimate: 8 hours
@@ -59,10 +59,18 @@ Verification (2026-10-23):
 - `cd app && ../tools/flutterw analyze --no-pub`: **passed**. Full `../tools/flutterw test --no-pub`: **19 passed**, including every seeded role's sign-in navigation, logout, forbidden role deep links, REST ID-token forwarding, revoked-account revalidation, switching accounts and open-screen expiry/cache clearing.
 - `backend/.venv/bin/python tools/export_contracts.py --check`: **8 generated artifacts checked**.
 
-Remaining integration evidence: parent session is enabling/verifying the existing Spark project's Auth provider, Firestore and client deny rules, running the trusted live seed/smoke, and arranging combined Standards + Spec review before integrating. `python -m mediflow.auth_smoke --secrets-file PRIVATE_JSON` uses production settings and live Firebase services while exercising the backend through TestClient; it must not be described as verification of a publicly deployed API. No production verification claim is made here yet.
+Integration verification (2026-10-23):
+
+- Merged with ticket 07 on the current branch after separate-worktree implementation. Combined Linux suite: **74 passed, 1 opt-in emulator skip**, including real Tesseract; the emulator test separately passed. Combined backend mypy: **25 sources passed**.
+- Retained Firebase Spark with Cloud Billing disabled and no linked account, enabled email/password, created Standard Firestore and deployed deny-all mobile rules. A dedicated public auth key is restricted to Identity Toolkit and Secure Token APIs.
+- Trusted live seed and `mediflow.auth_smoke` passed using actual Firebase identities and production app settings through a local test client. A separately running local HTTP API also verified all five accounts and roles using live Firebase sign-in. No hosted production API was deployed.
+- Final Flutter suite: **19 passed**, analysis clean, debug APK built and installed/launched in Android API 35 emulator. Live server checks and widget navigation checks were separate; this does not claim manual sign-in of every role on the emulator.
+- Combined Standards and Spec reviews reported no actionable findings for the integrated implementation. Shared documentation and CI gates were updated by the integration session.
 
 ## Comments
 
 - 2026-10-20: Created from the user-confirmed project plan. No implementation performed.
 
 - 2026-10-23: Implementation and local verification recorded; live configuration and combined integration review tracked by parent session.
+
+- 2026-10-23: Live Firebase setup, deny rules, five-account HTTP smoke, integrated checks and combined review completed. Tickets 05 and 06 are now unblocked.

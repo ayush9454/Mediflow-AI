@@ -24,7 +24,9 @@ jobs:
       - name: Install backend and test dependencies
         run: |
           python -m pip install uv==0.13.4
-          uv sync --project backend --locked --extra dev --extra evaluation
+          uv sync --project backend --locked --extra dev --extra evaluation --extra processing
+      - name: Install bounded processing test engine
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng
       - name: Check Python formatting and lint
         run: |
           backend/.venv/bin/ruff format --check --config backend/pyproject.toml backend tools
@@ -39,6 +41,37 @@ jobs:
         run: backend/.venv/bin/python -m unittest discover -s tools/hosting_spike -p 'test_*.py'
       - name: Check generated contracts
         run: backend/.venv/bin/python tools/export_contracts.py --check
+      - name: Verify worker at the deployment resource envelope
+        run: |
+          backend/.venv/bin/python -m mediflow.processing fixtures evaluation/fixtures/v1 --output .tooling/processing-fixtures
+          docker build -f backend/Dockerfile.worker -t mediflow-worker backend
+          mkdir -p .tooling/processing-results
+          chmod 777 .tooling/processing-results
+          docker run --rm --network none --cpus=.5 --memory=1g --pids-limit=64 -v "$PWD/.tooling/processing-fixtures:/fixtures:ro" -v "$PWD/.tooling/processing-results:/results" mediflow-worker python -m mediflow.processing benchmark /fixtures --output /results/processing.json
+          backend/.venv/bin/python tools/check_processing_report.py .tooling/processing-results/processing.json
+
+  firebase-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Install emulator and test dependencies
+        run: |
+          python -m pip install uv==0.13.4
+          uv sync --project backend --locked --extra dev
+          npm install --global firebase-tools@15.34.0
+      - name: Verify real emulator tokens and deny-all client rules
+        run: firebase emulators:exec --config firebase.json --project demo-mediflow --only auth,firestore 'MEDIFLOW_ENV=test backend/.venv/bin/python -m pytest backend/tests/test_firebase_emulators.py'
 
   android:
     runs-on: ubuntu-latest

@@ -43,3 +43,27 @@ firebase emulators:exec --project demo-mediflow --only auth,firestore \
 This seeds synthetic identities, signs in all three roles through Auth, verifies their actual emulator ID tokens through the backend, checks direct reads/writes are denied for six collections, and verifies doctor reassignment revokes the former doctor's next request. The emulator test is explicitly skipped outside the paired emulators. Emulator adapters require `test`, both host variables and a `demo-` project; production startup rejects emulator configuration. Injectable test authorization is accepted only by `create_app(Settings(environment="test"), ...)`, with no environment switch to enable it in deployment.
 
 Firebase interfaces follow [ID-token verification](https://firebase.google.com/docs/auth/admin/verify-id-tokens) and [email/password REST authentication](https://firebase.google.com/docs/reference/rest/auth).
+
+## Live setup verification
+
+On 2026-10-23 the retained project was independently checked before and after setup:
+Cloud Billing disabled, no linked billing account, Spark retained. Auth was initialized
+through the Firebase console, email/password enabled, and the default Standard
+Firestore database created in `asia-south1` with deny-all client rules deployed.
+A dedicated API key is restricted to Identity Toolkit and Secure Token APIs; the
+Gemini key is not reused in the app.
+
+Five entirely synthetic accounts were seeded. The live smoke command below verifies
+actual Firebase sign-ins/tokens, trusted roles, ownership/assignment/admin clinical
+denials, forged-token rejection and direct Firestore denial. It runs the production
+app configuration through a local HTTP test client, not a hosted backend endpoint:
+
+```sh
+backend/.venv/bin/python -m mediflow.auth_smoke --secrets-file /private/path/accounts.json
+```
+
+Set `MEDIFLOW_FIREBASE_PROJECT_ID`, `MEDIFLOW_FIREBASE_API_KEY` and trusted ADC for
+that command. Private local credentials/settings/passwords are retained only under
+ignored `.tooling/issue-4/`. They are not CI inputs or APK assets. Local owner ADC is
+for bootstrap/verification; a deployed backend must use its own restricted service
+identity. No production server was deployed by ticket 04.

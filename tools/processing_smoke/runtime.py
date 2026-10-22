@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from check_processing_report import check
 from hosting_runtime import Storage
 
 
@@ -24,43 +25,7 @@ def main() -> None:
         timeout=260,
     )
     report = json.loads(Path("/tmp/processing.json").read_text())
-    memory_max = report.get("cgroup_memory_max")
-    cpu_max = (report.get("cgroup_cpu_max") or "").split()
-    if not memory_max or memory_max == "max" or not 0 < int(memory_max) <= 1_073_741_824:
-        raise RuntimeError("Expected enforced cgroup memory bound of at most 1 GiB")
-    if len(cpu_max) != 2 or cpu_max[0] == "max" or not 0 < int(cpu_max[0]) / int(cpu_max[1]) <= 0.5:
-        raise RuntimeError("Expected enforced cgroup CPU bound of at most 0.5 vCPU")
-    expected_rejections = {
-        "neg-01": "corrupt",
-        "neg-02": "corrupt",
-        "neg-03": "unreadable",
-        "neg-04": "unreadable",
-        "neg-05": "unsupported_category",
-        "neg-06": "unsupported_category",
-        "neg-07": "unsupported_language",
-        "neg-08": "encrypted",
-        "neg-09": "over_size",
-        "neg-10": "over_pages",
-        "supplemental-unreadable": "unreadable",
-    }
-    expected_ids = {f"dev-{index:02d}" for index in range(1, 21)}
-    expected_ids |= {f"neg-{index:02d}" for index in range(1, 11)}
-    expected_ids |= {
-        "supplemental-" + name for name in ("mixed", "overlay", "scanned", "ten-page", "unreadable")
-    }
-    ids = [document["document_id"] for document in report["documents"]]
-    if len(ids) != len(expected_ids) or set(ids) != expected_ids:
-        raise RuntimeError("Synthetic benchmark report must contain all 35 unique fixtures")
-    for document in report["documents"]:
-        expected_reason = expected_rejections.get(document["document_id"])
-        expected_outcome = "rejected" if expected_reason else "succeeded"
-        if document["outcome"] != expected_outcome or document["reason"] != expected_reason:
-            raise RuntimeError("Synthetic processing outcome disagrees with expected fixture")
-    ten_page = next(d for d in report["documents"] if d["document_id"] == "supplemental-ten-page")
-    if [p["page_number"] for p in ten_page["pages"]] != list(range(1, 11)):
-        raise RuntimeError("Ten-page evidence numbering mismatch")
-    if any(p["origin"] != "ocr" for p in ten_page["pages"]):
-        raise RuntimeError("Ten-page scan requires real OCR")
+    check(report)
     report["execution_location"] = "azure-container-apps-job-centralindia"
     report["synthetic_expectations_passed"] = True
     # Workload identity only: no storage keys or SAS tokens are embedded in image.
