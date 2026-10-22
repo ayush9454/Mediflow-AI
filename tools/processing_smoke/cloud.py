@@ -434,6 +434,24 @@ class Probe:
             profiles[0].get(key) != "Consumption" for key in ("name", "workloadProfileType")
         ):
             raise RuntimeError("Only a Consumption workload profile is allowed")
+        usage = self.az(
+            "environment-quotas",
+            "containerapp",
+            "env",
+            "list-usages",
+            "--name",
+            state["environment"],
+            "--resource-group",
+            state["group"],
+        )
+        rows = usage.get("value", []) if isinstance(usage, dict) else usage
+        cores = [
+            row
+            for row in rows
+            if row.get("name", {}).get("value") == "ManagedEnvironmentConsumptionCores"
+        ]
+        if not cores or cores[0]["limit"] - cores[0]["currentValue"] < 0.5:
+            raise RuntimeError("At least 0.5 available Consumption cores is required")
         identity = state["identity_id"]
         job = {
             "location": state["region"],

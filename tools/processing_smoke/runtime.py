@@ -24,6 +24,12 @@ def main() -> None:
         timeout=260,
     )
     report = json.loads(Path("/tmp/processing.json").read_text())
+    memory_max = report.get("cgroup_memory_max")
+    cpu_max = (report.get("cgroup_cpu_max") or "").split()
+    if not memory_max or memory_max == "max" or not 0 < int(memory_max) <= 1_073_741_824:
+        raise RuntimeError("Expected enforced cgroup memory bound of at most 1 GiB")
+    if len(cpu_max) != 2 or cpu_max[0] == "max" or not 0 < int(cpu_max[0]) / int(cpu_max[1]) <= 0.5:
+        raise RuntimeError("Expected enforced cgroup CPU bound of at most 0.5 vCPU")
     expected_rejections = {
         "neg-01": "corrupt",
         "neg-02": "corrupt",
