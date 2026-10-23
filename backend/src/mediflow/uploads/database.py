@@ -17,7 +17,7 @@ class Transaction(Protocol):
 
 class Database(Protocol):
     def run(self, operation: Callable[[Transaction], T]) -> T: ...
-    def expired(self, now: str, limit: int) -> list[str]: ...
+    def due(self, collection: str, field: str, now: str, limit: int) -> list[str]: ...
 
 
 class MemoryDatabase:
@@ -34,12 +34,12 @@ class MemoryDatabase:
             self.records = staged.records
             return result
 
-    def expired(self, now: str, limit: int) -> list[str]:
+    def due(self, collection: str, field: str, now: str, limit: int) -> list[str]:
         with self.lock:
             return [
                 key
-                for (collection, key), data in self.records.items()
-                if collection == "uploadSessions" and data.get("cleanupAt", "9999") <= now
+                for (stored_collection, key), data in self.records.items()
+                if stored_collection == collection and data.get(field, "9999") <= now
             ][:limit]
 
 

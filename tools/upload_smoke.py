@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 from azure.core.credentials import AccessToken
-from processing_smoke.cloud import Probe
+from azure_probe import AzureProbe
 from reportlab.pdfgen import canvas
 
 from mediflow.errors import ApplicationError
@@ -21,17 +21,9 @@ from mediflow.uploads.platform import BlobDocuments
 TAGS = {"project": "mediflow", "purpose": "issue-05-upload-smoke", "temporary": "true"}
 
 
-class UploadProbe(Probe):
+class UploadProbe(AzureProbe):
     def __init__(self, root: Path):
-        super().__init__(root, "docker", None)
-        self.private = self.root / ".tooling/issue-5/azure"
-        self.private.mkdir(parents=True, exist_ok=True)
-        self.private.chmod(0o700)
-
-    def check_group(self, state: dict[str, Any]) -> None:
-        group = self.az("ownership-check", "group", "show", "--name", state["group"])
-        if any(group.get("tags", {}).get(key) != value for key, value in TAGS.items()):
-            raise RuntimeError("Temporary upload group ownership tags do not match")
+        super().__init__(root, ".tooling/issue-5/azure", TAGS)
 
     def init(self) -> None:
         if (self.private / "state.json").exists():
@@ -148,6 +140,7 @@ class UploadProbe(Probe):
             documents.delete(key)
             documents.put(key, BytesIO(content), len(content))
             assert documents.read(key) == content, "Private bytes changed"
+            assert key in documents.keys("smoke/"), "Private prefix listing missed the object"
             response = httpx.get(
                 endpoint + "/reports/" + key,
                 headers={"x-ms-version": "2023-11-03"},
@@ -164,8 +157,10 @@ class UploadProbe(Probe):
             documents.delete(key)
             exists = documents.container.get_blob_client(key).exists(timeout=10)
             assert not exists, "Temporary blob remains"
+            assert key not in documents.keys("smoke/"), "Deleted object remains in prefix listing"
             report = {
                 "privateUploadDownload": True,
+                "boundedPrefixListing": True,
                 "anonymousStatus": response.status_code,
                 "overwriteDenied": True,
                 "originalPreserved": True,

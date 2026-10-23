@@ -88,7 +88,8 @@ per patient and twenty per hospital (at most 200 MB of pending source bytes per
 hospital). Supplemental reservation limits are twenty per patient and one hundred
 per hospital per UTC day, including invalid and duplicate registrations; these
 bound reservation/audit churn without charging another verified slot. New keys
-count toward admission; retries with the same key do not.
+count toward admission; retries with the same key do not. Daily prefix rechecks keep their Firestore
+read cost bounded; trusted scheduling is still required.
 
 ## Expiry and cleanup
 
@@ -107,7 +108,12 @@ Each call examines at most 100 expired sessions, claims them, deletes any tracke
 Blob and only then removes the provisional metadata, idempotency index and reserved
 slot. Active claims are skipped; interrupted cleanup can resume after its two-minute
 lease. Duplicate aliases are removed without deleting the canonical case or source.
-A successful verified report is never removed by orphan cleanup. Audit events use
+Each cleanup call also examines at most 100 due prefix records (at most three
+Blob keys each). Attempt keys remain tracked, and a prefix record survives
+reservation removal for 30 days; daily sweeps remove writes that finish after
+takeover or cleanup. The canonical verified object is preserved. This closes the
+late-writer race even when its metadata commit is correctly fenced. A successful
+verified report is never removed by orphan cleanup. Audit events use
 opaque IDs and contain no PDF/page text, tokens or provider payloads. Existing
 30-day audit/verified-content cleanup is consolidated in ticket 13; it is not yet
 an automatically deployed schedule.
@@ -127,7 +133,8 @@ scanned/unreadable PDF case; it skips explicitly on hosts without Tesseract. Lin
 CI and the bounded integration container run it with the actual engine. Tests cover
 quota-boundary races, concurrent duplicate completion, restart recovery, uncertain
 writes, expiry, cleanup, access denial, malformed/encrypted/unsupported inputs and
-exact 10,000,000-byte / ten-page acceptance.
+exact 10,000,000-byte / ten-page acceptance, database outage recovery and
+stale storage writes arriving after cleanup.
 
 For the isolated real Azure adapter check (synthetic PDF only):
 

@@ -471,3 +471,80 @@ def test_maximum_pdf_size_and_page_count_are_accepted(setup_uploads):
         "/api/v1/reports/" + response.json()["reportId"], headers=headers()
     ).json()
     assert metadata["pageCount"] == 10
+
+
+def test_database_outage_after_blob_write_does_not_disable_future_uploads(
+    setup_uploads, monkeypatch
+):
+    from mediflow.contracts import ErrorCode
+    from mediflow.errors import ApplicationError
+
+    client, uploads, _, documents = setup_uploads
+    source = laboratory_pdf()
+    interrupted = register(client, source, key="interrupted").json()
+    other = register(client, source, key="after_recovery").json()
+    available = True
+    run = uploads.database.run
+    put = documents.put
+
+    def database_run(operation):
+        if not available:
+            raise ApplicationError(ErrorCode.TEMPORARILY_UNAVAILABLE, 503, "Try again later.")
+        return run(operation)
+
+    def write_then_database_outage(key, stream, size):
+        nonlocal available
+        put(key, stream, size)
+        available = False
+
+    monkeypatch.setattr(uploads.database, "run", database_run)
+    monkeypatch.setattr(documents, "put", write_then_database_outage)
+    assert upload(client, interrupted, source).status_code == 503
+    available = True
+    monkeypatch.setattr(documents, "put", put)
+    assert upload(client, other, source).status_code == 204
+    assert complete(client, other).status_code == 202
+
+
+def test_late_writer_after_takeover_and_cleanup_is_eventually_removed(setup_uploads, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from datetime import timedelta
+    from threading import Event
+
+    from mediflow.uploads import Uploads
+
+    client, uploads, identities, documents = setup_uploads
+    source = laboratory_pdf()
+    session = register(client, source).json()
+    entered = Event()
+    resume = Event()
+    put = documents.put
+
+    def delayed_first_put(key, stream, size):
+        if not entered.is_set():
+            entered.set()
+            assert resume.wait(20), "Test did not release delayed storage write"
+        put(key, stream, size)
+
+    monkeypatch.setattr(documents, "put", delayed_first_put)
+    current = uploads.clock()
+    replacement = Uploads(uploads.database, documents, clock=lambda: current + timedelta(minutes=7))
+    new_app = create_app(
+        Settings(environment="test"),
+        authorization=Authorization(Tokens(), identities),
+        uploads=replacement,
+    )
+    with ThreadPoolExecutor(1) as pool, TestClient(new_app) as new_client:
+        old = pool.submit(upload, client, session, source)
+        try:
+            assert entered.wait(5)
+            assert upload(new_client, session, source).status_code == 204
+            replacement.clock = lambda: current + timedelta(hours=2)
+            assert replacement.cleanup() == 1
+        finally:
+            resume.set()
+        assert old.result(timeout=10).status_code == 409
+    # A durable prefix sweep catches a write arriving after reservation removal.
+    replacement.clock = lambda: current + timedelta(days=1, hours=2)
+    replacement.cleanup()
+    assert documents.objects == {}

@@ -2,6 +2,7 @@
 
 import re
 from collections.abc import Callable
+from itertools import islice
 from typing import Any, BinaryIO
 
 from azure.core.exceptions import AzureError, ResourceNotFoundError
@@ -71,11 +72,11 @@ class FirestoreDatabase:
         except (GoogleAPICallError, ValueError):
             raise unavailable() from None
 
-    def expired(self, now: str, limit: int) -> list[str]:
+    def due(self, collection: str, field: str, now: str, limit: int) -> list[str]:
         try:
             query = (
-                self.db.collection("uploadSessions")
-                .where(filter=FieldFilter("cleanupAt", "<=", now))
+                self.db.collection(collection)
+                .where(filter=FieldFilter(field, "<=", now))
                 .limit(limit)
             )
             return [snapshot.id for snapshot in query.stream(timeout=10)]
@@ -145,6 +146,17 @@ class BlobDocuments:
             return bytes(result)
         except ResourceNotFoundError:
             raise unavailable() from None
+        except AzureError:
+            raise unavailable() from None
+
+    def keys(self, prefix: str) -> list[str]:
+        try:
+            self._private()
+            # A reservation permits at most three immutable attempt keys.
+            blobs = self.container.list_blobs(
+                name_starts_with=prefix, results_per_page=3, timeout=10
+            )
+            return [blob.name for blob in islice(blobs, 3)]
         except AzureError:
             raise unavailable() from None
 

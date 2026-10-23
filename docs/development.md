@@ -91,9 +91,9 @@ Debug builds provide clearly labeled patient, doctor and administrator previews,
 
 ## PDF/OCR worker and verification
 
-Install the processing extra and Tesseract English to run real OCR tests. The API
-image omits the native OCR engine; `backend/Dockerfile.worker` installs it for the
-isolated processing module. See [processing limits and benchmark commands](document-processing.md).
+Install the processing extra and Tesseract English to run real OCR tests. Both `backend/Dockerfile` and `backend/Dockerfile.worker` install the native OCR
+engine: the API verifies stored uploads, and the worker supplies isolated page
+processing. See [processing limits and benchmark commands](document-processing.md).
 The benchmark uses only development/negative fixtures and dedicated supplements.
 Do not use the held-out set for processing heuristics or extraction tuning.
 

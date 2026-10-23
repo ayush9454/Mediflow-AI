@@ -47,6 +47,7 @@ class Documents(Protocol):
     def put(self, key: str, source: BinaryIO, size: int) -> None: ...
     def read(self, key: str) -> bytes: ...
     def delete(self, key: str) -> None: ...
+    def keys(self, prefix: str) -> list[str]: ...
 
 
 class MemoryDocuments:
@@ -65,6 +66,9 @@ class MemoryDocuments:
 
     def delete(self, key: str) -> None:
         self.objects.pop(key, None)
+
+    def keys(self, prefix: str) -> list[str]:
+        return [key for key in self.objects if key.startswith(prefix)][:3]
 
 
 class Uploads:
@@ -109,6 +113,7 @@ class Uploads:
             "state": "pending",
             "attempts": 0,
             "objectKey": None,
+            "attemptKeys": [],
             "request": body.model_dump(mode="json", by_alias=True),
         }
 
@@ -290,15 +295,30 @@ class Uploads:
                     if current is None or current.get("token") != token:
                         raise fail(ErrorCode.CONFLICT, 409, "The upload changed. Try again.")
                     current["objectKey"] = object_key
+                    current["attemptKeys"].append(object_key)
+                    garbage = tx.get("uploadGarbage", report_id)
+                    if garbage is None:
+                        tx.put(
+                            "uploadGarbage",
+                            report_id,
+                            {
+                                "sweepAt": current["cleanupAt"],
+                                "until": (self.clock() + timedelta(days=30)).isoformat(),
+                            },
+                        )
                     tx.put("uploadSessions", report_id, current)
 
                 await run_in_threadpool(self.database.run, store_path)
                 await run_in_threadpool(self.documents.put, object_key, source, count)
                 await run_in_threadpool(self._finish_claim, report_id, token, "uploaded")
         finally:
-            if claimed:
-                await run_in_threadpool(self._release_claim, report_id, token, "writing", "pending")
-            self.stream_slot.release()
+            try:
+                if claimed:
+                    await run_in_threadpool(
+                        self._release_claim, report_id, token, "writing", "pending"
+                    )
+            finally:
+                self.stream_slot.release()
 
     def _finish_claim(self, report_id: str, token: str, state: str) -> None:
         def operation(tx: Transaction) -> None:
@@ -516,7 +536,7 @@ class Uploads:
             raise ValueError("Cleanup limit must be between 1 and 100.")
         now = self.clock()
         count = 0
-        for report_id in self.database.expired(now.isoformat(), limit):
+        for report_id in self.database.due("uploadSessions", "cleanupAt", now.isoformat(), limit):
             token = uuid4().hex
 
             def claim(
@@ -543,8 +563,8 @@ class Uploads:
             session = self.database.run(claim)
             if session is None:
                 continue
-            if session["objectKey"]:
-                self.documents.delete(session["objectKey"])
+            for object_key in session["attemptKeys"]:
+                self.documents.delete(object_key)
 
             def remove(tx: Transaction, report_id: str = report_id, token: str = token) -> None:
                 current = tx.get("uploadSessions", report_id)
@@ -563,7 +583,47 @@ class Uploads:
 
             self.database.run(remove)
             count += 1
+        self._sweep_garbage(now, limit)
         return count
+
+    def _sweep_garbage(self, now: datetime, limit: int) -> None:
+        for report_id in self.database.due("uploadGarbage", "sweepAt", now.isoformat(), limit):
+
+            def inspect(tx: Transaction, report_id: str = report_id) -> Record | None:
+                session = tx.get("uploadSessions", report_id)
+                if session is not None and session["state"] != "completed":
+                    return None
+                garbage = tx.get("uploadGarbage", report_id)
+                if garbage is None:
+                    return None
+                artifact = tx.get("sourceArtifacts", report_id)
+                return {**garbage, "keepKey": artifact["objectKey"] if artifact else None}
+
+            record = self.database.run(inspect)
+            if record is None:
+                continue
+            for object_key in self.documents.keys("reports/" + report_id + "/"):
+                if object_key != record["keepKey"]:
+                    self.documents.delete(object_key)
+
+            sweep_record = record
+
+            def reschedule(
+                tx: Transaction, report_id: str = report_id, record: Record = sweep_record
+            ) -> None:
+                if datetime.fromisoformat(record["until"]) <= now:
+                    tx.delete("uploadGarbage", report_id)
+                else:
+                    tx.put(
+                        "uploadGarbage",
+                        report_id,
+                        {
+                            "until": record["until"],
+                            "sweepAt": (now + timedelta(days=1)).isoformat(),
+                        },
+                    )
+
+            self.database.run(reschedule)
 
     @staticmethod
     def _status(tx: Transaction, report_id: str, status: str) -> None:
