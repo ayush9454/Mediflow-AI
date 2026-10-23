@@ -1,7 +1,7 @@
 # 07: Extract bounded page text with native parsing and OCR fallback
 
 Status: in-progress
-Progress: integrated and locally verified; actual Azure job execution remains pending (owner reauthentication restored during ticket 05)
+Progress: actual Azure OCR acceptance passed; temporary resource deletion confirmation pending
 Type: task
 Blocked by: 03
 Estimate: 12 hours
@@ -34,7 +34,7 @@ Native text/quote agreement is not proof of table association or medical correct
 - [x] Known low-quality/unreadable pages yield flags or explicit rejection rather than invented content.
 - [x] Ten-page inputs are exercised with measured runtime/memory; limits prevent excessive rendering/OCR consumption.
 - [x] Radiology/unsupported examples are rejected for the mandatory laboratory release.
-- [ ] The OCR container can run in the available Azure job resources established by ticket 01.
+- [x] The OCR container can run in the available Azure job resources established by ticket 01.
 
 ## Verification
 
@@ -54,7 +54,45 @@ Measured on 2026-10-23 in the actual worker image, Linux x86-64 under Rosetta on
 - Ten scanned pages: **10.71 seconds**, pages 1–10 all OCR. Aggregate container memory peak across the 35-document run: **172,625,920 bytes (164.6 MiB)**; enforced ceiling **1,073,741,824 bytes**. `cpu.max` was `50000 100000`; the container exited successfully without OOM.
 - Machine-readable observations: `evaluation/reports/page-processing.json`. This measures page processing/classification, not clinical or strict-row accuracy. Native per-process RSS observations are not aggregate memory measurements.
 
-The exact capped Linux/amd64 worker fits the allocation modeled in ticket 01. Actual Azure Job execution remains pending and is coordinated by the integration agent; do not equate the local capped-container result with an Azure deployment. Completion remains gated on recording that actual cloud compatibility observation. The durable worker entry point intentionally remains fail-closed for ticket 06.
+The initial capped Linux/amd64 run established compatibility with the modeled allocation but did not establish actual Azure execution. That operational gate was subsequently verified in the follow-up below. The durable worker was integrated by ticket 06 and remains fail-closed for the unavailable ticket-08 candidate provider.
+
+## Azure acceptance follow-up — 2026-10-24
+
+The final private Linux/amd64 worker ran as an actual Central India Consumption
+Job, pinned by image digest. Execution status was **Succeeded**, and collection
+independently checked the actual ARM allocation of **0.5 vCPU / 1 GiB** and the
+full expected-outcome report. Parallelism/completion count were one, timeout was
+300 seconds, and platform retries were zero.
+
+- All **35** allowlisted fixtures passed: 24 successful supported documents and
+  11 explicit expected rejections; no held-out fixtures were used.
+- Ten scanned pages produced OCR evidence numbered 1–10 in **10.01 seconds**.
+  Mixed native/OCR pages and native headings over scanned bodies passed.
+- The successful Azure execution exposed cgroup v1 CPU quota/period
+  `50000 100000` (a strict 0.5-core cap), a **1,073,741,824-byte** memory limit,
+  and **150,245,376 bytes (143.3 MiB)** aggregate peak memory.
+- The follow-up fixed v2-only resource reporting after a failed hosted probe.
+  Azure diagnostic runs exposed both 0.5-core and 4-core visible quotas for the
+  same requested allocation. The cloud gate permits only these observed values,
+  verifies the ARM allocation independently, and preserves the actual measured
+  quota in evidence; the offline gate still requires a strict 0.5-core cap.
+- The final offline worker passed all 35 outcomes at **0.5 cores / 1 GiB**,
+  with **189,313,024 bytes (180.5 MiB)** peak memory and **10.56 seconds** for the
+  ten-page scan. The final full Linux backend suite with real Tesseract passed
+  **115 tests**, with one opt-in Firebase emulator test skipped. Flutter: **19
+  passed**, analysis clean. Mypy: **33 sources**; Ruff lint/format, compileall,
+  eight contract artifacts, Dart contract smoke and both cloud guard tests passed.
+- Separate Standards and Spec reviews found **0 actionable findings**; see
+  [review-07.md](../review-07.md). The successful hosted run resolves their known
+  operational acceptance gate. No new unit-test seam was assumed; the existing
+  Azure acceptance command provided the failing and successful regression runs.
+
+Sanitized measurements and cleanup evidence:
+[`page-processing-azure.json`](../../../evaluation/reports/page-processing-azure.json).
+These results measure bounded page processing, not laboratory-row or clinical
+accuracy. Raw cloud responses, identities, execution IDs and credentials remain
+only in ignored private probe state. Student spending protection was verified On
+before mutation; no subscription conversion or public document access was added.
 
 ## Comments
 

@@ -1,7 +1,7 @@
 # 06: Implement durable queued jobs, bounded retries and crash recovery
 
-Status: in-progress
-Progress: implementation reviewed and verified; final Azure cleanup confirmation pending
+Status: completed
+Progress: implementation reviewed, hosted verification passed, and temporary resource deletion confirmed
 Type: task
 Blocked by: 01, 04
 Estimate: 12 hours
@@ -115,16 +115,17 @@ Verification:
 Student spending protection was verified **On** before each cloud mutation; no paid
 conversion, billing link, Marketplace service, public document access or permanent
 test credential was introduced. Temporary resource deletion and isolated Firestore
-cleanup are being verified before marking this issue completed. Production/demo
+cleanup are verified. Production/demo
 analysis remains ticket 08, and physical retention cleanup remains ticket 13.
 
-Cleanup update: the isolated Firestore namespace is verified empty, and Azure has
-removed both Jobs, registry, storage and managed identity. Only the empty temporary
-Consumption environment remains in `ScheduledForDelete`, with no provider error,
-custom VNet or separate infrastructure group. Its deletion was retried after all
-Jobs were removed. Confirm group absence with the documented `cleanup-status` stage;
-private ownership/account references remain only in ignored probe state.
+Cleanup completed on 2026-10-24: the isolated Firestore namespace is verified empty,
+and Azure confirms the entire temporary resource group is absent. The empty
+Consumption environment previously remained in `ScheduledForDelete` after the
+Jobs, registry, storage and managed identity were removed; that deletion has now
+finished. Private ownership/account references remain only in ignored probe state.
 
 ## Comments
 
 - 2026-10-20: Created from the user-confirmed project plan. No implementation performed.
+
+- 2026-10-24: While resuming ticket 07, `tools/jobs_smoke/cloud.py cleanup-status` confirmed **all temporary Azure resources deleted: True**. The ticket-06 group is absent; the previously verified empty Firestore namespace and this final Azure observation complete cleanup. All acceptance and cleanup gates are satisfied.

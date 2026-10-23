@@ -27,9 +27,9 @@ Parallel review of the integrated implementation (`0c6ba59...2ca6417`), followed
 
 The same two review ranges produced **0 actionable code findings**. Final review confirmed that documentation distinguishes local verification from deployment.
 
-One acceptance requirement remains incomplete: ticket 07, “The OCR container can run in the available Azure job resources established by ticket 01.” The Azure subscription guard returned `AADSTS530035` before mutation. **No temporary Azure resources were created.**
+At the original integration review, one acceptance requirement remained incomplete: ticket 07, “The OCR container can run in the available Azure job resources established by ticket 01.” The Azure subscription guard returned `AADSTS530035` before mutation. **No temporary Azure resources were created in that initial attempt.**
 
-## Current status and resumption
+## Original status and resumption at initial review
 
 - Ticket **04 completed**; tickets **05 and 06 are unblocked**.
 - Ticket **07 in progress**: implementation and local verification complete; actual Azure execution remains unchecked.
@@ -37,3 +37,15 @@ One acceptance requirement remains incomplete: ticket 07, “The OCR container c
 - After authentication, resume the staged commands in [the cloud smoke guide](../../tools/processing_smoke/README.md), collect successful bounded-job evidence, delete the temporary group and verify its absence before completing 07. The isolated implementation worktrees are retained for this follow-up.
 
 Summary: Standards **0 findings**; Spec **0 actionable code findings**, with **1 explicitly pending operational acceptance criterion**.
+
+## Azure follow-up — 2026-10-24
+
+Actual Azure OCR acceptance subsequently passed all 35 fixture outcomes, including
+ten scanned pages in 10.01 seconds. The successful 0.5-vCPU / 1-GiB execution
+exposed the strict 0.5-core quota and used 143.3 MiB aggregate peak memory.
+The final local capped run also passed all 35 outcomes; the full Linux backend
+suite passed 115 tests with one opt-in emulator skip. The follow-up fixed cgroup
+v1 reporting and explicitly distinguishes Azure's varying visible CPU quotas
+from its requested allocation. See [ticket 07](issues/07-pdf-ocr-evidence.md),
+[follow-up review](review-07.md) and
+[sanitized hosted evidence](../../evaluation/reports/page-processing-azure.json).

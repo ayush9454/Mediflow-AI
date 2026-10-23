@@ -56,13 +56,16 @@
     "activeProcessingLeasesPerHospital": 1
   },
   "cleanup": {
-    "status": "Azure confirmation pending",
+    "status": "completed",
     "firestoreNamespaceEmpty": true,
     "jobsRegistryStorageIdentityDeleted": true,
-    "remainingResource": "empty Consumption environment",
-    "providerState": "ScheduledForDelete",
+    "remainingResource": null,
+    "providerState": "Deleted",
     "providerReportedErrors": false,
     "customVnetConfigured": false,
-    "separateInfrastructureResourceGroup": false
+    "separateInfrastructureResourceGroup": false,
+    "temporaryResourceGroupExists": false,
+    "allTemporaryResourcesDeleted": true,
+    "checkedAt": "2026-10-23T18:30:23.471101+00:00"
   }
 }

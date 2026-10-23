@@ -143,7 +143,23 @@ The ten-page image-only PDF took 10.71 seconds; the aggregate cgroup memory peak
 across the run was 172,625,920 bytes (164.6 MiB), with no OOM. See
 [`page-processing.json`](../evaluation/reports/page-processing.json) for full sanitized
 observations. This establishes the local capped image's compatibility with the
-modeled allocation. Actual Azure job execution is recorded separately when verified.
+modeled allocation.
+
+On 2026-10-24 the final worker ran successfully as an actual Azure Central India
+Consumption Job. All 35 development/negative/supplemental outcomes passed, including
+mixed native/OCR pages, scanned bodies under native headings, and ten OCR pages
+numbered 1–10. The successful execution requested 0.5 vCPU / 1 GiB and exposed a
+strict cgroup v1 quota/period of `50000 100000`; peak aggregate memory was
+150,245,376 bytes (143.3 MiB), and the ten-page scan took 10.01 seconds.
+See [`page-processing-azure.json`](../evaluation/reports/page-processing-azure.json)
+for sanitized measurements, actual allocation and cleanup status.
+
+The same final processing implementation separately passed the offline gate with
+an enforced 0.5-core / 1-GiB limit: 35 expected outcomes, 189,313,024 bytes
+(180.5 MiB) peak memory, and 10.56 seconds for ten scanned pages. The full Linux
+backend suite with real Tesseract passed 115 tests, with one opt-in Firebase
+emulator test skipped. Neither benchmark uses held-out PDFs or measures row or
+clinical accuracy.
 
 ## Observed OCR limits
 

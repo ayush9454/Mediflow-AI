@@ -15,9 +15,10 @@ The current implementation includes:
 - Forty synthetic benchmark fixtures with independent annotations and frozen held-out data.
 - Authenticated bounded private PDF uploads, stored-byte verification, patient-scoped duplicates, atomic quotas and durable processing-job intent.
 - Isolated native PDF/OCR processing with page evidence, explicit rejection outcomes, and a worker container with bounded resources.
+- Durable queued jobs with bounded retries, crash recovery, scheduled reconciliation and fenced result commits.
 - Backend tests, Flutter contract/navigation tests, a socket-free Dart smoke check, a backend Dockerfile and GitHub Actions checks.
 
-Private uploads are implemented; see the [upload guide](docs/private-uploads.md). Durable queue/worker integration, AI row extraction and clinical review remain in later tickets. PDF/OCR processing verifies upload admission and is also available as an offline worker module. No hosted production API is deployed. Debug previews remain distinct from real sign-in. Release builds cannot enable previews.
+Private uploads and durable queue/worker integration are implemented; see the [upload guide](docs/private-uploads.md) and [jobs guide](docs/jobs.md). AI row extraction and clinical review remain in later tickets. PDF/OCR processing verifies upload admission and is also available as an offline worker module; its actual bounded Azure execution is recorded in the [PDF/OCR guide](docs/document-processing.md). The durable worker remains fail-closed until ticket 08 supplies its candidate provider. No hosted production API is deployed. Debug previews remain distinct from real sign-in. Release builds cannot enable previews.
 
 The issue-01 synthetic hosting probe verified protected Azure student access, Central India capacity, authenticated HTTPS, private Blob access and an automatic queue-triggered job. The owner reported a successful Android request with the laptop off. Firebase Spark and Gemini Free access/quotas are verified; the temporary Azure resources were deleted and group absence was verified. See [hosting evidence](.scratch/mediflow-mvp/hosting-evidence.json) and [cost/expiry notes](.scratch/mediflow-mvp/hosting-costs.md). This probe does not connect or deploy the application workflows above.
 
