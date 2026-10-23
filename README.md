@@ -13,10 +13,11 @@ The current implementation includes:
 - Pydantic models and generated Dart models for reports, evidence, laboratory rows, processing jobs, assignment and versioned review.
 - Configurable real Firebase authentication, server-owned roles and resource permissions, trusted synthetic seeding, Android sign-in/session handling and deny-by-default Firebase rules.
 - Forty synthetic benchmark fixtures with independent annotations and frozen held-out data.
+- Authenticated bounded private PDF uploads, stored-byte verification, patient-scoped duplicates, atomic quotas and durable processing-job intent.
 - Isolated native PDF/OCR processing with page evidence, explicit rejection outcomes, and a worker container with bounded resources.
 - Backend tests, Flutter contract/navigation tests, a socket-free Dart smoke check, a backend Dockerfile and GitHub Actions checks.
 
-Report upload, durable job integration, AI row extraction and clinical review remain in later tickets. PDF/OCR processing is available as an offline worker module; it is not wired into a report workflow yet. Debug previews remain distinct from real sign-in. Release builds cannot enable previews.
+Private uploads are implemented; see the [upload guide](docs/private-uploads.md). Durable queue/worker integration, AI row extraction and clinical review remain in later tickets. PDF/OCR processing verifies upload admission and is also available as an offline worker module. No hosted production API is deployed. Debug previews remain distinct from real sign-in. Release builds cannot enable previews.
 
 The issue-01 synthetic hosting probe verified protected Azure student access, Central India capacity, authenticated HTTPS, private Blob access and an automatic queue-triggered job. The owner reported a successful Android request with the laptop off. Firebase Spark and Gemini Free access/quotas are verified; the temporary Azure resources were deleted and group absence was verified. See [hosting evidence](.scratch/mediflow-mvp/hosting-evidence.json) and [cost/expiry notes](.scratch/mediflow-mvp/hosting-costs.md). This probe does not connect or deploy the application workflows above.
 
@@ -35,7 +36,7 @@ backend/.venv/bin/python -m uvicorn mediflow.main:app --reload
 The API exposes:
 
 - GET /health/live: process liveness.
-- GET /health/ready: currently 503/not_ready until actual adapters exist.
+- GET /health/ready: currently 503/not_ready while the complete processing workflow remains pending.
 - /api/v1/docs: interactive API contracts.
 - /api/v1/openapi.json: machine-readable OpenAPI.
 

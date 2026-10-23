@@ -1,0 +1,57 @@
+"""Atomic document transactions; test adapters are never environment-selected."""
+
+from collections.abc import Callable
+from copy import deepcopy
+from threading import RLock
+from typing import Any, Protocol, TypeVar
+
+T = TypeVar("T")
+Record = dict[str, Any]
+
+
+class Transaction(Protocol):
+    def get(self, collection: str, key: str) -> Record | None: ...
+    def put(self, collection: str, key: str, value: Record) -> None: ...
+    def delete(self, collection: str, key: str) -> None: ...
+
+
+class Database(Protocol):
+    def run(self, operation: Callable[[Transaction], T]) -> T: ...
+    def expired(self, now: str, limit: int) -> list[str]: ...
+
+
+class MemoryDatabase:
+    """Explicit transactional database fake for offline HTTP tests."""
+
+    def __init__(self) -> None:
+        self.records: dict[tuple[str, str], Record] = {}
+        self.lock = RLock()
+
+    def run(self, operation: Callable[[Transaction], T]) -> T:
+        with self.lock:
+            staged = MemoryTransaction(deepcopy(self.records))
+            result = operation(staged)
+            self.records = staged.records
+            return result
+
+    def expired(self, now: str, limit: int) -> list[str]:
+        with self.lock:
+            return [
+                key
+                for (collection, key), data in self.records.items()
+                if collection == "uploadSessions" and data.get("cleanupAt", "9999") <= now
+            ][:limit]
+
+
+class MemoryTransaction:
+    def __init__(self, records: dict[tuple[str, str], Record]) -> None:
+        self.records = records
+
+    def get(self, collection: str, key: str) -> Record | None:
+        return deepcopy(self.records.get((collection, key)))
+
+    def put(self, collection: str, key: str, value: Record) -> None:
+        self.records[collection, key] = deepcopy(value)
+
+    def delete(self, collection: str, key: str) -> None:
+        self.records.pop((collection, key), None)

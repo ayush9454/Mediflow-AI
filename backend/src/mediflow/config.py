@@ -10,6 +10,7 @@ class Settings:
     environment: str = "development"
     firebase_project_id: str = ""
     azure_storage_account_url: str = ""
+    azure_document_container: str = "reports"
     azure_queue_name: str = "report-processing"
     gemini_model: str = ""
 
@@ -23,6 +24,7 @@ class Settings:
             environment=os.getenv("MEDIFLOW_ENV", "development"),
             firebase_project_id=os.getenv("MEDIFLOW_FIREBASE_PROJECT_ID", ""),
             azure_storage_account_url=os.getenv("MEDIFLOW_AZURE_STORAGE_ACCOUNT_URL", ""),
+            azure_document_container=os.getenv("MEDIFLOW_AZURE_DOCUMENT_CONTAINER", "reports"),
             azure_queue_name=os.getenv("MEDIFLOW_AZURE_QUEUE_NAME", "report-processing"),
             gemini_model=os.getenv("MEDIFLOW_GEMINI_MODEL", ""),
         )

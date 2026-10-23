@@ -16,6 +16,7 @@ from mediflow.authorization import Authorization
 from mediflow.config import Settings
 from mediflow.contracts import ErrorCode, ErrorDetail, ErrorField, ErrorResponse, HealthResponse
 from mediflow.errors import ApplicationError
+from mediflow.uploads import Uploads
 
 logger = logging.getLogger(__name__)
 
@@ -42,14 +43,19 @@ def error_response(
 
 
 def create_app(
-    settings: Settings | None = None, *, authorization: Authorization | None = None
+    settings: Settings | None = None,
+    *,
+    authorization: Authorization | None = None,
+    uploads: Uploads | None = None,
 ) -> FastAPI:
     application = FastAPI(
         title="MediFlow AI API",
         version=__version__,
         description=(
             "Synthetic laboratory document workflow. Foundation build: liveness and contracts "
-            "are available. Firebase authorization is configurable; document workflows are pending."
+            "are available. Firebase authorization and bounded private PDF uploads "
+            "are configurable; "
+            "queue dispatch, AI results and review remain pending."
         ),
         openapi_url="/api/v1/openapi.json",
         docs_url="/api/v1/docs",
@@ -59,11 +65,39 @@ def create_app(
 
     if authorization is not None and application.state.settings.environment != "test":
         raise ValueError("Injected authorization adapters are allowed only in tests.")
+    if uploads is not None and application.state.settings.environment != "test":
+        raise ValueError("Injected upload adapters are allowed only in tests.")
+    application.state.uploads = uploads
     application.state.authorization = authorization
     if authorization is None and application.state.settings.firebase_project_id:
         from mediflow.firebase import create_authorization
 
         application.state.authorization = create_authorization(application.state.settings)
+
+    if uploads is None and application.state.settings.azure_storage_account_url:
+        import os
+
+        from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+
+        from mediflow.firebase import FirestoreIdentityStore
+        from mediflow.uploads.platform import BlobDocuments, FirestoreDatabase
+
+        store = getattr(application.state.authorization, "store", None)
+        if not isinstance(store, FirestoreIdentityStore):
+            raise ValueError("Azure document storage requires configured Firestore authorization.")
+        credential = (
+            ManagedIdentityCredential(client_id=os.getenv("AZURE_CLIENT_ID"))
+            if application.state.settings.environment == "production"
+            else DefaultAzureCredential(exclude_interactive_browser_credential=True)
+        )
+        application.state.uploads = Uploads(
+            FirestoreDatabase(store.db),
+            BlobDocuments(
+                application.state.settings.azure_storage_account_url,
+                application.state.settings.azure_document_container,
+                credential,
+            ),
+        )
 
     @application.middleware("http")
     async def request_identity(

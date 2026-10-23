@@ -1,6 +1,6 @@
 # 05: Implement private bounded upload, verification and duplicate detection
 
-Status: ready-for-agent
+Status: in-progress
 Type: task
 Blocked by: 01, 04
 Estimate: 8 hours

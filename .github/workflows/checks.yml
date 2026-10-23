@@ -68,10 +68,12 @@ jobs:
       - name: Install emulator and test dependencies
         run: |
           python -m pip install uv==0.13.4
-          uv sync --project backend --locked --extra dev
+          uv sync --project backend --locked --extra dev --extra evaluation --extra processing
           npm install --global firebase-tools@15.34.0
+      - name: Install OCR for upload admission tests
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng
       - name: Verify real emulator tokens and deny-all client rules
-        run: firebase emulators:exec --config firebase.json --project demo-mediflow --only auth,firestore 'MEDIFLOW_ENV=test backend/.venv/bin/python -m pytest backend/tests/test_firebase_emulators.py'
+        run: firebase emulators:exec --config firebase.json --project demo-mediflow --only auth,firestore 'MEDIFLOW_ENV=test MEDIFLOW_UPLOAD_TEST_FIRESTORE=1 backend/.venv/bin/python -m pytest backend/tests/test_firebase_emulators.py backend/tests/test_uploads.py'
 
   android:
     runs-on: ubuntu-latest
