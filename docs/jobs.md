@@ -28,6 +28,7 @@ Initial deployment bounds:
 | Missed-delivery reconciliation | 5 minutes |
 | Dispatch claim | 60 seconds |
 | Reconciler batch | 20, hard maximum 100 |
+| Active content-processing lease | 1 per hospital |
 | Manual reprocessing | 2/report/UTC day; 60-second cooldown |
 
 Configure event-driven Azure Container Apps Jobs with one replica per execution,
@@ -38,6 +39,11 @@ safe because acquisition is fenced. Queue, Blob and processing-provider SDKs mus
 disable automatic request retries; Firestore transaction retries do not execute the
 provider. Use a separate scheduled Job every five minutes for reconciliation,
 with a 120-second timeout, parallelism/completion one and platform retries zero.
+`maxExecutions` is a bound per polling interval, rather than a global mutex. A
+transactional `jobWorkerSlots` lease separately limits actual content processing to
+one run per hospital. Busy deliveries do not consume a processing attempt and are
+redispatched by reconciliation. Completion/failure releases only its own attempt's
+slot; interruption releases capacity when the lease expires.
 
 The Azure event scaler starts Jobs; the worker explicitly receives and deletes
 its message. A message is deleted only after the durable transition, or after
@@ -74,12 +80,23 @@ and `report-processing` queue before deployment. Deploy the reconciler with the
 worker: API traffic is not the recovery clock. A newly accepted report may wait up
 to the next five-minute reconciliation cycle before dispatch.
 
+For an upgrade from ticket 05, replace old API writers before starting the scheduled
+Job. Each reconciliation first adopts up to its batch limit of existing intents,
+using a persistent document-ID cursor in `jobMigrations/durable-v1`. This gives
+previously accepted jobs their missing dispatch schedule, analysis identity and
+head, without charging quotas. A transaction rechecks each intent so interruption
+or overlapping migrations cannot reset a current run. The bounded scan stops after
+all existing records are inspected; do not leave an old writer creating legacy
+intents after that point.
+
 Attempts are separate `jobAttempts` records, with start/deadline/finish times and
 safe failure codes. `jobDispatches` holds run identity, pipeline/config versions,
 lease and next dispatch/attempt times; `jobHeads` selects the current logical run.
 An atomic successful commit writes one immutable candidate, its `analysisCommits`
 attempt/config reference, the report/case processing state and a deterministic audit
 event. The original upload quota is never touched by processing/reprocessing.
+Attempt start and retry scheduling also write deterministic per-attempt audit events
+in their state-changing transactions, with run/attempt/version references.
 
 `POST /api/v1/reports/{id}/reprocess` requires the currently assigned active doctor,
 an idempotency key and `expectedLatestAnalysisId`. Send JSON null for a failed

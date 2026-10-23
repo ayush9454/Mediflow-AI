@@ -2,14 +2,14 @@
 
 import argparse
 import json
-import os
 import re
 from typing import Protocol
 
 from mediflow.config import Settings
 from mediflow.contracts import AnalysisCandidate, ErrorCode
 from mediflow.errors import ApplicationError
-from mediflow.job_queue import AzureQueue, Queue
+from mediflow.job_platform import JobServices, create_job_services
+from mediflow.job_queue import Queue
 from mediflow.jobs import Jobs, Lease
 from mediflow.uploads import Uploads
 
@@ -49,37 +49,16 @@ def execute_one(jobs: Jobs, queue: Queue, uploads: Uploads, processor: Processor
     return True
 
 
-def platform(settings: Settings) -> tuple[Jobs, AzureQueue, Uploads]:
-    from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
-
+def platform(settings: Settings) -> JobServices:
     from mediflow.firebase import FirestoreIdentityStore, create_authorization
-    from mediflow.uploads.platform import BlobDocuments, FirestoreDatabase
+    from mediflow.uploads.platform import FirestoreDatabase
 
     if not settings.firebase_project_id or not settings.azure_storage_account_url:
         raise ValueError("Configure Firebase and private Azure storage before running jobs.")
     authorization = create_authorization(settings)
     store = authorization.store
     assert isinstance(store, FirestoreIdentityStore)
-    credential = (
-        ManagedIdentityCredential(client_id=os.getenv("AZURE_CLIENT_ID"))
-        if settings.environment == "production"
-        else DefaultAzureCredential(exclude_interactive_browser_credential=True)
-    )
-    database = FirestoreDatabase(store.db)
-    queue = AzureQueue(
-        settings.azure_storage_account_url.replace(
-            ".blob.core.windows.net", ".queue.core.windows.net"
-        ),
-        settings.azure_queue_name,
-        credential,
-    )
-    uploads = Uploads(
-        database,
-        BlobDocuments(
-            settings.azure_storage_account_url, settings.azure_document_container, credential
-        ),
-    )
-    return Jobs(database, queue, deadline_seconds=settings.job_timeout_seconds), queue, uploads
+    return create_job_services(settings, FirestoreDatabase(store.db))
 
 
 def main() -> int:
@@ -104,16 +83,16 @@ def main() -> int:
     if arguments.test_adapter and settings.environment != "test":
         parser.exit(2, "The deterministic adapter is allowed only in the test environment.\n")
     try:
-        jobs, queue, uploads = platform(settings)
+        services = platform(settings)
         if arguments.reconcile:
-            print(json.dumps({"dispatched": jobs.reconcile()}))
+            print(json.dumps({"dispatched": services.jobs.reconcile()}))
         else:
             from mediflow.job_processor import SubprocessProcessor
 
             execute_one(
-                jobs,
-                queue,
-                uploads,
+                services.jobs,
+                services.queue,
+                services.uploads,
                 SubprocessProcessor(
                     environment=settings.environment, test_adapter=arguments.test_adapter
                 ),

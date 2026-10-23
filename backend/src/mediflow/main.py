@@ -54,8 +54,8 @@ def create_app(
         description=(
             "Synthetic laboratory document workflow. Foundation build: liveness and contracts "
             "are available. Firebase authorization and bounded private PDF uploads "
-            "are configurable; "
-            "queue dispatch, AI results and review remain pending."
+            "and durable queued jobs are configurable; "
+            "AI results and review remain pending."
         ),
         openapi_url="/api/v1/openapi.json",
         docs_url="/api/v1/docs",
@@ -76,43 +76,16 @@ def create_app(
         application.state.authorization = create_authorization(application.state.settings)
 
     if uploads is None and application.state.settings.azure_storage_account_url:
-        import os
-
-        from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
-
         from mediflow.firebase import FirestoreIdentityStore
-        from mediflow.uploads.platform import BlobDocuments, FirestoreDatabase
+        from mediflow.job_platform import create_job_services
+        from mediflow.uploads.platform import FirestoreDatabase
 
         store = getattr(application.state.authorization, "store", None)
         if not isinstance(store, FirestoreIdentityStore):
             raise ValueError("Azure document storage requires configured Firestore authorization.")
-        credential = (
-            ManagedIdentityCredential(client_id=os.getenv("AZURE_CLIENT_ID"))
-            if application.state.settings.environment == "production"
-            else DefaultAzureCredential(exclude_interactive_browser_credential=True)
-        )
-        application.state.uploads = Uploads(
-            FirestoreDatabase(store.db),
-            BlobDocuments(
-                application.state.settings.azure_storage_account_url,
-                application.state.settings.azure_document_container,
-                credential,
-            ),
-        )
-        from mediflow.job_queue import AzureQueue
-        from mediflow.jobs import Jobs
-
-        application.state.jobs = Jobs(
-            application.state.uploads.database,
-            AzureQueue(
-                application.state.settings.azure_storage_account_url.replace(
-                    ".blob.core.windows.net", ".queue.core.windows.net"
-                ),
-                application.state.settings.azure_queue_name,
-                credential,
-            ),
-            deadline_seconds=application.state.settings.job_timeout_seconds,
-        )
+        services = create_job_services(application.state.settings, FirestoreDatabase(store.db))
+        application.state.uploads = services.uploads
+        application.state.jobs = services.jobs
 
     @application.middleware("http")
     async def request_identity(

@@ -30,6 +30,7 @@ def accepted_job(request):
     assert response.status_code == 202
     queue = Queue()
     now = [uploads.clock()]
+    uploads.clock = lambda: now[0]
     jobs = Jobs(uploads.database, queue, clock=lambda: now[0])
     return jobs, queue, now, response.json(), setup
 
@@ -248,3 +249,84 @@ def test_configured_deadline_rejects_late_result_before_recovery_lease(accepted)
     assert not bounded.finish(lease, candidate(lease, now[0]))
     assert bounded.get(job["jobId"]).status == "queued"
     assert bounded.get(job["jobId"]).attempt_count == 1
+
+
+def test_legacy_accepted_intent_is_adopted_by_bounded_reconciliation(accepted):
+    jobs, _, _, job, _ = accepted
+
+    def legacy(tx):
+        run = tx.get("jobDispatches", job["jobId"])
+        tx.put(
+            "jobDispatches",
+            job["jobId"],
+            {
+                key: run[key]
+                for key in (
+                    "jobId",
+                    "reportId",
+                    "dispatchPending",
+                    "createdAt",
+                    "expiresAt",
+                    "pipelineVersion",
+                )
+            },
+        )
+        tx.delete("jobHeads", job["reportId"])
+
+    jobs.database.run(legacy)
+    assert jobs.reconcile(limit=1) == 1
+    lease = jobs.claim(job["jobId"])
+    assert lease is not None
+    assert lease.analysis_version == 1
+
+
+def test_late_permanent_failure_is_fenced_by_the_persisted_deadline(accepted):
+    from mediflow.contracts import ErrorCode
+
+    jobs, _, now, job, _ = accepted
+    lease = jobs.claim(job["jobId"])
+    now[0] += timedelta(seconds=331)
+    assert not jobs.fail(lease, ErrorCode.INVALID_UPLOAD)
+    assert jobs.get(job["jobId"]).status == "queued"
+    assert jobs.get(job["jobId"]).failure_code == "temporarily_unavailable"
+
+
+def test_legacy_adoption_pages_past_current_intents_without_overwriting_heads(accepted):
+    jobs, _, _, first, (client, _, _, _) = accepted
+    source = laboratory_pdf("second report")
+    session = register(client, source, key="second").json()
+    assert upload(client, session, source).status_code == 204
+    second = complete(client, session).json()
+    target = max((first, second), key=lambda job: job["jobId"])
+
+    def legacy(tx):
+        run = tx.get("jobDispatches", target["jobId"])
+        for key in (
+            "analysisId",
+            "analysisVersion",
+            "configVersion",
+            "nextDispatchAt",
+            "nextAttemptAt",
+        ):
+            run.pop(key)
+        tx.put("jobDispatches", target["jobId"], run)
+        tx.delete("jobHeads", target["reportId"])
+
+    jobs.database.run(legacy)
+    assert jobs.migrate_legacy(limit=1) == 0
+    assert jobs.migrate_legacy(limit=1) == 1
+    assert jobs.migrate_legacy(limit=1) == 0
+    assert jobs.claim(target["jobId"]) is not None
+
+
+def test_processing_capacity_is_bounded_across_distinct_jobs(accepted):
+    jobs, _, now, first, (client, _, _, _) = accepted
+    source = laboratory_pdf("another report")
+    session = register(client, source, key="second").json()
+    assert upload(client, session, source).status_code == 204
+    second = complete(client, session).json()
+    lease = jobs.claim(first["jobId"])
+    assert jobs.claim(second["jobId"]) is None
+    assert jobs.get(second["jobId"]).attempt_count == 0
+    assert jobs.finish(lease, candidate(lease, now[0]))
+    assert jobs.claim(second["jobId"]) is not None

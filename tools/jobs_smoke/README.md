@@ -20,6 +20,11 @@ backend/.venv/bin/python tools/jobs_smoke/cloud.py deploy
 backend/.venv/bin/python tools/jobs_smoke/cloud.py seed
 # Wait for the independent five-minute schedule and subsequent queue execution.
 backend/.venv/bin/python tools/jobs_smoke/cloud.py collect
+# After the initial run succeeds, exercise a new authorized run and duplicates:
+backend/.venv/bin/python tools/jobs_smoke/cloud.py reprocess
+# Wait for the replacement to succeed, then:
+backend/.venv/bin/python tools/jobs_smoke/cloud.py duplicate
+backend/.venv/bin/python tools/jobs_smoke/cloud.py collect
 ```
 
 `build-push` accepts `--docker-binary` and `--docker-host`. For a Homebrew Docker
@@ -40,6 +45,9 @@ but deliberately does not enqueue it. The hosted schedule finds the intent and
 dispatches it, and the event scaler starts the hosted worker. The laptop has no
 dispatcher/worker role after seeding. `collect` verifies durable job/candidate/attempt
 and audit counts plus a successful hosted event execution, rather than HTTP success.
+The reprocessing stage preserves the initial run and verifies an identical request
+returns the same new run. Duplicate messages must yield two additional successful
+worker executions without another candidate, attempt, quota charge or success audit.
 
 The temporary Google credential is a refreshed, short-lived owner OAuth access
 token stored only as an Azure secret and in ignored private ARM request files.

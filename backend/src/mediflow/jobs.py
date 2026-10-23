@@ -91,26 +91,98 @@ class Jobs:
 
     @staticmethod
     def _audit(tx: Transaction, run: Record, action: str, now: datetime) -> None:
+        event = asdict(
+            AuditEvent(
+                run.get("actorId"),
+                run["hospitalId"],
+                run["reportId"],
+                action,
+                "allowed",
+                run["jobId"],
+                occurred_at=now,
+                expires_at=now + timedelta(days=30),
+            )
+        )
+        event.update(
+            {
+                key: run[key]
+                for key in (
+                    "jobId",
+                    "attemptId",
+                    "analysisId",
+                    "analysisVersion",
+                    "pipelineVersion",
+                    "configVersion",
+                )
+                if key in run
+            }
+        )
+        attempt_event = action in {"processing_attempt_started", "processing_retry_scheduled"}
         tx.put(
             "auditEvents",
-            action + "_" + run["jobId"],
-            asdict(
-                AuditEvent(
-                    run.get("actorId"),
-                    run["hospitalId"],
-                    run["reportId"],
-                    action,
-                    "allowed",
-                    run["jobId"],
-                    occurred_at=now,
-                    expires_at=now + timedelta(days=30),
-                )
-            ),
+            action + "_" + (run["attemptId"] if attempt_event else run["jobId"]),
+            event,
         )
+
+    def migrate_legacy(self, limit: int = 20) -> int:
+        """Adopt ticket-05 intents after replacing old API writers; resume a bounded scan."""
+        if not 1 <= limit <= 100:
+            raise ValueError("Migration limit must be between 1 and 100.")
+        marker = self.database.run(lambda tx: tx.get("jobMigrations", "durable-v1")) or {}
+        if marker.get("done"):
+            return 0
+        page = self.database.page("jobDispatches", marker.get("after"), limit)
+        adopted = 0
+        for job_id, _ in page:
+
+            def adopt(tx: Transaction, job_id: str = job_id) -> bool:
+                run = tx.get("jobDispatches", job_id)
+                job = tx.get("processingJobs", job_id)
+                if not run or not job or "analysisId" in run or job["status"] in TERMINAL:
+                    return False
+                report = tx.get("reports", job["reportId"])
+                if not report:
+                    job.update(
+                        status="failed", failureCode="expired", updatedAt=self.clock().isoformat()
+                    )
+                    tx.put("processingJobs", job_id, job)
+                    return False
+                head = tx.get("jobHeads", job["reportId"])
+                if head and head["jobId"] != job_id:
+                    job.update(
+                        status="failed", failureCode="conflict", updatedAt=self.clock().isoformat()
+                    )
+                    tx.put("processingJobs", job_id, job)
+                    return False
+                save_run(
+                    tx,
+                    ProcessingJob.model_validate(job),
+                    report,
+                    head["analysisVersion"] if head else 1,
+                )
+                return True
+
+            adopted += self.database.run(adopt)
+
+        def checkpoint(tx: Transaction) -> None:
+            current = tx.get("jobMigrations", "durable-v1") or {}
+            if current == marker:
+                tx.put(
+                    "jobMigrations",
+                    "durable-v1",
+                    {
+                        "after": page[-1][0] if page else marker.get("after"),
+                        "done": len(page) < limit,
+                    },
+                )
+
+        self.database.run(checkpoint)
+        return adopted
 
     def reconcile(self, limit: int = 20) -> int:
         if not 1 <= limit <= 100:
             raise ValueError("Reconciliation limit must be between 1 and 100.")
+        self.migrate_legacy(limit)
         dispatched = 0
         for job_id in self.database.due(
             "jobDispatches", "nextDispatchAt", self.clock().isoformat(), limit
@@ -192,6 +264,9 @@ class Jobs:
             head = tx.get("jobHeads", run["reportId"])
             if not head or head["jobId"] != job_id or job["attemptCount"] >= 3:
                 return None
+            slot = tx.get("jobWorkerSlots", run["hospitalId"])
+            if slot and datetime.fromisoformat(slot["leaseUntil"]) > now:
+                return None
             assert report is not None
             count = job["attemptCount"] + 1
             attempt_id = job_id + "_" + str(count)
@@ -204,6 +279,15 @@ class Jobs:
                 nextDispatchAt=(now + timedelta(seconds=330)).isoformat(),
             )
             job.update(status="processing", attemptCount=count, updatedAt=now.isoformat())
+            tx.put(
+                "jobWorkerSlots",
+                run["hospitalId"],
+                {
+                    "jobId": job_id,
+                    "attemptId": attempt_id,
+                    "leaseUntil": run["leaseUntil"],
+                },
+            )
             tx.put(
                 "jobAttempts",
                 attempt_id,
@@ -220,6 +304,7 @@ class Jobs:
             tx.put("processingJobs", job_id, job)
             tx.put("jobDispatches", job_id, run)
             self._status(tx, report, "processing")
+            self._audit(tx, run, "processing_attempt_started", now)
             return Lease(
                 job_id,
                 run["reportId"],
@@ -261,6 +346,7 @@ class Jobs:
         transient: bool,
         now: datetime,
     ) -> None:
+        self._release_slot(tx, run)
         retry = transient and job["attemptCount"] < 3
         status = "queued" if retry else "rejected" if code == ErrorCode.INVALID_UPLOAD else "failed"
         job.update(status=status, failureCode=code.value, updatedAt=now.isoformat())
@@ -275,6 +361,7 @@ class Jobs:
                 nextAttemptAt=(now + timedelta(seconds=delay)).isoformat(),
                 nextDispatchAt=(now + timedelta(seconds=delay)).isoformat(),
             )
+            self._audit(tx, run, "processing_retry_scheduled", now)
         else:
             run.pop("nextDispatchAt", None)
             run["dispatchPending"] = False
@@ -283,6 +370,12 @@ class Jobs:
         tx.put("jobDispatches", run["jobId"], run)
         if report:
             self._status(tx, report, status)
+
+    @staticmethod
+    def _release_slot(tx: Transaction, run: Record) -> None:
+        slot = tx.get("jobWorkerSlots", run["hospitalId"])
+        if slot and slot["jobId"] == run["jobId"] and slot["attemptId"] == run.get("attemptId"):
+            tx.delete("jobWorkerSlots", run["hospitalId"])
 
     def fail(self, lease: Lease, code: ErrorCode, *, transient: bool = False) -> bool:
         now = self.clock()
@@ -299,6 +392,9 @@ class Jobs:
                 return False
             report = tx.get("reports", lease.report_id)
             if self._expired(tx, job, run, report, now):
+                return False
+            if now >= datetime.fromisoformat(run["deadline"]):
+                self._failure(tx, job, run, report, ErrorCode.TEMPORARILY_UNAVAILABLE, True, now)
                 return False
             self._failure(tx, job, run, report, code, transient, now)
             return True
@@ -350,6 +446,7 @@ class Jobs:
                 },
             )
             job.update(status="succeeded", failureCode=None, updatedAt=now.isoformat())
+            self._release_slot(tx, run)
             run.pop("nextDispatchAt", None)
             run["dispatchPending"] = False
             attempt = tx.get("jobAttempts", lease.attempt_id)

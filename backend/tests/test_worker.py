@@ -134,6 +134,9 @@ def test_worker_interruption_boundaries_recover_without_duplicate_results(accept
         def due(self, *args):
             return jobs.database.due(*args)
 
+        def page(self, *args):
+            return jobs.database.page(*args)
+
     class Processor:
         interrupted = False
 

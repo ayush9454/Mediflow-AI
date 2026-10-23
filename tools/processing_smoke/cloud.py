@@ -7,7 +7,6 @@ Log Analytics/private networking. Always finish cleanup and verify group absence
 """
 
 import argparse
-import base64
 import json
 import os
 import secrets
@@ -20,22 +19,22 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from azure_probe import AzureProbe  # noqa: E402
+from container_job_probe import ContainerJobProbe  # noqa: E402
 
 TAGS = {"project": "mediflow", "purpose": "issue-07-ocr-smoke", "temporary": "true"}
 API = "2026-07-01"
 
 
-class Probe(AzureProbe):
+class Probe(ContainerJobProbe):
     def __init__(self, root: Path, docker_binary: str, docker_host: str | None):
-        super().__init__(root, ".tooling/issue-7/azure", TAGS)
-        self.docker = [docker_binary]
-        if docker_host:
-            self.docker += ["--host", docker_host]
-        docker_config = self.root / ".tooling/issue-7/docker-config"
-        docker_config.mkdir(parents=True, exist_ok=True)
-        docker_config.chmod(0o700)
-        self.environment = dict(os.environ, DOCKER_CONFIG=str(docker_config))
+        super().__init__(
+            root,
+            ".tooling/issue-7/azure",
+            TAGS,
+            docker_binary,
+            docker_host,
+            result_container="ocr-results",
+        )
 
     def init(self) -> None:
         if (self.private / "state.json").exists():
@@ -69,154 +68,6 @@ class Probe(AzureProbe):
             "Fresh tagged OCR probe group created; spending protection verified On",
             flush=True,
         )
-
-    def infrastructure(self) -> None:
-        state = self.state()
-        self.guard(state)
-        group = self.group(state)
-        environment = group + "/providers/Microsoft.App/managedEnvironments/" + state["environment"]
-        self.rest(
-            "environment-create",
-            environment,
-            "PUT",
-            {
-                "location": state["region"],
-                "tags": self.tags,
-                "properties": {
-                    "environmentMode": "WorkloadProfiles",
-                    "workloadProfiles": [
-                        {"name": "Consumption", "workloadProfileType": "Consumption"}
-                    ],
-                    "appLogsConfiguration": {"destination": None},
-                },
-            },
-        )
-        self.az(
-            "registry-provider-register",
-            "provider",
-            "register",
-            "--namespace",
-            "Microsoft.ContainerRegistry",
-            "--wait",
-            timeout=600,
-        )
-        registry = self.az(
-            "registry-create",
-            "acr",
-            "create",
-            "--name",
-            state["registry"],
-            "--resource-group",
-            state["group"],
-            "--location",
-            state["region"],
-            "--sku",
-            "Basic",
-            "--admin-enabled",
-            "false",
-            "--role-assignment-mode",
-            "rbac",
-            "--tags",
-            *(k + "=" + v for k, v in self.tags.items()),
-            timeout=600,
-        )
-        if registry.get("adminUserEnabled") or registry.get("sku", {}).get("name") != "Basic":
-            raise RuntimeError("Expected Basic ACR with admin access disabled")
-        state["registry_id"] = registry["id"]
-        state["registry_server"] = registry["loginServer"]
-        identity_path = (
-            group
-            + "/providers/Microsoft.ManagedIdentity/userAssignedIdentities/"
-            + state["identity"]
-        )
-        identity = self.rest(
-            "identity-create",
-            identity_path,
-            "PUT",
-            {"location": state["region"], "tags": self.tags},
-            version="2023-01-31",
-        )
-        state["identity_id"] = identity["id"]
-        state["identity_client_id"] = identity["properties"]["clientId"]
-        state["identity_principal_id"] = identity["properties"]["principalId"]
-        storage_path = group + "/providers/Microsoft.Storage/storageAccounts/" + state["storage"]
-        self.rest(
-            "storage-create",
-            storage_path,
-            "PUT",
-            {
-                "location": state["region"],
-                "kind": "StorageV2",
-                "sku": {"name": "Standard_LRS"},
-                "tags": self.tags,
-                "properties": {
-                    "allowBlobPublicAccess": False,
-                    "allowSharedKeyAccess": False,
-                    "supportsHttpsTrafficOnly": True,
-                    "minimumTlsVersion": "TLS1_2",
-                },
-            },
-            version="2023-05-01",
-        )
-        self.rest(
-            "container-create",
-            storage_path + "/blobServices/default/containers/ocr-results",
-            "PUT",
-            {"properties": {"publicAccess": "None"}},
-            version="2023-05-01",
-        )
-        self.role(
-            "registry-pull",
-            registry["id"],
-            state["identity_principal_id"],
-            "7f951dda-4ed3-4680-a7ca-43fe172d538d",
-            "ServicePrincipal",
-        )
-        self.role(
-            "result-write",
-            storage_path,
-            state["identity_principal_id"],
-            "ba92f5b4-2d11-453d-a403-e96b0029c9fe",
-            "ServicePrincipal",
-        )
-        token = self.az(
-            "owner-arm-token",
-            "account",
-            "get-access-token",
-            "--resource",
-            "https://management.azure.com/",
-        )
-        payload = token["accessToken"].split(".")[1]
-        principal = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))["oid"]
-        self.role(
-            "result-read",
-            storage_path,
-            principal,
-            "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1",
-            "User",
-        )
-        self.save("state.json", state)
-        print(
-            "Consumption environment, private Basic registry, result Blob "
-            "and scoped identities submitted",
-            flush=True,
-        )
-
-    def docker_run(
-        self, label: str, *args: str, stdin: str | None = None, timeout: int = 600
-    ) -> str:
-        result = subprocess.run(
-            [*self.docker, *args],
-            env=self.environment,
-            input=stdin,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        self.save(label + ".log", result.stdout + result.stderr)
-        if result.returncode:
-            raise RuntimeError(label + " failed; inspect private log")
-        return result.stdout
 
     def build_push(self) -> None:
         state = self.state()
@@ -318,99 +169,15 @@ class Probe(AzureProbe):
             flush=True,
         )
 
-    def deploy(self, *, submit: bool = True) -> None:
+    def deploy(self) -> None:
         state = self.state()
-        self.guard(state)
-        group = self.group(state)
-        environment_path = (
-            group + "/providers/Microsoft.App/managedEnvironments/" + state["environment"]
+        self.rest(
+            "job-create",
+            self.group(state) + "/providers/Microsoft.App/jobs/" + state["job"],
+            "PUT",
+            self.job_template(),
         )
-        environment = self.rest("environment-current", environment_path)
-        properties = environment["properties"]
-        if (
-            properties.get("provisioningState") != "Succeeded"
-            or properties.get("environmentMode") != "WorkloadProfiles"
-        ):
-            raise RuntimeError("Standard WorkloadProfiles environment is not ready")
-        profiles = properties.get("workloadProfiles", [])
-        if len(profiles) != 1 or any(
-            profiles[0].get(key) != "Consumption" for key in ("name", "workloadProfileType")
-        ):
-            raise RuntimeError("Only a Consumption workload profile is allowed")
-        usage = self.az(
-            "environment-quotas",
-            "containerapp",
-            "env",
-            "list-usages",
-            "--name",
-            state["environment"],
-            "--resource-group",
-            state["group"],
-        )
-        rows = usage.get("value", []) if isinstance(usage, dict) else usage
-        cores = [
-            row
-            for row in rows
-            if row.get("name", {}).get("value") == "ManagedEnvironmentConsumptionCores"
-        ]
-        if not cores or cores[0]["limit"] - cores[0]["currentValue"] < 0.5:
-            raise RuntimeError("At least 0.5 available Consumption cores is required")
-        identity = state["identity_id"]
-        job = {
-            "location": state["region"],
-            "tags": self.tags,
-            "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {identity: {}},
-            },
-            "properties": {
-                "environmentId": environment_path,
-                "workloadProfileName": "Consumption",
-                "configuration": {
-                    "triggerType": "Manual",
-                    "replicaTimeout": 300,
-                    "replicaRetryLimit": 0,
-                    "manualTriggerConfig": {
-                        "replicaCompletionCount": 1,
-                        "parallelism": 1,
-                    },
-                    "registries": [{"server": state["registry_server"], "identity": identity}],
-                },
-                "template": {
-                    "containers": [
-                        {
-                            "name": "ocr-probe",
-                            "image": state["image"],
-                            "command": ["python", "/smoke/runtime.py"],
-                            "resources": {"cpu": 0.5, "memory": "1Gi"},
-                            "env": [
-                                {"name": key, "value": value}
-                                for key, value in {
-                                    "STORAGE_ACCOUNT": state["storage"],
-                                    "SPIKE_ID": state["spike_id"],
-                                    "IDENTITY_CLIENT_ID": state["identity_client_id"],
-                                }.items()
-                            ],
-                        }
-                    ]
-                },
-            },
-        }
-        if submit:
-            self.rest(
-                "job-create",
-                group + "/providers/Microsoft.App/jobs/" + state["job"],
-                "PUT",
-                job,
-            )
-        else:
-            self.save("job-create-request.json", job)
-        print(
-            "Manual job "
-            + ("submitted" if submit else "template prepared")
-            + " at 0.5 vCPU / 1 GiB / 300 seconds / no platform retry",
-            flush=True,
-        )
+        print("Manual OCR job submitted with bounded resources and no platform retry", flush=True)
 
     def start(self) -> None:
         state = self.state()
@@ -471,36 +238,6 @@ class Probe(AzureProbe):
             "Azure private synthetic report downloaded; all expectations passed",
             flush=True,
         )
-
-    def cleanup(self) -> None:
-        state = self.state()
-        self.check_group(state)
-        self.az(
-            "cleanup-request",
-            "group",
-            "delete",
-            "--name",
-            state["group"],
-            "--yes",
-            "--no-wait",
-        )
-        print(
-            "Tagged temporary group deletion requested; run cleanup-status until absent",
-            flush=True,
-        )
-
-    def cleanup_status(self) -> None:
-        state = self.state()
-        exists = self.az("cleanup-exists", "group", "exists", "--name", state["group"])
-        self.save(
-            "cleanup-evidence.json",
-            {
-                "temporary_resource_group_exists": exists,
-                "all_temporary_resources_deleted": not exists,
-                "checked_at": datetime.now(UTC).isoformat(),
-            },
-        )
-        print("All temporary Azure resources deleted:", not exists, flush=True)
 
 
 def main() -> None:

@@ -21,11 +21,10 @@ from reportlab.pdfgen import canvas
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from azure_probe import AzureProbe  # noqa: E402
-from processing_smoke.cloud import Probe as ProcessingProbe  # noqa: E402
+from container_job_probe import ContainerJobProbe  # noqa: E402
 from runtime import NamespacedClient  # noqa: E402
 
-from mediflow.contracts import Account, ReportRegistration  # noqa: E402
+from mediflow.contracts import Account, ReportRegistration, ReprocessingRequest  # noqa: E402
 from mediflow.job_queue import AzureQueue  # noqa: E402
 from mediflow.jobs import Jobs  # noqa: E402
 from mediflow.uploads import Uploads  # noqa: E402
@@ -34,17 +33,16 @@ from mediflow.uploads.platform import BlobDocuments, FirestoreDatabase  # noqa: 
 TAGS = {"project": "mediflow", "purpose": "issue-06-jobs-smoke", "temporary": "true"}
 
 
-class Probe(ProcessingProbe):
+class Probe(ContainerJobProbe):
     def __init__(self, root, docker_binary, docker_host):
-        AzureProbe.__init__(self, root, ".tooling/issue-6/azure", TAGS)
-        self.docker = [docker_binary] + (["--host", docker_host] if docker_host else [])
-        config = self.private / "docker-config"
-        config.mkdir(exist_ok=True)
-        config.chmod(0o700)
-        plugins = Path(docker_binary).absolute().parents[1] / "lib/docker/cli-plugins"
-        if plugins.is_dir():
-            (config / "config.json").write_text(json.dumps({"cliPluginsExtraDirs": [str(plugins)]}))
-        self.environment = dict(os.environ, DOCKER_CONFIG=str(config))
+        super().__init__(
+            root,
+            ".tooling/issue-6/azure",
+            TAGS,
+            docker_binary,
+            docker_host,
+            result_container="reports",
+        )
 
     def google(self):
         settings = json.loads((self.root / ".tooling/issue-4/runtime-settings.json").read_text())
@@ -189,9 +187,8 @@ class Probe(ProcessingProbe):
         print("Actual worker image built and pushed privately", flush=True)
 
     def deploy(self):
-        super().deploy(submit=False)
+        job = self.job_template()
         state = self.state()
-        job = json.loads((self.private / "job-create-request.json").read_text())
         credentials, project = self.google()
         config = job["properties"]["configuration"]
         config.pop("manualTriggerConfig", None)
@@ -342,21 +339,41 @@ class Probe(ProcessingProbe):
             )
         }
         candidate = jobs.candidate(job.job_id)
-        assert (
-            counts["analyses"]
-            == counts["analysisCommits"]
-            == counts["jobAttempts"]
-            == counts["processingJobs"]
-            == 1
-        )
+        expected = 2 if state.get("replacement_id") else 1
+        assert counts["analyses"] == counts["analysisCommits"] == expected
+        assert counts["jobAttempts"] == counts["processingJobs"] == expected
+        quotas = [
+            s.to_dict()["count"] for s in namespace.collection("uploadQuotas").stream(timeout=10)
+        ]
+        assert quotas == [1, 1, 1, 1], "Processing charged an upload quota again"
         assert candidate.provenance.model_provider == "test-only"
         events = list(namespace.collection("auditEvents").stream(timeout=10))
-        assert sum(e.to_dict().get("action") == "processing_succeeded" for e in events) == 1
+        assert sum(e.to_dict().get("action") == "processing_succeeded" for e in events) == expected
         executions = self.rest(
             "worker-executions",
             self.group(state) + "/providers/Microsoft.App/jobs/" + state["job"] + "/executions",
         )
-        assert any(e["properties"].get("status") == "Succeeded" for e in executions["value"])
+        successes = sum(e["properties"].get("status") == "Succeeded" for e in executions["value"])
+        if state.get("duplicate_sent") and successes < expected + 2:
+            print("Waiting for both duplicate deliveries to be handled", flush=True)
+            return
+        assert successes >= expected
+        queue_empty = queue.client.get_queue_properties(timeout=10).approximate_message_count == 0
+        if state.get("duplicate_sent") and not queue_empty:
+            print("Waiting for duplicate queue acknowledgements", flush=True)
+            return
+        attempt_times = []
+        for snapshot in namespace.collection("jobAttempts").stream(timeout=10):
+            attempt = snapshot.to_dict()
+            attempt_times.append(
+                round(
+                    (
+                        datetime.fromisoformat(attempt["finishedAt"])
+                        - datetime.fromisoformat(attempt["startedAt"])
+                    ).total_seconds(),
+                    3,
+                )
+            )
         self.save(
             "evidence.json",
             {
@@ -367,14 +384,91 @@ class Probe(ProcessingProbe):
                 "counts": counts,
                 "testOnlyAdapter": True,
                 "independentScheduledReconciliation": True,
+                "successfulEventExecutions": successes,
+                "duplicateDeliveriesVerified": bool(state.get("duplicate_sent")),
+                "distinctManualRunVerified": bool(state.get("replacement_id")),
+                "uploadQuotaCountersUnchanged": True,
+                "successAuditEvents": expected,
+                "queueEmpty": queue_empty,
+                "testAdapterAttemptWallSeconds": sorted(attempt_times),
             },
         )
         print("Hosted event execution and durable candidate/audit counts verified", flush=True)
+
+    def reprocess(self):
+        state = self.state()
+        self.guard(state)
+        if state.get("replacement_id"):
+            raise RuntimeError("Replacement already seeded; inspect its state")
+        database = FirestoreDatabase(self.database())
+        queue = AzureQueue(
+            "https://" + state["storage"] + ".queue.core.windows.net",
+            "report-processing",
+            self.credential(),
+        )
+        jobs = Jobs(database, queue)
+        candidate = jobs.candidate(state["job_id"])
+        if candidate is None:
+            raise RuntimeError("The initial run must succeed before this verification")
+
+        def assign(tx):
+            report = tx.get("reports", state["report_id"])
+            case = tx.get("cases", report["caseId"])
+            case["assignedDoctorId"] = "synthetic-doctor"
+            tx.put("cases", report["caseId"], case)
+
+        database.run(assign)
+        account = Account(
+            uid="synthetic-doctor",
+            hospital_id="synthetic-hospital",
+            display_name="Synthetic Doctor",
+            role="doctor",
+            active=True,
+        )
+        request = ReprocessingRequest(
+            expected_latest_analysis_id=candidate.analysis_id,
+            reason="Synthetic retry/reprocess acceptance",
+        )
+        replacement = jobs.reprocess(account, state["report_id"], request, "cloud-reprocess")
+        assert (
+            jobs.reprocess(account, state["report_id"], request, "cloud-reprocess") == replacement
+        )
+        state["initial_job_id"] = state["job_id"]
+        state["job_id"] = state["replacement_id"] = replacement.job_id
+        self.save("state.json", state)
+        print(
+            "Distinct idempotent reprocessing run accepted for hosted scheduled dispatch",
+            flush=True,
+        )
+
+    def duplicate(self):
+        state = self.state()
+        self.guard(state)
+        if state.get("duplicate_sent"):
+            raise RuntimeError("Duplicate deliveries already sent; collect their evidence")
+        queue = AzureQueue(
+            "https://" + state["storage"] + ".queue.core.windows.net",
+            "report-processing",
+            self.credential(),
+        )
+        for _ in range(2):
+            queue.send(state["job_id"])
+        state["duplicate_sent"] = True
+        self.save("state.json", state)
+        print(
+            "Two duplicate references sent; only hosted queue workers will handle them", flush=True
+        )
 
     def cleanup(self):
         super().cleanup()
         client = self.database()
         client.db.recursive_delete(client.namespace)
+        if list(client.namespace.collections(timeout=10)):
+            raise RuntimeError("Disposable Firestore collections remain; inspect cleanup")
+        self.save(
+            "firestore-cleanup.json",
+            {"namespaceEmpty": True, "checkedAt": datetime.now(UTC).isoformat()},
+        )
         print("Disposable Firestore namespace removed", flush=True)
 
 
@@ -389,6 +483,8 @@ def main():
             "deploy",
             "seed",
             "collect",
+            "reprocess",
+            "duplicate",
             "cleanup",
             "cleanup-status",
         ),

@@ -1596,7 +1596,7 @@
     }
   },
   "info": {
-    "description": "Synthetic laboratory document workflow. Foundation build: liveness and contracts are available. Firebase authorization and bounded private PDF uploads are configurable; queue dispatch, AI results and review remain pending.",
+    "description": "Synthetic laboratory document workflow. Foundation build: liveness and contracts are available. Firebase authorization and bounded private PDF uploads and durable queued jobs are configurable; AI results and review remain pending.",
     "title": "MediFlow AI API",
     "version": "0.1.0"
   },
