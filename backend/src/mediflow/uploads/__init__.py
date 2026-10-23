@@ -451,19 +451,9 @@ class Uploads:
                 case["processingStatus"] = "queued"
                 tx.put("cases", report["caseId"], case)
                 tx.put("reports", report_id, report)
-                tx.put("processingJobs", job.job_id, job.model_dump(mode="json", by_alias=True))
-                tx.put(
-                    "jobDispatches",
-                    job.job_id,
-                    {
-                        "jobId": job.job_id,
-                        "reportId": report_id,
-                        "dispatchPending": True,
-                        "createdAt": now.isoformat(),
-                        "expiresAt": report["expiresAt"],
-                        "pipelineVersion": "laboratory-v1",
-                    },
-                )
+                from mediflow.jobs import save_run
+
+                save_run(tx, job, report)
                 tx.put("uploadHashes", hash_key, {"reportId": report_id, "jobId": job.job_id})
                 tx.put(
                     "sourceArtifacts",

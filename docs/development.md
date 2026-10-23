@@ -85,7 +85,11 @@ Upload database/document protocols and real Firestore/Azure adapters are in `bac
 backend/.venv/bin/python -m mediflow.worker --check-config
 ```
 
-The actual worker deliberately exits unsuccessfully until the durable queue/processing adapter exists.
+The worker receives one queue delivery per execution and uses Firestore-authoritative
+leases and result commits. Run `python -m mediflow.worker --reconcile` from an
+independent scheduled Job for missed dispatches and expired leases. The normal
+analysis provider remains unavailable until ticket 08; it never substitutes test
+rows. See [job deployment, recovery and retry bounds](jobs.md).
 
 Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Real sign-in requires the public `FIREBASE_API_KEY` and an API configured with Firebase/Firestore credentials. Workflow panels remain placeholders for their later tickets. Tokens and temporary clinical bytes stay in memory and are cleared on logout/account change/expiry.
 

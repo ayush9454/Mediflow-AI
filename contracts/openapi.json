@@ -1160,11 +1160,18 @@
         "additionalProperties": false,
         "properties": {
           "expectedLatestAnalysisId": {
-            "maxLength": 128,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9_-]+$",
-            "title": "Expectedlatestanalysisid",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expectedlatestanalysisid"
           },
           "reason": {
             "maxLength": 2000,

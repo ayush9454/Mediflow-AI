@@ -13,5 +13,5 @@ RUN uv sync --locked --no-dev --no-editable --extra processing \
     && find /service/.venv/lib -type d -name '*.dist-info' -exec cp -a '{}' /service/licenses/python-distributions/ \;
 RUN useradd --create-home --uid 10001 mediflow
 USER mediflow
-# This remains fail-closed until ticket06 integrates the durable job lifecycle.
+# The durable worker never substitutes test analysis for the ticket-08 provider.
 CMD ["python", "-m", "mediflow.worker"]

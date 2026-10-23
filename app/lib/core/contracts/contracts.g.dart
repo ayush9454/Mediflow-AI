@@ -765,12 +765,12 @@ final class ReprocessingRequest {
   });
 
   final String schemaVersion;
-  final String expectedLatestAnalysisId;
+  final String? expectedLatestAnalysisId;
   final String reason;
 
   factory ReprocessingRequest.fromJson(Map<String, Object?> json) => ReprocessingRequest(
     schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
-    expectedLatestAnalysisId: json["expectedLatestAnalysisId"] as String,
+    expectedLatestAnalysisId: json["expectedLatestAnalysisId"] == null ? null : json["expectedLatestAnalysisId"] as String,
     reason: json["reason"] as String,
   );
 

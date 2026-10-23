@@ -63,7 +63,7 @@ class Probe(AzureProbe):
             "--location",
             state["region"],
             "--tags",
-            *(k + "=" + v for k, v in TAGS.items()),
+            *(k + "=" + v for k, v in self.tags.items()),
         )
         print(
             "Fresh tagged OCR probe group created; spending protection verified On",
@@ -81,7 +81,7 @@ class Probe(AzureProbe):
             "PUT",
             {
                 "location": state["region"],
-                "tags": TAGS,
+                "tags": self.tags,
                 "properties": {
                     "environmentMode": "WorkloadProfiles",
                     "workloadProfiles": [
@@ -117,7 +117,7 @@ class Probe(AzureProbe):
             "--role-assignment-mode",
             "rbac",
             "--tags",
-            *(k + "=" + v for k, v in TAGS.items()),
+            *(k + "=" + v for k, v in self.tags.items()),
             timeout=600,
         )
         if registry.get("adminUserEnabled") or registry.get("sku", {}).get("name") != "Basic":
@@ -133,7 +133,7 @@ class Probe(AzureProbe):
             "identity-create",
             identity_path,
             "PUT",
-            {"location": state["region"], "tags": TAGS},
+            {"location": state["region"], "tags": self.tags},
             version="2023-01-31",
         )
         state["identity_id"] = identity["id"]
@@ -148,7 +148,7 @@ class Probe(AzureProbe):
                 "location": state["region"],
                 "kind": "StorageV2",
                 "sku": {"name": "Standard_LRS"},
-                "tags": TAGS,
+                "tags": self.tags,
                 "properties": {
                     "allowBlobPublicAccess": False,
                     "allowSharedKeyAccess": False,
@@ -318,7 +318,7 @@ class Probe(AzureProbe):
             flush=True,
         )
 
-    def deploy(self) -> None:
+    def deploy(self, *, submit: bool = True) -> None:
         state = self.state()
         self.guard(state)
         group = self.group(state)
@@ -358,7 +358,7 @@ class Probe(AzureProbe):
         identity = state["identity_id"]
         job = {
             "location": state["region"],
-            "tags": TAGS,
+            "tags": self.tags,
             "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {identity: {}},
@@ -396,14 +396,19 @@ class Probe(AzureProbe):
                 },
             },
         }
-        self.rest(
-            "job-create",
-            group + "/providers/Microsoft.App/jobs/" + state["job"],
-            "PUT",
-            job,
-        )
+        if submit:
+            self.rest(
+                "job-create",
+                group + "/providers/Microsoft.App/jobs/" + state["job"],
+                "PUT",
+                job,
+            )
+        else:
+            self.save("job-create-request.json", job)
         print(
-            "Manual job submitted at 0.5 vCPU / 1 GiB / 300 seconds / no platform retry",
+            "Manual job "
+            + ("submitted" if submit else "template prepared")
+            + " at 0.5 vCPU / 1 GiB / 300 seconds / no platform retry",
             flush=True,
         )
 

@@ -71,7 +71,7 @@ writers/verifiers; expiry and the claim token are rechecked before commit.
 Successful verification atomically commits the report/case state, source artifact,
 patient/hospital hash index, quota counters, audit event, `processingJobs/{jobId}`
 and `jobDispatches/{jobId}`. The latter contains `dispatchPending: true`, job/report
-IDs, creation/expiry and pipeline version for ticket 06. No queue or in-process
+IDs, creation/expiry and pipeline version for ticket 06. No in-process
 background worker is started by this ticket. A crash after commit can be retried
 against the same durable job.
 

@@ -68,6 +68,7 @@ def create_app(
     if uploads is not None and application.state.settings.environment != "test":
         raise ValueError("Injected upload adapters are allowed only in tests.")
     application.state.uploads = uploads
+    application.state.jobs = None
     application.state.authorization = authorization
     if authorization is None and application.state.settings.firebase_project_id:
         from mediflow.firebase import create_authorization
@@ -97,6 +98,20 @@ def create_app(
                 application.state.settings.azure_document_container,
                 credential,
             ),
+        )
+        from mediflow.job_queue import AzureQueue
+        from mediflow.jobs import Jobs
+
+        application.state.jobs = Jobs(
+            application.state.uploads.database,
+            AzureQueue(
+                application.state.settings.azure_storage_account_url.replace(
+                    ".blob.core.windows.net", ".queue.core.windows.net"
+                ),
+                application.state.settings.azure_queue_name,
+                credential,
+            ),
+            deadline_seconds=application.state.settings.job_timeout_seconds,
         )
 
     @application.middleware("http")

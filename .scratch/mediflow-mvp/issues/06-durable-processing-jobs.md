@@ -1,6 +1,6 @@
 # 06: Implement durable queued jobs, bounded retries and crash recovery
 
-Status: ready-for-agent
+Status: in-progress
 Type: task
 Blocked by: 01, 04
 Estimate: 12 hours
@@ -42,7 +42,11 @@ Inject failures at dispatch, lease acquisition, processing, result commit and ac
 
 ## Implementation record
 
-Not started. Record actual changes, verification commands/results, measured findings, and any remaining gate here. A readiness label does not imply completion or override the Blocked by line.
+Implementation in progress on `main`, from baseline `e29a5fa`. The user confirmed
+the coordinator, reprocess HTTP endpoint and queue worker as test boundaries.
+Durable dispatch/recovery, execution fencing, a three-attempt ceiling, expiry and
+bounded authorized reprocessing are implemented. Hosted verification and final
+two-axis review remain in progress; completion evidence will be recorded here.
 
 ## Comments
 

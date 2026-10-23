@@ -225,7 +225,7 @@ class ProcessingJob(VersionedModel):
 
 
 class ReprocessingRequest(VersionedModel):
-    expected_latest_analysis_id: Identifier
+    expected_latest_analysis_id: Identifier | None
     reason: Reason
 
 

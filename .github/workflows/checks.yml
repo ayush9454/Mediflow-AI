@@ -39,6 +39,8 @@ jobs:
         run: backend/.venv/bin/python -m pytest backend/tests
       - name: Test hosting probe authentication and cloud guards
         run: backend/.venv/bin/python -m unittest discover -s tools/hosting_spike -p 'test_*.py'
+      - name: Test shared temporary deployment guards
+        run: backend/.venv/bin/python -m unittest discover -s tools/processing_smoke -p 'test_*.py'
       - name: Check generated contracts
         run: backend/.venv/bin/python tools/export_contracts.py --check
       - name: Verify worker at the deployment resource envelope
@@ -73,7 +75,7 @@ jobs:
       - name: Install OCR for upload admission tests
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng
       - name: Verify real emulator tokens and deny-all client rules
-        run: firebase emulators:exec --config firebase.json --project demo-mediflow --only auth,firestore 'MEDIFLOW_ENV=test MEDIFLOW_UPLOAD_TEST_FIRESTORE=1 backend/.venv/bin/python -m pytest backend/tests/test_firebase_emulators.py backend/tests/test_uploads.py'
+        run: firebase emulators:exec --config firebase.json --project demo-mediflow --only auth,firestore 'MEDIFLOW_ENV=test MEDIFLOW_UPLOAD_TEST_FIRESTORE=1 backend/.venv/bin/python -m pytest backend/tests/test_firebase_emulators.py backend/tests/test_uploads.py backend/tests/test_jobs.py backend/tests/test_worker.py'
 
   android:
     runs-on: ubuntu-latest

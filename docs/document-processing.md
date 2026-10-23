@@ -3,7 +3,9 @@
 Ticket 07 adds `mediflow.processing.process_pdf(source_bytes, limits=Limits())`.
 It returns page evidence and explicit outcomes; it does not extract laboratory rows,
 interpret results, call an LLM, approve records, or start a durable queue worker.
-The existing worker entry point stays fail-closed until ticket 06 integrates it.
+The durable worker entry point is integrated by ticket 06. The actual laboratory
+candidate provider remains unavailable until ticket 08; page extraction and OCR
+continue to be independently verifiable through this module.
 
 Each page has its original, unnormalized extracted text, a one-based page number,
 `native` or `ocr` origin, the native text even when OCR is selected, measured native

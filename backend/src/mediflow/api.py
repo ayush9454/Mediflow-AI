@@ -28,6 +28,7 @@ from mediflow.contracts import (
     UploadSession,
 )
 from mediflow.errors import ApplicationError
+from mediflow.jobs import Jobs
 from mediflow.uploads import Uploads
 
 bearer = HTTPBearer(auto_error=False)
@@ -89,6 +90,13 @@ def pending() -> NoReturn:
 
 def upload_module(request: Request) -> Uploads:
     module = request.app.state.uploads
+    if module is None:
+        pending()
+    return module
+
+
+def job_module(request: Request) -> Jobs:
+    module = request.app.state.jobs
     if module is None:
         pending()
     return module
@@ -226,8 +234,16 @@ async def reprocess(
     idempotency_key: IdempotencyKey,
     account: Account = Depends(current_account),
 ) -> ProcessingJob:
-    authorization(request).report_access(account, report_id, "reprocess", request.state.request_id)
-    pending()
+    await run_in_threadpool(
+        authorization(request).report_access,
+        account,
+        report_id,
+        "reprocess",
+        request.state.request_id,
+    )
+    return await run_in_threadpool(
+        job_module(request).reprocess, account, report_id, body, idempotency_key
+    )
 
 
 @router.post(
