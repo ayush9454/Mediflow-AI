@@ -62,14 +62,19 @@ owns durable attempts/retry policy and ticket 08 owns laboratory row validation.
 | Document deadline | 240 seconds including local concurrency wait |
 | Linux parser/OCR address space | 768 MiB per process |
 | Linux parser/OCR CPU time | 240 seconds per process |
-| Deployment allocation | 0.5 vCPU, 1 GiB cgroup memory, max job parallelism one |
+| Azure job allocation | Requested 0.5 vCPU, 1 GiB cgroup memory, max job parallelism one |
 | Container deadline | 300 seconds; application deadline leaves cleanup time |
 
 `Limits` allows stricter values and refuses values above these ceilings. PDF parsing,
 native extraction, rendering and OCR all run in an isolated subprocess group. The
 caller kills that entire group on timeout and after any exit to remove descendants.
-Tesseract inherits Linux address-space/CPU bounds; the container memory/CPU ceilings
-bound the aggregate workload. Run one worker process per job and max executions /
+Tesseract inherits Linux address-space/CPU bounds; container cgroups bound the
+aggregate workload. The local acceptance gate enforces a hard 0.5-core limit.
+Azure Consumption has exposed both 0.5-core and 4-core hard quotas for the
+requested 0.5-vCPU allocation. Report each run's actual quota; only describe Azure
+timing as strict-cap timing when its observed quota is 0.5 cores. Memory is
+hard-limited to 1 GiB in both environments. Run one worker
+process per job and max executions /
 replica parallelism one: the Python semaphore is process-local, not a distributed
 scheduler. Do not expose this synchronous function on an API event loop.
 
@@ -113,7 +118,11 @@ This is a workflow guard, not access control against deliberate renaming.
 
 The JSON summary contains page origins/flags, SHA-256, elapsed seconds, CPU seconds,
 per-process high-water RSS, Tesseract version, platform and Linux cgroup
-`memory.max`, `memory.peak`, `cpu.max`. RSS is the maximum parser or child peak,
+memory limit, peak memory and CPU quota/period. The `cgroup_memory_max`,
+`cgroup_memory_peak` and `cgroup_cpu_max` fields use the same units for cgroup v2
+and v1. For v1 they read `memory.limit_in_bytes`, `memory.max_usage_in_bytes`,
+`cpu.cfs_quota_us` and `cpu.cfs_period_us` from their controller directories.
+RSS is the maximum parser or child peak,
 not simultaneous aggregate memory; use container `memory.peak` for the aggregate.
 An unbounded host run cannot establish the Azure resource acceptance gate. The
 40-document row benchmark and 95% held-out precision/recall remain separate,
@@ -122,6 +131,8 @@ unmeasured release gates.
 Primary implementation references: [pypdf text extraction](https://pypdf.readthedocs.io/en/stable/user/extract-text.html),
 [pypdfium2 rendering and object lifecycle](https://pypdfium2.readthedocs.io/en/stable/python_api.html),
 and [Tesseract CLI](https://tesseract-ocr.github.io/tessdoc/Command-Line-Usage.html).
+Counter semantics: [Linux v1 memory controller](https://docs.kernel.org/admin-guide/cgroup-v1/memory.html)
+and [CFS bandwidth control](https://docs.kernel.org/scheduler/sched-bwc.html).
 
 ## Recorded measurements
 

@@ -11,8 +11,26 @@ from mediflow.processing import process_pdf
 
 
 def _cgroup(name: str) -> str | None:
-    path = Path("/sys/fs/cgroup") / name
-    return path.read_text().strip() if path.exists() else None
+    root = Path("/sys/fs/cgroup")
+    path = root / name
+    if path.exists():
+        return path.read_text().strip()
+    # Azure Consumption currently exposes v1 controllers; local Docker uses v2.
+    # Preserve the same report units, using actual kernel counters in either case.
+    memory_names = {
+        "memory.max": "memory.limit_in_bytes",
+        "memory.peak": "memory.max_usage_in_bytes",
+    }
+    if name in memory_names:
+        path = root / "memory" / memory_names[name]
+        return path.read_text().strip() if path.exists() else None
+    if name == "cpu.max":
+        for controller in ("cpu", "cpu,cpuacct"):
+            quota = root / controller / "cpu.cfs_quota_us"
+            period = root / controller / "cpu.cfs_period_us"
+            if quota.exists() and period.exists():
+                return f"{quota.read_text().strip()} {period.read_text().strip()}"
+    return None
 
 
 def main() -> None:

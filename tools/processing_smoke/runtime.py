@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from check_processing_report import check
+from check_processing_report import AZURE_CONSUMPTION_CPU_QUOTAS, check
 from hosting_runtime import Storage
 
 
@@ -25,7 +25,10 @@ def main() -> None:
         timeout=260,
     )
     report = json.loads(Path("/tmp/processing.json").read_text())
-    check(report)
+    # Azure's 0.5-vCPU allocation has exposed both 0.5- and 4-core v1 hard quotas.
+    # Allow only those observations; the offline gate still requires 0.5 cores.
+    # Collection independently verifies the actual execution's ARM allocation.
+    check(report, allowed_cpu_max=AZURE_CONSUMPTION_CPU_QUOTAS)
     report["execution_location"] = "azure-container-apps-job-centralindia"
     report["synthetic_expectations_passed"] = True
     # Workload identity only: no storage keys or SAS tokens are embedded in image.

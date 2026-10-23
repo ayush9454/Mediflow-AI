@@ -48,7 +48,14 @@ The processing interface retains its stricter 240-second document deadline.
 `runtime.py` runs the real benchmark and independently checks expected negative
 outcomes and ten-page OCR numbering before uploading synthetic metadata via managed
 identity. It does not upload source text or PDFs as a result. `collect` refuses an
-unsuccessful execution and verifies the expected-outcome marker. The private
+unsuccessful execution, verifies the execution's actual ARM allocation and checks
+the report and expected-outcome marker. The current Azure runtime exposes v1
+counters: 1 GiB memory and observed CPU quota/period values of `50000 100000`
+(0.5 cores) and `400000 100000` (4 cores), for the same requested 0.5 vCPU.
+The cloud gate allows only those observed quotas; the
+offline gate continues to require `50000 100000` (a strict 0.5-core cap). These are
+separate measurements; always report the actual quota alongside cloud timing.
+The private
 `azure-processing.json` can be inspected and sanitized for a committed report;
 execution IDs, account IDs, endpoint names and tokens belong only in ignored state.
 
@@ -63,3 +70,11 @@ backend/.venv/bin/python tools/processing_smoke/cloud.py cleanup-status
 Repeat `cleanup-status` until it reports **all temporary resources deleted: True**.
 A deletion request alone is not evidence of removal. Cleanup remains available if
 credit/session status changes; it never modifies unrelated issue-01 resources.
+
+Azure provisioning can outlast an individual ARM request. If `infrastructure`
+reports `StorageAccountIsNotProvisioned` or `ManagedEnvironmentOperationInProgress`,
+wait for the recorded resources to finish provisioning and repeat that same stage.
+Keep the existing private state; do not run `init` again. A regional environment
+quota conflict can also persist while an earlier probe's environment is being
+deleted. Confirm that earlier probe's cleanup before retrying; do not change
+regions, subscription limits, or spending protection to bypass the conflict.

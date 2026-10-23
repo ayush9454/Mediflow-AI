@@ -5,8 +5,10 @@ import json
 from pathlib import Path
 from typing import Any
 
+AZURE_CONSUMPTION_CPU_QUOTAS = ("50000 100000", "400000 100000")
 
-def check(report: dict[str, Any]) -> None:
+
+def check(report: dict[str, Any], *, allowed_cpu_max: tuple[str, ...] = ("50000 100000",)) -> None:
     if report.get("held_out_used") is not False:
         raise ValueError("Processing verification must exclude held-out data.")
     if report.get("clinical_or_row_accuracy_measured") is not False:
@@ -15,8 +17,8 @@ def check(report: dict[str, Any]) -> None:
         raise ValueError("Worker verification requires the 1 GiB memory limit.")
     if not 0 < int(report.get("cgroup_memory_peak") or 0) <= 1024**3:
         raise ValueError("Aggregate cgroup peak memory is missing or exceeds the limit.")
-    if report.get("cgroup_cpu_max") != "50000 100000":
-        raise ValueError("Worker verification requires 0.5 vCPU.")
+    if report.get("cgroup_cpu_max") not in allowed_cpu_max:
+        raise ValueError(f"Worker verification requires CPU quota/period in {allowed_cpu_max}.")
     documents = report.get("documents", [])
     observed = {document["document_id"]: document for document in documents}
     negative_reasons = (

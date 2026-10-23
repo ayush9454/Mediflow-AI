@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from check_processing_report import AZURE_CONSUMPTION_CPU_QUOTAS, check  # noqa: E402
 from container_job_probe import ContainerJobProbe  # noqa: E402
 
 TAGS = {"project": "mediflow", "purpose": "issue-07-ocr-smoke", "temporary": "true"}
@@ -211,6 +212,12 @@ class Probe(ContainerJobProbe):
         status = self.status()
         if status.get("properties", {}).get("status") != "Succeeded":
             raise RuntimeError("Execution has not succeeded")
+        containers = status["properties"]["template"]["containers"]
+        if len(containers) != 1 or any(
+            containers[0]["resources"].get(key) != value
+            for key, value in {"cpu": 0.5, "memory": "1Gi"}.items()
+        ):
+            raise RuntimeError("Expected actual Azure execution allocation of 0.5 vCPU / 1 GiB")
         destination = self.private / "azure-processing.json"
         self.az(
             "download-result",
@@ -234,6 +241,7 @@ class Probe(ContainerJobProbe):
         report = json.loads(destination.read_text())
         if report.get("synthetic_expectations_passed") is not True:
             raise RuntimeError("Expected synthetic outcome checks did not pass")
+        check(report, allowed_cpu_max=AZURE_CONSUMPTION_CPU_QUOTAS)
         print(
             "Azure private synthetic report downloaded; all expectations passed",
             flush=True,
