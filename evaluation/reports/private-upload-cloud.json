@@ -1,10 +1,11 @@
 {
   "privateUploadDownload": true,
+  "boundedPrefixListing": true,
   "anonymousStatus": 401,
   "overwriteDenied": true,
   "originalPreserved": true,
   "temporaryBlobDeleted": true,
   "spendingProtection": "On",
   "scope": "real Azure Blob adapter; no hosted API deployment",
-  "observedAtEpoch": 1792774290
+  "observedAtEpoch": 1792775569
 }

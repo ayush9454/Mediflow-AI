@@ -79,7 +79,7 @@ Dart wire models enforce JSON types; semantic constraints and authorization belo
 
 ## Adapter and Android boundaries
 
-Azure, Firebase and AI integration protocols are in `backend/src/mediflow/ports.py`. Configuration alone does not instantiate or verify a cloud adapter. Check worker configuration without consuming messages:
+Upload database/document protocols and real Firestore/Azure adapters are in `backend/src/mediflow/uploads/`; other integration protocols remain in `backend/src/mediflow/ports.py`. Configuration selects real upload adapters but does not establish end-to-end workflow readiness. Check worker configuration without consuming messages:
 
 ```sh
 backend/.venv/bin/python -m mediflow.worker --check-config
