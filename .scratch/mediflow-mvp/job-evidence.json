@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-10-23T17:59:35.343362+00:00",
+  "hostedQueueTriggered": true,
+  "durableStatus": "succeeded",
+  "attempts": 1,
+  "counts": {
+    "analyses": 2,
+    "analysisCommits": 2,
+    "jobAttempts": 2,
+    "processingJobs": 2,
+    "uploadQuotas": 4
+  },
+  "testOnlyAdapter": true,
+  "independentScheduledReconciliation": true,
+  "successfulEventExecutions": 4,
+  "duplicateDeliveriesVerified": true,
+  "distinctManualRunVerified": true,
+  "uploadQuotaCountersUnchanged": true,
+  "successAuditEvents": 2,
+  "queueEmpty": true,
+  "testAdapterAttemptWallSeconds": [
+    2.56,
+    2.78
+  ],
+  "verification": {
+    "linuxBackendSuite": {
+      "passed": 115,
+      "skipped": 1,
+      "skipReason": "opt-in Firebase emulator test; verified separately"
+    },
+    "firebaseEmulatorSuite": {
+      "passed": 23
+    },
+    "flutterSuite": {
+      "passed": 19
+    },
+    "backendTypecheckedSources": 33,
+    "ruffLintAndFormat": "passed",
+    "generatedContractArtifacts": 8,
+    "dartContractSmoke": "passed",
+    "bicepCompilation": "passed",
+    "review": {
+      "standardsUnresolved": 0,
+      "specUnresolved": 0
+    }
+  },
+  "testAdapterOnly": "No laboratory extraction, OCR/LLM latency or clinical quality claim.",
+  "platformBounds": {
+    "workerCpu": 0.5,
+    "workerMemoryGiB": 1,
+    "replicaTimeoutSeconds": 420,
+    "platformRetries": 0,
+    "maxExecutionsPerPollingInterval": 1,
+    "pollingSeconds": 30,
+    "scheduledReconciliationMinutes": 5,
+    "activeProcessingLeasesPerHospital": 1
+  },
+  "cleanup": {
+    "status": "Azure confirmation pending",
+    "firestoreNamespaceEmpty": true,
+    "jobsRegistryStorageIdentityDeleted": true,
+    "remainingResource": "empty Consumption environment",
+    "providerState": "ScheduledForDelete",
+    "providerReportedErrors": false,
+    "customVnetConfigured": false,
+    "separateInfrastructureResourceGroup": false
+  }
+}

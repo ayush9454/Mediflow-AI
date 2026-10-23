@@ -20,7 +20,7 @@ This directory records the shared understanding confirmed by the user. The origi
 | [03](issues/03-synthetic-dataset-evaluation.md) | Synthetic documents, annotations, and evaluation harness | completed | 02 |
 | [04](issues/04-authentication-authorization.md) | Authentication, seeded accounts, and permissions | completed | 02 |
 | [05](issues/05-private-report-upload.md) | Private upload, verification, duplicates, and upload limits | completed | 01, 04 |
-| [06](issues/06-durable-processing-jobs.md) | Durable jobs, queue delivery, retries, and recovery | ready-for-agent | 01, 04 |
+| [06](issues/06-durable-processing-jobs.md) | Durable jobs, queue delivery, retries, and recovery | in-progress | 01, 04 |
 | [07](issues/07-pdf-ocr-evidence.md) | Native PDF extraction, OCR, and page evidence | in-progress | 03 |
 | [08](issues/08-laboratory-ai-validation.md) | Laboratory extraction, validation, and summaries | ready-for-agent | 03, 06, 07 |
 | [09](issues/09-android-upload-status.md) | Android upload and processing-status workflow | ready-for-agent | 05, 06 |
@@ -31,7 +31,7 @@ This directory records the shared understanding confirmed by the user. The origi
 | [14](issues/14-release-evaluation-hardening.md) | Held-out evaluation and release verification | ready-for-agent | 03, 07, 08, 10, 11, 12, 13 |
 | [15](issues/15-android-release-handoff.md) | Signed APK, documentation, and recorded demonstration | ready-for-agent | 01, 14 |
 
-A readiness label describes whether the ticket is specified for its intended implementer. It does not override dependencies: start a ticket only when every listed blocker is completed. Review the acceptance criteria before marking work complete. Tickets 01–05 are complete. Ticket 06 is unblocked. Ticket 07 is integrated and locally verified; its actual Azure job check remains pending. Azure owner authentication was restored during ticket 05 verification. Other tickets remain unimplemented, and their listed dependencies still apply.
+A readiness label describes whether the ticket is specified for its intended implementer. It does not override dependencies: start a ticket only when every listed blocker is completed. Review the acceptance criteria before marking work complete. Tickets 01–05 are complete. Ticket 06 implementation, review and hosted verification have passed; confirmation of deletion of its empty temporary Azure environment is pending. Ticket 07 is integrated and locally verified; its actual Azure OCR job check remains pending. Azure owner authentication was restored during ticket 05 verification. Other tickets remain unimplemented, and their listed dependencies still apply.
 
 ## Design tree
 
