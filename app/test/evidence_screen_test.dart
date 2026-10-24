@@ -72,8 +72,9 @@ void main() {
       final api = PatientReportApi(
         Uri.parse('https://example.invalid'),
         MockClient((request) async {
-          if (request.url.path.endsWith('/result'))
+          if (request.url.path.endsWith('/result')) {
             return jsonResponse(draftPayload());
+          }
           return ++metadataReads == 1 ? jsonResponse(metadata) : refresh.future;
         }),
       );

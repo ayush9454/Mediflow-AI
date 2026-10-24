@@ -1,6 +1,6 @@
 # 10: Build laboratory results and authenticated PDF evidence navigation
 
-Status: in-progress
+Status: completed
 Type: task
 Blocked by: 08, 09
 Estimate: 8 hours
@@ -29,11 +29,11 @@ Select a PDF-viewer package only after checking its license, Android support, au
 
 ## Acceptance criteria
 
-- [ ] Every displayed extracted row opens its referenced source page or shows an explicit invalid/missing-evidence issue.
-- [ ] PDF requests remain authorized on the backend; copied URLs cannot permanently expose the document.
-- [ ] Viewers remain usable for multipage scanned and digital examples on a representative Android phone.
-- [ ] Role/version labels prevent a patient-approved view from accidentally reusing the doctor draft payload.
-- [ ] Logout, expiry and assignment loss clear/restrict the viewer appropriately.
+- [x] Every displayed extracted row opens its referenced source page or shows an explicit invalid/missing-evidence issue.
+- [x] PDF requests remain authorized on the backend; copied URLs cannot permanently expose the document.
+- [x] Viewers remain usable for multipage scanned and digital examples on a representative Android phone.
+- [x] Role/version labels prevent a patient-approved view from accidentally reusing the doctor draft payload.
+- [x] Logout, expiry and assignment loss clear/restrict the viewer appropriately.
 
 ## Verification
 
@@ -49,17 +49,37 @@ all three testing boundaries and starting review commit `4b59cca` on 2026-10-25.
 Assignment, assigned-case discovery and review writes remain in ticket 11; doctors
 can currently open an assigned report by its server-created reference.
 
-Verification so far: Linux backend suite **168 passed, one optional Firebase-emulator
-test skipped**; full Flutter suite **44 passed**; focused viewer **8 passed** after
-format-only fixes. Python format/lint, mypy (39 sources), compileall, eight generated
-contract artifacts, Flutter analysis, Dart contract smoke, nine hosting-probe tests,
-two deployment-guard tests and the configured development APK build pass.
-A real Firebase doctor sign-in against the local synthetic test API opened and
-rendered a native source page on Android 15/API 35. Reassignment cleared the viewer;
-private temporary PDF files were absent. Final scanned-page inspection and the
-required separate Standards/Spec review are in progress. See the
-[viewer contract and limits](../../../docs/evidence-viewer.md).
+Final verification: Linux backend suite **168 passed, one optional Firebase-emulator
+test skipped**; full Flutter suite **45 passed**; focused viewer **9 passed** after
+review fixes. Python format/lint, mypy (39 sources), compileall, eight generated
+contract artifacts, Flutter analysis/format, Dart contract smoke, nine hosting-probe
+tests, two deployment-guard tests and the configured development APK build/install pass.
+
+Android 15/API 35 verification used the normal installed APK, real synthetic Firebase
+sign-in and a local test API with invented in-memory cases/results. Both referenced
+pages of a mixed native/scanned report rendered and were visually inspected;
+reassignment cleared the displayed result/quotation/image and no private temporary
+PDF files remained. Real Firebase account checks returned patient-approved and
+assigned-doctor-draft payloads only; cross-patient, unassigned-doctor, administrator,
+explicit patient-draft and unauthenticated/copied-URL access were denied. Session
+expiry, retention expiry, late downloads, missing/out-of-bounds evidence, unreadable
+pages and long quotations are covered through the confirmed public test boundaries.
+
+Separate Standards/Spec reviews found one minor duplicated-error-handler smell and
+one P2 busy source-link issue. Both were fixed; a failing regression verified the
+source links disable during a delayed authorization refresh and re-enable afterward.
+Both final reviews report **0 unresolved findings**. See [review-10.md](../review-10.md).
+
+The test API, emulator and container VM were stopped. No new cloud resources,
+model calls or cloud clinical-payload writes were made. This is read-only viewer
+acceptance, not the later hosted full review workflow or extraction-accuracy gate.
+See the [viewer contract and limits](../../../docs/evidence-viewer.md) and
+[sanitized Android evidence](../../../evaluation/reports/evidence-viewer-android.json).
 
 ## Comments
 
 - 2026-10-20: Created from the user-confirmed project plan. No implementation performed.
+
+- 2026-10-25: Completed implementation, confirmed public-boundary TDD, Linux/Flutter
+  suites, Android digital/scanned inspection, real Firebase access matrix, both
+  corrective review axes and local verification-resource teardown. Committed on main.

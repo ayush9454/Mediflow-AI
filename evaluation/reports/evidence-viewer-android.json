@@ -60,10 +60,20 @@
     "backend_passed": 168,
     "backend_optional_firebase_emulator_skipped": 1,
     "flutter_full_before_review_fix": 44,
-    "viewer_after_review_fix": 9
+    "viewer_after_review_fix": 9,
+    "flutter_full_final": 45,
+    "standards_unresolved": 0,
+    "spec_unresolved": 0
   },
   "review_corrections": [
     "Disabled source links during authorization refresh/rendering; regression observed red then green.",
     "Shared access-error clearing/session-expiry handling."
-  ]
+  ],
+  "teardown": {
+    "local_api_stopped": true,
+    "emulator_stopped": true,
+    "container_vm_stopped": true,
+    "app_stopped": true
+  },
+  "development_apk_sha256": "0ee857f69850217a83308db5afa82c6180cba9cf52c8b0b1defdb16d4196f6f1"
 }
