@@ -320,6 +320,7 @@ class Probe(JobProbe):
         path = self.group(state) + "/providers/Microsoft.App/containerApps/" + state["app"]
         app = self.rest("api-current", path)
         revision = app["properties"]["latestRevisionName"]
+        self.rest("api-revision", path + "/revisions/" + revision)
         replicas = self.rest("api-replicas", path + "/revisions/" + revision + "/replicas")
         count = len(replicas.get("value", []))
         self.save(
@@ -334,45 +335,139 @@ class Probe(JobProbe):
         credentials, project = self.google()
         return firestore.Client(project=project, credentials=credentials)
 
-    def cleanup(self):
-        # Only reports with this deployment's unpredictable fixture prefix qualify.
+    def owned_reports(self, db):
         from google.cloud.firestore_v1.base_query import FieldFilter
 
-        db = self.database()
-        state = self.state()
-        prefix = "ticket09-" + state["spike_id"][:12]
+        prefix = "ticket09-" + self.state()["spike_id"][:12]
         reports = list(
             db.collection("reports")
             .where(filter=FieldFilter("fileName", ">=", prefix))
             .where(filter=FieldFilter("fileName", "<", prefix + "\uffff"))
-            .limit(20)
+            .limit(51)
             .stream(timeout=20)
         )
+        if len(reports) > 50:
+            raise RuntimeError("Unexpected fixture count; inspect private state")
+        return reports
+
+    def owned_sessions(self, db):
+        from google.cloud.firestore_v1.base_query import FieldFilter
+
+        prefix = "ticket09-" + self.state()["spike_id"][:12]
+        sessions = list(
+            db.collection("uploadSessions")
+            .where(filter=FieldFilter("request.fileName", ">=", prefix))
+            .where(filter=FieldFilter("request.fileName", "<", prefix + "\uffff"))
+            .limit(51)
+            .stream(timeout=20)
+        )
+        if len(sessions) > 50:
+            raise RuntimeError("Unexpected fixture session count")
+        return sessions
+
+    def collect(self):
+        from google.cloud.firestore_v1.base_query import FieldFilter
+
+        db = self.database()
+        reports = self.owned_reports(db)
+        jobs = [
+            item.to_dict()
+            for report in reports
+            for item in db.collection("processingJobs")
+            .where(filter=FieldFilter("reportId", "==", report.id))
+            .stream(timeout=20)
+        ]
+        evidence = {
+            "checked_at": datetime.now(UTC).isoformat(),
+            "report_count": len(reports),
+            "job_count": len(jobs),
+            "processing_states": [report.to_dict()["processingStatus"] for report in reports],
+            "job_states": [job["status"] for job in jobs],
+            "attempt_counts": [job["attemptCount"] for job in jobs],
+            "committed_analysis_count": sum(
+                1
+                for report in reports
+                for _ in db.collection("analyses")
+                .where(filter=FieldFilter("reportId", "==", report.id))
+                .stream(timeout=20)
+            ),
+        }
+        self.save("workflow-evidence.json", evidence)
+        print(json.dumps(evidence), flush=True)
+
+    def cleanup(self):
+        from container_job_probe import ContainerJobProbe
+        from google.cloud import firestore
+        from google.cloud.firestore_v1.base_query import FieldFilter
+
+        db = self.database()
+        reports = self.owned_reports(db)
+        manifest_path = self.private / "firestore-cleanup-manifest.json"
+        manifest = (
+            json.loads(manifest_path.read_text())
+            if manifest_path.exists()
+            else {"paths": [], "reservations": [], "jobs": [], "reports": []}
+        )
+        paths = set(manifest["paths"])
+        # Discover aliases independently; their canonical report may predate this
+        # run and must never become part of our deletion scope.
+        for session in self.owned_sessions(db):
+            data = session.to_dict()
+            paths.add(session.reference.path)
+            paths.add("uploadGarbage/" + session.id)
+            if data.get("indexKey"):
+                paths.add("uploadKeys/" + data["indexKey"])
+            manifest["reservations"].append([data["hospitalId"], session.id])
         for snapshot in reports:
             record = snapshot.to_dict()
             report_id = snapshot.id
-            for collection in ("analyses", "processingJobs", "jobDispatches", "uploadHashes"):
+            if record["processingStatus"] in {"validating", "queued", "processing"}:
+                raise RuntimeError("Wait for run-owned processing to finish before cleanup")
+            manifest["reports"].append(report_id)
+            manifest["reservations"].append([record["hospitalId"], report_id])
+            for collection in (
+                "analyses",
+                "processingJobs",
+                "jobDispatches",
+                "uploadHashes",
+                "uploadSessions",
+            ):
                 for item in (
                     db.collection(collection)
                     .where(filter=FieldFilter("reportId", "==", report_id))
                     .stream(timeout=20)
                 ):
+                    paths.add(item.reference.path)
+                    if collection == "uploadSessions":
+                        session = item.to_dict()
+                        if session.get("indexKey"):
+                            paths.add("uploadKeys/" + session["indexKey"])
+                        paths.add("uploadGarbage/" + item.id)
+                        manifest["reservations"].append([record["hospitalId"], item.id])
                     if collection == "processingJobs":
-                        slot = db.collection("jobWorkerSlots").document(record["hospitalId"]).get()
-                        if slot.exists and slot.to_dict().get("jobId") == item.id:
-                            slot.reference.delete()
+                        if item.to_dict()["status"] not in {"succeeded", "failed", "rejected"}:
+                            raise RuntimeError("Run-owned job is not terminal; wait before cleanup")
+                        manifest["jobs"].append([record["hospitalId"], item.id])
                         for related in ("jobAttempts", "analysisCommits"):
                             for child in (
                                 db.collection(related)
                                 .where(filter=FieldFilter("jobId", "==", item.id))
                                 .stream(timeout=20)
                             ):
-                                child.reference.delete()
-                    item.reference.delete()
-            # Remove only this upload's reservation without overwriting other uploads.
-            from google.cloud import firestore
-
-            reservation = db.collection("uploadReservations").document(record["hospitalId"])
+                                paths.add(child.reference.path)
+            for collection, key in (
+                ("cases", record["caseId"]),
+                ("reports", report_id),
+                ("uploadSessions", report_id),
+                ("jobHeads", report_id),
+                ("sourceArtifacts", report_id),
+                ("uploadGarbage", report_id),
+            ):
+                paths.add(collection + "/" + key)
+        manifest["paths"] = sorted(paths)
+        self.save("firestore-cleanup-manifest.json", manifest)
+        for hospital_id, report_id in manifest["reservations"]:
+            reservation = db.collection("uploadReservations").document(hospital_id)
 
             @firestore.transactional
             def release(transaction, reservation=reservation, report_id=report_id):
@@ -381,35 +476,94 @@ class Probe(JobProbe):
                     transaction.update(reservation, {"items." + report_id: firestore.DELETE_FIELD})
 
             release(db.transaction())
-            session = db.collection("uploadSessions").document(report_id).get()
-            if session.exists:
-                index = session.to_dict().get("indexKey")
-                if index:
-                    db.collection("uploadKeys").document(index).delete()
-            for collection, key in (
-                ("cases", record["caseId"]),
-                ("reports", report_id),
-                ("uploadSessions", report_id),
-                ("jobHeads", report_id),
-            ):
-                db.collection(collection).document(key).delete()
-        # Group deletion is ownership-tag checked by the shared probe. Real quota
-        # and minimal audit records remain truthful; no seeded account is removed.
+        for hospital_id, job_id in manifest["jobs"]:
+            slot = db.collection("jobWorkerSlots").document(hospital_id)
+
+            @firestore.transactional
+            def release_slot(transaction, slot=slot, job_id=job_id):
+                current = slot.get(transaction=transaction)
+                if current.exists and current.to_dict().get("jobId") == job_id:
+                    transaction.delete(slot)
+
+            release_slot(db.transaction())
+        for path in manifest["paths"]:
+            db.document(path).delete()
+        self.verify_payload_cleanup(db)
+        # Exact-group deletion checks ownership tags. Quota and minimal audit
+        # records remain truthful; no seeded account is removed.
+        ContainerJobProbe.cleanup(self)
+        print("Run-owned payloads removed; existing users and quotas retained", flush=True)
+
+    def verify_payload_cleanup(self, db):
+        from google.cloud.firestore_v1.base_query import FieldFilter
+
+        manifest = json.loads((self.private / "firestore-cleanup-manifest.json").read_text())
+        remaining = (
+            sum(
+                snapshot.exists
+                for snapshot in db.get_all([db.document(path) for path in manifest["paths"]])
+            )
+            if manifest["paths"]
+            else 0
+        )
+        reservations = sum(
+            report_id
+            in (
+                db.collection("uploadReservations").document(hospital_id).get().to_dict() or {}
+            ).get("items", {})
+            for hospital_id, report_id in manifest["reservations"]
+        )
+        # Terminal jobs cannot commit again; still requery their report/job
+        # references so a manifest alone never certifies absence of payloads.
+        remaining += len(self.owned_reports(db)) + len(self.owned_sessions(db))
+        for report_id in set(manifest["reports"]):
+            for collection in ("analyses", "processingJobs", "jobDispatches", "uploadHashes"):
+                remaining += sum(
+                    1
+                    for _ in db.collection(collection)
+                    .where(filter=FieldFilter("reportId", "==", report_id))
+                    .stream(timeout=20)
+                )
+        for _, job_id in manifest["jobs"]:
+            for collection in ("jobAttempts", "analysisCommits"):
+                remaining += sum(
+                    1
+                    for _ in db.collection(collection)
+                    .where(filter=FieldFilter("jobId", "==", job_id))
+                    .stream(timeout=20)
+                )
+        evidence = {
+            "payloads_deleted": remaining == 0 and reservations == 0,
+            "remaining_documents": remaining,
+            "remaining_reservations": reservations,
+            "checked_at": datetime.now(UTC).isoformat(),
+        }
+        self.save("firestore-cleanup.json", evidence)
+        if not evidence["payloads_deleted"]:
+            raise RuntimeError("Run-owned payloads remain")
+
+    def cleanup_status(self):
         from container_job_probe import ContainerJobProbe
 
-        self.save(
-            "firestore-cleanup.json",
-            {
-                "report_count": len(reports),
-                "payloads_deleted": True,
-                "checked_at": datetime.now(UTC).isoformat(),
-            },
-        )
-        ContainerJobProbe.cleanup(self)
-        print(
-            "This run's synthetic payloads removed; existing users and quotas retained",
-            flush=True,
-        )
+        ContainerJobProbe.cleanup_status(self)
+        evidence = json.loads((self.private / "cleanup-evidence.json").read_text())
+        if evidence["temporary_resource_group_exists"]:
+            group = self.az("cleanup-progress", "group", "show", "--name", self.state()["group"])
+            print(
+                "Temporary group state:",
+                group.get("properties", {}).get("provisioningState"),
+                flush=True,
+            )
+            resources = self.az(
+                "cleanup-remaining", "resource", "list", "--resource-group", self.state()["group"]
+            )
+            print(
+                "Remaining resource types:",
+                sorted({item["type"] for item in resources}),
+                flush=True,
+            )
+        self.verify_payload_cleanup(self.database())
+        print("Run-owned Firestore payloads and reservations deleted: True", flush=True)
 
 
 def main():
@@ -423,6 +577,7 @@ def main():
             "deploy",
             "status",
             "replicas",
+            "collect",
             "cleanup",
             "cleanup-status",
         ),

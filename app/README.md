@@ -4,4 +4,4 @@ See the [project README](../README.md) and [development setup](../docs/developme
 
 The app supports Firebase email/password sign-in with server-verified roles. Configure `API_BASE_URL` and the project's public `FIREBASE_API_KEY`; see [authentication setup](../docs/authentication.md). Tokens stay in memory, and sign-out/account changes/expiry clear temporary sensitive bytes.
 
-Debug builds also offer explicitly labeled patient, doctor and administrator interface previews. These are not authenticated sessions and contain no patient records. Release builds cannot enable previews. Document workflow panels remain reserved for later tickets.
+Debug builds also offer explicitly labeled patient, doctor and administrator interface previews. These are not authenticated sessions and contain no patient records. Release builds cannot enable previews. Signed-in patients can upload PDFs, recover interrupted uploads, follow processing/review status and open their protected original. See [patient uploads](../docs/patient-upload.md). Doctor/admin actions and approved-result presentation remain later tickets.

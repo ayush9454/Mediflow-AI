@@ -200,7 +200,7 @@ void main() {
     },
   );
   test(
-    'original PDF access rejects JSON or oversized responses without exposing bytes',
+    'original PDF access rejects non-PDF responses without exposing bytes',
     () async {
       final api = PatientReportApi(
         Uri.parse('https://example.invalid'),

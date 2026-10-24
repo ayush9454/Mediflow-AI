@@ -1,0 +1,84 @@
+{
+  "ticket": "09",
+  "synthetic_only": true,
+  "android": {
+    "api_level": 35,
+    "development_apk_build_install": true,
+    "system_pdf_picker": true,
+    "offline_interruption_and_retry": true,
+    "process_kill_reopen_same_case": true,
+    "processing_continued_while_app_stopped": true,
+    "exact_pdf_duplicate_one_case": true,
+    "original_rendered": true,
+    "second_patient_empty": true,
+    "private_temp_pdf_count_after_render": 0
+  },
+  "hosted": {
+    "checked_at": "2026-10-24T17:59:28.680997+00:00",
+    "report_count": 1,
+    "job_count": 1,
+    "processing_states": [
+      "succeeded"
+    ],
+    "job_states": [
+      "succeeded"
+    ],
+    "attempt_counts": [
+      1
+    ],
+    "committed_analysis_count": 1
+  },
+  "access": {
+    "owner_metadata_status": 200,
+    "owner_original_status": 200,
+    "original_is_pdf": true,
+    "other_patient_metadata_status": 403,
+    "other_patient_original_status": 403
+  },
+  "cold_start": {
+    "observed_running_replicas_before_launch": 0,
+    "observed_zero_at": "2026-10-24T18:04:32.275398+00:00",
+    "displayed_safe_starting_message": true,
+    "manual_retry_service_reachable": true,
+    "initial_wait_observation_seconds": 52.746,
+    "first_attempt_android_service_reachable": false,
+    "first_health_check_available": false,
+    "underlying_first_failure_cause": "Not exposed by the patient UI"
+  },
+  "automated": {
+    "backend_passed": 162,
+    "backend_optional_skipped": 1,
+    "flutter_passed": 33,
+    "python_typechecked_sources": 38,
+    "contract_artifacts_checked": 8,
+    "python_lint_format": true,
+    "flutter_analysis": true,
+    "dart_contract_api_smoke": true
+  },
+  "review": {
+    "standards_findings_resolved": true,
+    "spec_findings_resolved": true
+  },
+  "cleanup": {
+    "azure": {
+      "temporary_resource_group_exists": true,
+      "all_temporary_resources_deleted": false,
+      "checked_at": "2026-10-24T18:08:47.455577+00:00"
+    },
+    "firestore": {
+      "payloads_deleted": true,
+      "remaining_documents": 0,
+      "remaining_reservations": 0,
+      "checked_at": "2026-10-24T18:08:49.992308+00:00"
+    },
+    "local_android_emulator_stopped": true,
+    "local_container_vm_stopped": true
+  },
+  "limitations": [
+    "Development APK uses debug signing.",
+    "Temporary acceptance endpoint will be removed; configure a new live API for further use.",
+    "Cold-start first health check showed unavailable/starting; manual retry succeeded. The UI does not expose the underlying HTTP cause.",
+    "This verifies patient upload/status only; approved results and doctor/admin actions are later tickets."
+  ],
+  "apk_sha256": "ae68fea0c4f54f814bdd56a12957d48d14619110044de68d5c12e60e3c19b717"
+}

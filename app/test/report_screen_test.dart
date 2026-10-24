@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,9 +10,71 @@ import 'package:mediflow_ai/features/reports/report_api.dart';
 import 'package:mediflow_ai/features/reports/report_controller.dart';
 import 'package:mediflow_ai/features/reports/report_screen.dart';
 
-import 'report_workflow_test.dart' show DeviceFiles, patient;
+import 'report_workflow_test.dart' show DeviceFiles, patient, metadata;
+import 'package:mediflow_ai/features/reports/report_platform.dart';
+
+class RenderingFiles extends DeviceFiles {
+  int renders = 0;
+  @override
+  Future<PdfPageImage> render(Uint8List source, int page) async {
+    renders++;
+    throw UnimplementedError();
+  }
+}
 
 void main() {
+  testWidgets(
+    'a document download completing after background never opens or renders',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      final response = Completer<http.Response>();
+      final files = RenderingFiles();
+      final controller = PatientReportsController(
+        account: patient,
+        token: () => 'token',
+        platform: files,
+        api: PatientReportApi(
+          Uri.parse('https://example.invalid'),
+          MockClient((request) async {
+            if (request.url.path.endsWith('/document')) return response.future;
+            if (request.url.path == '/api/v1/cases') {
+              return http.Response('{"items":[],"nextCursor":null}', 200);
+            }
+            return http.Response(
+              jsonEncode(metadata(status: 'succeeded')),
+              200,
+            );
+          }),
+        ),
+      );
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: PatientReportsPanel(controller: controller)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await controller.select('report_1');
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Open original PDF'));
+      await tester.tap(find.text('Open original PDF'));
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      response.complete(
+        http.Response(
+          '%PDF-synthetic',
+          200,
+          headers: {'content-type': 'application/pdf'},
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(files.renders, 0);
+      expect(find.text('Close original PDF'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    },
+  );
+
   testWidgets(
     'polling waits for a foreground screen and refreshes immediately on resume',
     (tester) async {

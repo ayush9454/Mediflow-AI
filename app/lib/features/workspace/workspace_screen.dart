@@ -83,7 +83,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
           ? SafeArea(
               child: PatientReportsHost(
                 key: ValueKey(
-                  '${ref.watch(sessionProvider).account!.uid}-$selectedTab',
+                  '${ref.watch(sessionProvider).account!.hospitalId}/${ref.watch(sessionProvider).account!.uid}-$selectedTab',
                 ),
                 account: ref.watch(sessionProvider).account!,
                 history: selectedTab == 1,

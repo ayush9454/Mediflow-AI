@@ -15,13 +15,14 @@ import 'report_workflow_test.dart' show DeviceFiles;
 class SeededGateway implements SessionGateway {
   SeededGateway(this.role);
   final Role role;
+  String hospitalId = 'hospital_demo';
   @override
   Future<IdentityToken> signIn(String email, String password) async =>
       IdentityToken('verified', DateTime.now().add(const Duration(hours: 1)));
   @override
   Future<Account> account(String token) async => Account(
     uid: role.value,
-    hospitalId: 'hospital_demo',
+    hospitalId: hospitalId,
     displayName: 'Synthetic account',
     role: role,
     active: true,
@@ -38,6 +39,54 @@ ProviderContainer container({bool preview = true}) => ProviderContainer(
 );
 
 void main() {
+  testWidgets(
+    'same user moving hospital replaces the entire protected reports controller',
+    (tester) async {
+      final gateway = SeededGateway(Role.patient);
+      final owners = <String>[];
+      final scope = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(
+            const AppConfig(apiBaseUrl: null, enableRolePreview: false),
+          ),
+          sessionGatewayProvider.overrideWithValue(gateway),
+          reportPlatformProvider.overrideWithValue(DeviceFiles()),
+          reportHttpClientFactoryProvider.overrideWithValue(
+            () => MockClient(
+              (request) async =>
+                  http.Response('{"items":[],"nextCursor":null}', 200),
+            ),
+          ),
+        ],
+      );
+      addTearDown(scope.dispose);
+      await scope
+          .read(sessionProvider.notifier)
+          .signIn('synthetic@example.test', 'synthetic');
+      await tester.pumpWidget(
+        UncontrolledProviderScope(container: scope, child: const MediFlowApp()),
+      );
+      await tester.pumpAndSettle();
+      final oldController = tester
+          .widget<PatientReportsPanel>(find.byType(PatientReportsPanel))
+          .controller;
+      owners.add(oldController.owner);
+      gateway.hospitalId = 'another_hospital';
+      await scope.read(sessionProvider.notifier).revalidate();
+      await tester.pumpAndSettle();
+      final newController = tester
+          .widget<PatientReportsPanel>(find.byType(PatientReportsPanel))
+          .controller;
+      owners.add(newController.owner);
+      expect(owners, ['hospital_demo/patient', 'another_hospital/patient']);
+      expect(identical(oldController, newController), isFalse);
+      expect(oldController.mounted, isFalse);
+      scope.read(sessionProvider.notifier).signOut();
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
   for (final role in Role.values) {
     testWidgets('signed in ${role.value} reaches only its trusted role shell', (
       tester,
@@ -48,8 +97,14 @@ void main() {
             const AppConfig(apiBaseUrl: null, enableRolePreview: false),
           ),
           sessionGatewayProvider.overrideWithValue(SeededGateway(role)),
-          reportHttpClientFactoryProvider.overrideWithValue(()=>MockClient((request) async =>
-            http.Response('{"schemaVersion":"1.0","items":[],"nextCursor":null}',200))),
+          reportHttpClientFactoryProvider.overrideWithValue(
+            () => MockClient(
+              (request) async => http.Response(
+                '{"schemaVersion":"1.0","items":[],"nextCursor":null}',
+                200,
+              ),
+            ),
+          ),
           reportPlatformProvider.overrideWithValue(DeviceFiles()),
         ],
       );
@@ -68,7 +123,14 @@ void main() {
       );
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
-      expect(find.text(role==Role.patient?'Your laboratory reports':'${role.label} workspace'), findsOneWidget);
+      expect(
+        find.text(
+          role == Role.patient
+              ? 'Your laboratory reports'
+              : '${role.label} workspace',
+        ),
+        findsOneWidget,
+      );
       scope
           .read(appRouterProvider)
           .go('/${role == Role.patient ? 'administrator' : 'patient'}');

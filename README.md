@@ -16,9 +16,11 @@ The current implementation includes:
 - Authenticated bounded private PDF uploads, stored-byte verification, patient-scoped duplicates, atomic quotas and durable processing-job intent.
 - Isolated native PDF/OCR processing with page evidence, explicit rejection outcomes, and a worker container with bounded resources.
 - Durable queued jobs with bounded retries, crash recovery, scheduled reconciliation and fenced result commits.
-- Backend tests, Flutter contract/navigation tests, a socket-free Dart smoke check, a backend Dockerfile and GitHub Actions checks.
+- Hosted laboratory extraction with structured provider output, evidence/row validation and measured development results.
+- Patient Android PDF upload/progress, persistent recovery, private originals and foreground-only status polling.
+- Backend tests, Flutter contract/navigation/workflow tests, a socket-free Dart smoke check, a backend Dockerfile and GitHub Actions checks.
 
-Private uploads and durable queue/worker integration are implemented; see the [upload guide](docs/private-uploads.md) and [jobs guide](docs/jobs.md). AI row extraction and clinical review remain in later tickets. PDF/OCR processing verifies upload admission and is also available as an offline worker module; its actual bounded Azure execution is recorded in the [PDF/OCR guide](docs/document-processing.md). The durable worker remains fail-closed until ticket 08 supplies its candidate provider. No hosted production API is deployed. Debug previews remain distinct from real sign-in. Release builds cannot enable previews.
+Private uploads and durable queue/worker integration are implemented; see the [upload guide](docs/private-uploads.md) and [jobs guide](docs/jobs.md). Laboratory extraction is implemented; clinical review remains in later tickets. PDF/OCR processing verifies upload admission and is also available as an offline worker module; its actual bounded Azure execution is recorded in the [PDF/OCR guide](docs/document-processing.md). The durable worker uses the configured real laboratory provider; see [extraction setup and measured limitations](docs/laboratory-extraction.md). The patient flow was verified on a temporary hosted API with real processing; teardown is recorded separately; see [patient upload verification](evaluation/reports/patient-upload-android.json). No permanent production API is deployed. Debug previews remain distinct from real sign-in. Release builds cannot enable previews.
 
 The issue-01 synthetic hosting probe verified protected Azure student access, Central India capacity, authenticated HTTPS, private Blob access and an automatic queue-triggered job. The owner reported a successful Android request with the laptop off. Firebase Spark and Gemini Free access/quotas are verified; the temporary Azure resources were deleted and group absence was verified. See [hosting evidence](.scratch/mediflow-mvp/hosting-evidence.json) and [cost/expiry notes](.scratch/mediflow-mvp/hosting-costs.md). This probe does not connect or deploy the application workflows above.
 
@@ -55,7 +57,7 @@ To sign in, configure the backend Firebase project and trusted Application Defau
 
 See the [benchmark guide](evaluation/README.md) for fixture regeneration/evaluation and
 [PDF/OCR guide](docs/document-processing.md) for bounded processing and container commands.
-Page-processing success does not establish row extraction accuracy; that remains unmeasured.
+Page-processing success does not establish row extraction accuracy. See the extraction guide for measured development results and the remaining scanned-quality limitation; the held-out release gate remains open.
 
 ## Checks
 

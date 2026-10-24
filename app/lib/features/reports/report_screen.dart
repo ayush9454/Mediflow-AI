@@ -114,6 +114,7 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
   Timer? poll;
   Uint8List? source, png;
   int page = 0, pageCount = 0;
+  int pdfGeneration = 0;
   bool rendering = false;
   String? shownReport;
   PatientReportsController get controller => widget.controller;
@@ -159,6 +160,7 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
   }
 
   void _clearPdf() {
+    pdfGeneration++;
     if (png != null) {
       PaintingBinding.instance.imageCache.clear();
       PaintingBinding.instance.imageCache.clearLiveImages();
@@ -180,9 +182,22 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
     super.dispose();
   }
 
+  bool get _foreground =>
+      WidgetsBinding.instance.lifecycleState == null ||
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+
+  bool get _unexpired =>
+      controller.snapshot.selected?.expiresAt?.isAfter(DateTime.now()) != false;
+
   Future<void> _openPdf() async {
+    final generation = pdfGeneration;
+    final reportId = controller.snapshot.selected?.reportId;
     final bytes = await controller.loadOriginal();
-    if (!mounted) {
+    if (!mounted ||
+        generation != pdfGeneration ||
+        !_foreground ||
+        !_unexpired ||
+        controller.snapshot.selected?.reportId != reportId) {
       bytes?.fillRange(0, bytes.length, 0);
       return;
     }
@@ -196,9 +211,14 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
     if (source == null || rendering) return;
     setState(() => rendering = true);
     final document = source;
+    final generation = pdfGeneration;
     try {
       final result = await controller.platform.render(document!, next);
-      if (!mounted || source != document) {
+      if (!mounted ||
+          source != document ||
+          generation != pdfGeneration ||
+          !_foreground ||
+          !_unexpired) {
         result.png.fillRange(0, result.png.length, 0);
         return;
       }

@@ -167,7 +167,8 @@ class PatientReportsController extends StateNotifier<PatientReportState> {
           try {
             report = _owned(await api.report(_token, pending.reportId!));
           } on ApiFailure catch (error) {
-            if (error.code != ErrorCode.permissionDenied || !pending.verifying) {
+            if (error.code != ErrorCode.permissionDenied ||
+                !pending.verifying) {
               rethrow;
             }
             // Duplicate completion can retire a provisional report. Replay the

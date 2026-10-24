@@ -28,8 +28,9 @@ For a real cold-start check, stop the app so polling ceases, leave the endpoint 
 
 ```sh
 backend/.venv/bin/python tools/patient_smoke/cloud.py replicas
+backend/.venv/bin/python tools/patient_smoke/cloud.py collect
 backend/.venv/bin/python tools/patient_smoke/cloud.py cleanup
 backend/.venv/bin/python tools/patient_smoke/cloud.py cleanup-status
 ```
 
-Cleanup deletes only run-prefixed reports and their case/job/analysis/upload payload bookkeeping, releases their reservations, and requests deletion of the exact tagged Azure group. Minimal audit and real quota usage remain truthful; existing users are retained. Repeat `cleanup-status` until all temporary Azure resources are absent. The installed acceptance APK will need a new live API configuration after teardown. Never describe a temporary smoke deployment as an always-available production service.
+Stop the test app and wait for its processing jobs to become terminal before cleanup; the tool rejects active processing. Cleanup deletes only run-prefixed reports and their case/job/analysis/upload payload bookkeeping, releases their reservations, and requests deletion of the exact tagged Azure group. Minimal audit and real quota usage remain truthful; existing users are retained. Repeat `cleanup-status` until all temporary Azure resources are absent and run-owned Firestore payload/reservation checks pass. The persisted private manifest makes an interrupted cleanup resumable; cleanup also requeries report/job references and discovers duplicate upload aliases independently. The installed acceptance APK will need a new live API configuration after teardown. Never describe a temporary smoke deployment as an always-available production service.

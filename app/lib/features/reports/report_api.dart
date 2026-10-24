@@ -45,10 +45,11 @@ class PatientReportApi {
     Uint8List? pdf,
     void Function(double)? progress,
     int expected = 200,
-    int maxBytes = 1000000,
+    bool expectPdf = false,
     Duration timeout = const Duration(seconds: 45),
   }) async {
     if (_closed) throw const ApiFailure('This session has ended.');
+    final maxBytes = expectPdf ? 10000000 : 1000000;
     final abort = Completer<void>();
     _inflight.add(abort);
     final uri = baseUrl.resolve(path);
@@ -62,7 +63,7 @@ class PatientReportApi {
     }
     request.headers.addAll({
       'Authorization': 'Bearer $token',
-      'Accept': maxBytes == 10000000 ? 'application/pdf' : 'application/json',
+      'Accept': expectPdf ? 'application/pdf' : 'application/json',
       if (body != null) 'Content-Type': 'application/json',
       if (pdf != null) 'Content-Type': 'application/pdf',
       if (key != null) 'Idempotency-Key': key,
@@ -85,7 +86,7 @@ class PatientReportApi {
         if (response.statusCode != expected) {
           throw _failure(response.statusCode);
         }
-        if (maxBytes == 10000000 &&
+        if (expectPdf &&
             (response.headers['content-type']
                         ?.split(';')
                         .first
@@ -256,7 +257,7 @@ class PatientReportApi {
     token,
     'GET',
     '/api/v1/reports/${_id(id)}/document',
-    maxBytes: 10000000,
+    expectPdf: true,
     timeout: const Duration(seconds: 90),
   );
 
