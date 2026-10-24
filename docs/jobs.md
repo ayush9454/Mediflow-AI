@@ -52,9 +52,11 @@ eligible. Recovery always comes from Firestore rather than dequeue counts.
 See Microsoft's [event-driven Jobs tutorial](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-event-driven-jobs)
 and [QueueClient contract](https://learn.microsoft.com/python/api/azure-storage-queue/azure.storage.queue.queueclient).
 
-No deterministic test adapter may serve production or demo analysis. Ticket 08
-must supply the actual candidate provider. Until then, the normal worker reports
-`integration_not_configured` without inventing laboratory output.
+No deterministic test adapter may serve production or demo analysis. The normal
+worker runs real PDF/OCR and the configured Gemini laboratory provider. Missing
+free-tier configuration reports `integration_not_configured` without inventing
+output. See [laboratory extraction](laboratory-extraction.md) for configuration,
+bounds, failure classifications and development evaluation.
 
 ## Run and deploy
 

@@ -1,0 +1,1226 @@
+{
+  "dataset_version": "synthetic-labs-v1",
+  "groups": {
+    "development/all": {
+      "classification_failures": 0,
+      "evidence_mismatches": 41,
+      "failure_rate": 0.0,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 96,
+          "expected": 112,
+          "precision": 0.8648648648648649,
+          "predicted": 111,
+          "recall": 0.8571428571428571
+        },
+        "analyte": {
+          "correct": 109,
+          "expected": 112,
+          "precision": 0.9819819819819819,
+          "predicted": 111,
+          "recall": 0.9732142857142857
+        },
+        "collection_date": {
+          "correct": 109,
+          "expected": 112,
+          "precision": 0.9819819819819819,
+          "predicted": 111,
+          "recall": 0.9732142857142857
+        },
+        "reference_range": {
+          "correct": 104,
+          "expected": 112,
+          "precision": 0.9369369369369369,
+          "predicted": 111,
+          "recall": 0.9285714285714286
+        },
+        "result": {
+          "correct": 107,
+          "expected": 112,
+          "precision": 0.963963963963964,
+          "predicted": 111,
+          "recall": 0.9553571428571429
+        },
+        "unit": {
+          "correct": 84,
+          "expected": 112,
+          "precision": 0.7567567567567568,
+          "predicted": 111,
+          "recall": 0.75
+        }
+      },
+      "latency_seconds": {
+        "max": 28.19661225000027,
+        "mean": 11.519311327150103,
+        "measured_documents": 20
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 20,
+          "total": 102
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 20,
+          "total": 0.0
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 20,
+          "total": 0.0
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 20,
+          "total": 102
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 20,
+      "resources": [
+        {
+          "amount": 9105.0,
+          "name": "provider_input_tokens",
+          "unit": "tokens"
+        },
+        {
+          "amount": 15747.0,
+          "name": "provider_output_tokens",
+          "unit": "tokens"
+        },
+        {
+          "amount": 0.0,
+          "name": "provider_thinking_tokens",
+          "unit": "tokens"
+        }
+      ],
+      "sample_count": 20,
+      "strict_rows": {
+        "correct": 70,
+        "expected": 112,
+        "precision": 0.6306306306306306,
+        "predicted": 111,
+        "recall": 0.625
+      },
+      "submitted_documents": 20
+    },
+    "development/digital": {
+      "classification_failures": 0,
+      "evidence_mismatches": 2,
+      "failure_rate": 0.0,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 55,
+          "expected": 56,
+          "precision": 0.9821428571428571,
+          "predicted": 56,
+          "recall": 0.9821428571428571
+        },
+        "analyte": {
+          "correct": 56,
+          "expected": 56,
+          "precision": 1.0,
+          "predicted": 56,
+          "recall": 1.0
+        },
+        "collection_date": {
+          "correct": 56,
+          "expected": 56,
+          "precision": 1.0,
+          "predicted": 56,
+          "recall": 1.0
+        },
+        "reference_range": {
+          "correct": 54,
+          "expected": 56,
+          "precision": 0.9642857142857143,
+          "predicted": 56,
+          "recall": 0.9642857142857143
+        },
+        "result": {
+          "correct": 56,
+          "expected": 56,
+          "precision": 1.0,
+          "predicted": 56,
+          "recall": 1.0
+        },
+        "unit": {
+          "correct": 56,
+          "expected": 56,
+          "precision": 1.0,
+          "predicted": 56,
+          "recall": 1.0
+        }
+      },
+      "latency_seconds": {
+        "max": 28.19661225000027,
+        "mean": 12.716514683400145,
+        "measured_documents": 10
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 10,
+          "total": 47
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 10,
+          "total": 0.0
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 10,
+          "total": 0.0
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 10,
+          "total": 47
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 10,
+      "resources": [
+        {
+          "amount": 4737.0,
+          "name": "provider_input_tokens",
+          "unit": "tokens"
+        },
+        {
+          "amount": 7781.0,
+          "name": "provider_output_tokens",
+          "unit": "tokens"
+        },
+        {
+          "amount": 0.0,
+          "name": "provider_thinking_tokens",
+          "unit": "tokens"
+        }
+      ],
+      "sample_count": 10,
+      "strict_rows": {
+        "correct": 54,
+        "expected": 56,
+        "precision": 0.9642857142857143,
+        "predicted": 56,
+        "recall": 0.9642857142857143
+      },
+      "submitted_documents": 10
+    },
+    "development/scanned": {
+      "classification_failures": 0,
+      "evidence_mismatches": 39,
+      "failure_rate": 0.0,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 41,
+          "expected": 56,
+          "precision": 0.7454545454545455,
+          "predicted": 55,
+          "recall": 0.7321428571428571
+        },
+        "analyte": {
+          "correct": 53,
+          "expected": 56,
+          "precision": 0.9636363636363636,
+          "predicted": 55,
+          "recall": 0.9464285714285714
+        },
+        "collection_date": {
+          "correct": 53,
+          "expected": 56,
+          "precision": 0.9636363636363636,
+          "predicted": 55,
+          "recall": 0.9464285714285714
+        },
+        "reference_range": {
+          "correct": 50,
+          "expected": 56,
+          "precision": 0.9090909090909091,
+          "predicted": 55,
+          "recall": 0.8928571428571429
+        },
+        "result": {
+          "correct": 51,
+          "expected": 56,
+          "precision": 0.9272727272727272,
+          "predicted": 55,
+          "recall": 0.9107142857142857
+        },
+        "unit": {
+          "correct": 28,
+          "expected": 56,
+          "precision": 0.509090909090909,
+          "predicted": 55,
+          "recall": 0.5
+        }
+      },
+      "latency_seconds": {
+        "max": 24.71890595800005,
+        "mean": 10.32210797090006,
+        "measured_documents": 10
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 10,
+          "total": 55
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 10,
+          "total": 0.0
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 10,
+          "total": 0.0
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 10,
+          "total": 55
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 10,
+      "resources": [
+        {
+          "amount": 4368.0,
+          "name": "provider_input_tokens",
+          "unit": "tokens"
+        },
+        {
+          "amount": 7966.0,
+          "name": "provider_output_tokens",
+          "unit": "tokens"
+        },
+        {
+          "amount": 0.0,
+          "name": "provider_thinking_tokens",
+          "unit": "tokens"
+        }
+      ],
+      "sample_count": 10,
+      "strict_rows": {
+        "correct": 16,
+        "expected": 56,
+        "precision": 0.2909090909090909,
+        "predicted": 55,
+        "recall": 0.2857142857142857
+      },
+      "submitted_documents": 10
+    },
+    "held-out/all": {
+      "classification_failures": 0,
+      "evidence_mismatches": 0,
+      "failure_rate": null,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "analyte": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "collection_date": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "reference_range": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "result": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "unit": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        }
+      },
+      "latency_seconds": {
+        "max": null,
+        "mean": null,
+        "measured_documents": 0
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 0,
+      "resources": [],
+      "sample_count": 0,
+      "strict_rows": {
+        "correct": 0,
+        "expected": 0,
+        "precision": null,
+        "predicted": 0,
+        "recall": null
+      },
+      "submitted_documents": 0
+    },
+    "held-out/digital": {
+      "classification_failures": 0,
+      "evidence_mismatches": 0,
+      "failure_rate": null,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "analyte": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "collection_date": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "reference_range": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "result": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "unit": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        }
+      },
+      "latency_seconds": {
+        "max": null,
+        "mean": null,
+        "measured_documents": 0
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 0,
+      "resources": [],
+      "sample_count": 0,
+      "strict_rows": {
+        "correct": 0,
+        "expected": 0,
+        "precision": null,
+        "predicted": 0,
+        "recall": null
+      },
+      "submitted_documents": 0
+    },
+    "held-out/scanned": {
+      "classification_failures": 0,
+      "evidence_mismatches": 0,
+      "failure_rate": null,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "analyte": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "collection_date": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "reference_range": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "result": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "unit": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        }
+      },
+      "latency_seconds": {
+        "max": null,
+        "mean": null,
+        "measured_documents": 0
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 0,
+      "resources": [],
+      "sample_count": 0,
+      "strict_rows": {
+        "correct": 0,
+        "expected": 0,
+        "precision": null,
+        "predicted": 0,
+        "recall": null
+      },
+      "submitted_documents": 0
+    },
+    "negative/all": {
+      "classification_failures": 0,
+      "evidence_mismatches": 0,
+      "failure_rate": null,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "analyte": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "collection_date": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "reference_range": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "result": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "unit": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        }
+      },
+      "latency_seconds": {
+        "max": null,
+        "mean": null,
+        "measured_documents": 0
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 0,
+      "resources": [],
+      "sample_count": 0,
+      "strict_rows": {
+        "correct": 0,
+        "expected": 0,
+        "precision": null,
+        "predicted": 0,
+        "recall": null
+      },
+      "submitted_documents": 0
+    },
+    "negative/digital": {
+      "classification_failures": 0,
+      "evidence_mismatches": 0,
+      "failure_rate": null,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "analyte": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "collection_date": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "reference_range": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "result": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "unit": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        }
+      },
+      "latency_seconds": {
+        "max": null,
+        "mean": null,
+        "measured_documents": 0
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 0,
+      "resources": [],
+      "sample_count": 0,
+      "strict_rows": {
+        "correct": 0,
+        "expected": 0,
+        "precision": null,
+        "predicted": 0,
+        "recall": null
+      },
+      "submitted_documents": 0
+    },
+    "negative/scanned": {
+      "classification_failures": 0,
+      "evidence_mismatches": 0,
+      "failure_rate": null,
+      "failures": 0,
+      "fields": {
+        "abnormality_flag": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "analyte": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "collection_date": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "reference_range": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "result": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        },
+        "unit": {
+          "correct": 0,
+          "expected": 0,
+          "precision": null,
+          "predicted": 0,
+          "recall": null
+        }
+      },
+      "latency_seconds": {
+        "max": null,
+        "mean": null,
+        "measured_documents": 0
+      },
+      "missing_documents": 0,
+      "observations": {
+        "flagged_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "out_of_pocket_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "provider_cost_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "student_credit_charge_usd": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unresolved_rows": {
+          "assessed_documents": 0,
+          "total": null
+        },
+        "unsupported_summary_claims": {
+          "assessed_documents": 0,
+          "total": null
+        }
+      },
+      "resource_measured_documents": 0,
+      "resources": [],
+      "sample_count": 0,
+      "strict_rows": {
+        "correct": 0,
+        "expected": 0,
+        "precision": null,
+        "predicted": 0,
+        "recall": null
+      },
+      "submitted_documents": 0
+    }
+  },
+  "mode": "extraction_evaluation",
+  "run": {
+    "benchmark": "laboratory-development-v1",
+    "configuration": {
+      "evidence_normalization": "unicode_whitespace_only_v1",
+      "max_input_characters": 60000,
+      "max_output_tokens": 8192,
+      "prompt_sha256": "fd5d932f152216ec3f44cdcfa0b567aec30d95e8c772e5c5b7b249ff0b3f650f",
+      "schema_sha256": "e7881785082b8fc3f0675ff7b76eaf6399dd89fa5f6ea22e329aa26bb3320032",
+      "temperature": 0.0,
+      "thinking_level": "minimal",
+      "version": "laboratory-config-v1"
+    },
+    "documents": [
+      {
+        "document_id": "dev-01",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 7,
+        "usage": {
+          "elapsed_seconds": 12.780534208000063,
+          "input_tokens": 602,
+          "output_tokens": 1138,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1740
+        }
+      },
+      {
+        "document_id": "dev-02",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 6.09275820799985,
+          "input_tokens": 419,
+          "output_tokens": 803,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1222
+        }
+      },
+      {
+        "document_id": "dev-03",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 5.7819694169998,
+          "input_tokens": 382,
+          "output_tokens": 738,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1120
+        }
+      },
+      {
+        "document_id": "dev-04",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 7,
+        "usage": {
+          "elapsed_seconds": 28.19145345800007,
+          "input_tokens": 518,
+          "output_tokens": 730,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1248
+        }
+      },
+      {
+        "document_id": "dev-05",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 10.112659708999672,
+          "input_tokens": 402,
+          "output_tokens": 770,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1172
+        }
+      },
+      {
+        "document_id": "dev-06",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 6.770111750000069,
+          "input_tokens": 392,
+          "output_tokens": 749,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1141
+        }
+      },
+      {
+        "document_id": "dev-07",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 11.702777542000149,
+          "input_tokens": 478,
+          "output_tokens": 725,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1203
+        }
+      },
+      {
+        "document_id": "dev-08",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 7,
+        "usage": {
+          "elapsed_seconds": 12.090174040999955,
+          "input_tokens": 695,
+          "output_tokens": 864,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1559
+        }
+      },
+      {
+        "document_id": "dev-09",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 23.493049708999934,
+          "input_tokens": 398,
+          "output_tokens": 766,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1164
+        }
+      },
+      {
+        "document_id": "dev-10",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 10.086687999999867,
+          "input_tokens": 451,
+          "output_tokens": 498,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 949
+        }
+      },
+      {
+        "document_id": "dev-11",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 7,
+        "usage": {
+          "elapsed_seconds": 7.494518958999834,
+          "input_tokens": 466,
+          "output_tokens": 1108,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1574
+        }
+      },
+      {
+        "document_id": "dev-12",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 24.7131274999997,
+          "input_tokens": 388,
+          "output_tokens": 778,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1166
+        }
+      },
+      {
+        "document_id": "dev-13",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 6.879672542000208,
+          "input_tokens": 453,
+          "output_tokens": 778,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1231
+        }
+      },
+      {
+        "document_id": "dev-14",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 9.735540624999885,
+          "input_tokens": 334,
+          "output_tokens": 681,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1015
+        }
+      },
+      {
+        "document_id": "dev-15",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 7,
+        "usage": {
+          "elapsed_seconds": 7.821235375000015,
+          "input_tokens": 420,
+          "output_tokens": 1018,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1438
+        }
+      },
+      {
+        "document_id": "dev-16",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 11.760377875000358,
+          "input_tokens": 558,
+          "output_tokens": 747,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1305
+        }
+      },
+      {
+        "document_id": "dev-17",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 8.943887542000084,
+          "input_tokens": 411,
+          "output_tokens": 707,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1118
+        }
+      },
+      {
+        "document_id": "dev-18",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 5,
+        "usage": {
+          "elapsed_seconds": 8.286723374999838,
+          "input_tokens": 389,
+          "output_tokens": 779,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1168
+        }
+      },
+      {
+        "document_id": "dev-19",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 7,
+        "usage": {
+          "elapsed_seconds": 7.681885082999997,
+          "input_tokens": 559,
+          "output_tokens": 840,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 1399
+        }
+      },
+      {
+        "document_id": "dev-20",
+        "model": "gemini-3.5-flash-lite",
+        "model_version": "gemini-3.5-flash-lite",
+        "outcome": "succeeded",
+        "row_count": 4,
+        "usage": {
+          "elapsed_seconds": 9.867028000000118,
+          "input_tokens": 390,
+          "output_tokens": 530,
+          "requests": 1,
+          "thinking_tokens": 0,
+          "total_tokens": 920
+        }
+      }
+    ],
+    "held_out_used": false,
+    "page_results_reused": true,
+    "provider_cost_basis": "Confirmed free-tier project; billing disabled before run."
+  },
+  "validation_issue_counts": {
+    "not_printed": 127,
+    "ocr_requires_visual_review": 55,
+    "evidence_mismatch": 16,
+    "field_not_in_evidence": 76
+  },
+  "summary_review": {
+    "method": "All twenty deterministic count summaries inspected; no clinical narrative generated.",
+    "assessed_documents": 20,
+    "unsupported_clinical_claims_observed": 0
+  },
+  "scope": {
+    "release_evaluation": false,
+    "held_out_used": false,
+    "deployment": "Linux OCR at 0.5 vCPU / 1 GiB, followed by host-side real Gemini calls; no Azure pipeline deployment in this ticket.",
+    "cost": "Zero-dollar provider pricing on confirmed free tier; infrastructure billing consumption not measured in this local run."
+  }
+}

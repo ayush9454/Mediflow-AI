@@ -17,7 +17,9 @@ The backend environment template is [backend/.env.example](../backend/.env.examp
 The evaluation extra supplies offline synthetic PDF generation/rendering tools for
 ticket 03's tests; production installation does not need it. See the
 [benchmark guide](../evaluation/README.md) for fixture regeneration, frozen held-out
-data, scoring rules and evaluation commands. No extraction accuracy is measured yet.
+data, scoring rules and evaluation commands. See [laboratory extraction](laboratory-extraction.md)
+for provider setup and development evaluation. Held-out release accuracy remains
+a separate ticket-14 gate.
 
 The liveness endpoint is `http://127.0.0.1:8000/health/live`; Swagger UI is `/api/v1/docs` and OpenAPI is `/api/v1/openapi.json`. Overall readiness remains 503 while document workflows are pending. Configure `MEDIFLOW_FIREBASE_PROJECT_ID` and backend-only Application Default Credentials for real token verification and server-owned account permissions. Missing/invalid tokens are denied; an unconfigured identity adapter fails closed. See [authentication setup and emulator checks](authentication.md).
 

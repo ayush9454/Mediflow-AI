@@ -46,6 +46,8 @@ final class AnalysisCandidate {
     required this.jobId,
     required this.version,
     required this.rows,
+    required this.sourcePages,
+    required this.providerOutput,
     required this.summary,
     required this.issues,
     required this.provenance,
@@ -58,6 +60,8 @@ final class AnalysisCandidate {
   final String jobId;
   final int version;
   final List<LaboratoryRow> rows;
+  final List<SourcePage> sourcePages;
+  final String? providerOutput;
   final String? summary;
   final List<ValidationIssue> issues;
   final AnalysisProvenance provenance;
@@ -70,6 +74,8 @@ final class AnalysisCandidate {
     jobId: json["jobId"] as String,
     version: json["version"] as int,
     rows: List<LaboratoryRow>.unmodifiable((json["rows"] as List).map((item) => LaboratoryRow.fromJson((item as Map).cast<String, Object?>()))),
+    sourcePages: List<SourcePage>.unmodifiable(((json["sourcePages"] ?? []) as List).map((item) => SourcePage.fromJson((item as Map).cast<String, Object?>()))),
+    providerOutput: json["providerOutput"] == null ? null : json["providerOutput"] as String,
     summary: json["summary"] == null ? null : json["summary"] as String,
     issues: List<ValidationIssue>.unmodifiable(((json["issues"] ?? []) as List).map((item) => ValidationIssue.fromJson((item as Map).cast<String, Object?>()))),
     provenance: AnalysisProvenance.fromJson((json["provenance"] as Map).cast<String, Object?>()),
@@ -83,6 +89,8 @@ final class AnalysisCandidate {
     "jobId": jobId,
     "version": version,
     "rows": rows.map((item) => item.toJson()).toList(),
+    "sourcePages": sourcePages.map((item) => item.toJson()).toList(),
+    "providerOutput": providerOutput,
     "summary": summary,
     "issues": issues.map((item) => item.toJson()).toList(),
     "provenance": provenance.toJson(),
@@ -96,18 +104,36 @@ final class AnalysisProvenance {
     required this.promptVersion,
     required this.modelProvider,
     required this.modelVersion,
+    required this.modelName,
+    required this.usage,
+    required this.configuration,
+    required this.sourceSha256,
+    required this.pageProcessingSeconds,
+    required this.pageProcessingPeakRssBytes,
   });
 
   final String pipelineVersion;
   final String promptVersion;
   final String modelProvider;
   final String modelVersion;
+  final String? modelName;
+  final ProviderUsage? usage;
+  final ExtractionConfiguration? configuration;
+  final String? sourceSha256;
+  final double? pageProcessingSeconds;
+  final int? pageProcessingPeakRssBytes;
 
   factory AnalysisProvenance.fromJson(Map<String, Object?> json) => AnalysisProvenance(
     pipelineVersion: json["pipelineVersion"] as String,
     promptVersion: json["promptVersion"] as String,
     modelProvider: json["modelProvider"] as String,
     modelVersion: json["modelVersion"] as String,
+    modelName: json["modelName"] == null ? null : json["modelName"] as String,
+    usage: json["usage"] == null ? null : ProviderUsage.fromJson((json["usage"] as Map).cast<String, Object?>()),
+    configuration: json["configuration"] == null ? null : ExtractionConfiguration.fromJson((json["configuration"] as Map).cast<String, Object?>()),
+    sourceSha256: json["sourceSha256"] == null ? null : json["sourceSha256"] as String,
+    pageProcessingSeconds: json["pageProcessingSeconds"] == null ? null : (json["pageProcessingSeconds"] as num).toDouble(),
+    pageProcessingPeakRssBytes: json["pageProcessingPeakRssBytes"] == null ? null : json["pageProcessingPeakRssBytes"] as int,
   );
 
   Map<String, Object?> toJson() => {
@@ -115,6 +141,12 @@ final class AnalysisProvenance {
     "promptVersion": promptVersion,
     "modelProvider": modelProvider,
     "modelVersion": modelVersion,
+    "modelName": modelName,
+    "usage": usage?.toJson(),
+    "configuration": configuration?.toJson(),
+    "sourceSha256": sourceSha256,
+    "pageProcessingSeconds": pageProcessingSeconds,
+    "pageProcessingPeakRssBytes": pageProcessingPeakRssBytes,
   };
 }
 
@@ -350,7 +382,9 @@ enum ErrorCode {
   temporarilyUnavailable("temporarily_unavailable"),
   integrationNotConfigured("integration_not_configured"),
   notImplemented("not_implemented"),
-  internalError("internal_error");
+  internalError("internal_error"),
+  providerInvalidResponse("provider_invalid_response"),
+  processingLimitExceeded("processing_limit_exceeded");
 
   const ErrorCode(this.value);
   final String value;
@@ -450,6 +484,50 @@ final class EvidenceReference {
     "page": page,
     "quotation": quotation,
     "extractionMethod": extractionMethod.toJson(),
+  };
+}
+
+final class ExtractionConfiguration {
+  const ExtractionConfiguration({
+    required this.version,
+    required this.promptSha256,
+    required this.schemaSha256,
+    required this.maxOutputTokens,
+    required this.temperature,
+    required this.thinkingLevel,
+    required this.maxInputCharacters,
+    required this.evidenceNormalization,
+  });
+
+  final String version;
+  final String promptSha256;
+  final String schemaSha256;
+  final int maxOutputTokens;
+  final double temperature;
+  final String thinkingLevel;
+  final int maxInputCharacters;
+  final String evidenceNormalization;
+
+  factory ExtractionConfiguration.fromJson(Map<String, Object?> json) => ExtractionConfiguration(
+    version: json["version"] as String,
+    promptSha256: json["promptSha256"] as String,
+    schemaSha256: json["schemaSha256"] as String,
+    maxOutputTokens: json["maxOutputTokens"] as int,
+    temperature: (json["temperature"] as num).toDouble(),
+    thinkingLevel: json["thinkingLevel"] as String,
+    maxInputCharacters: (json["maxInputCharacters"] ?? 60000) as int,
+    evidenceNormalization: (json["evidenceNormalization"] ?? "unicode_whitespace_only_v1") as String,
+  );
+
+  Map<String, Object?> toJson() => {
+    "version": version,
+    "promptSha256": promptSha256,
+    "schemaSha256": schemaSha256,
+    "maxOutputTokens": maxOutputTokens,
+    "temperature": temperature,
+    "thinkingLevel": thinkingLevel,
+    "maxInputCharacters": maxInputCharacters,
+    "evidenceNormalization": evidenceNormalization,
   };
 }
 
@@ -623,6 +701,42 @@ enum ProcessingStatus {
     (item) => item.value == value,
     orElse: () => throw const FormatException('Unknown ProcessingStatus value'),
   );
+}
+
+final class ProviderUsage {
+  const ProviderUsage({
+    required this.inputTokens,
+    required this.outputTokens,
+    required this.thinkingTokens,
+    required this.totalTokens,
+    required this.requests,
+    required this.elapsedSeconds,
+  });
+
+  final int inputTokens;
+  final int outputTokens;
+  final int thinkingTokens;
+  final int totalTokens;
+  final int requests;
+  final double elapsedSeconds;
+
+  factory ProviderUsage.fromJson(Map<String, Object?> json) => ProviderUsage(
+    inputTokens: json["inputTokens"] as int,
+    outputTokens: json["outputTokens"] as int,
+    thinkingTokens: (json["thinkingTokens"] ?? 0) as int,
+    totalTokens: json["totalTokens"] as int,
+    requests: (json["requests"] ?? 1) as int,
+    elapsedSeconds: (json["elapsedSeconds"] as num).toDouble(),
+  );
+
+  Map<String, Object?> toJson() => {
+    "inputTokens": inputTokens,
+    "outputTokens": outputTokens,
+    "thinkingTokens": thinkingTokens,
+    "totalTokens": totalTokens,
+    "requests": requests,
+    "elapsedSeconds": elapsedSeconds,
+  };
 }
 
 final class ReportMetadata {
@@ -946,6 +1060,38 @@ final class RowCorrection {
     "rowId": rowId,
     "correctedRow": correctedRow.toJson(),
     "reason": reason,
+  };
+}
+
+final class SourcePage {
+  const SourcePage({
+    required this.page,
+    required this.extractionMethod,
+    required this.originalText,
+    required this.nativeText,
+    required this.flags,
+  });
+
+  final int page;
+  final ExtractionMethod extractionMethod;
+  final String originalText;
+  final String nativeText;
+  final List<String> flags;
+
+  factory SourcePage.fromJson(Map<String, Object?> json) => SourcePage(
+    page: json["page"] as int,
+    extractionMethod: ExtractionMethod.fromJson(json["extractionMethod"] as String),
+    originalText: json["originalText"] as String,
+    nativeText: json["nativeText"] as String,
+    flags: List<String>.unmodifiable(((json["flags"] ?? []) as List).map((item) => item as String)),
+  );
+
+  Map<String, Object?> toJson() => {
+    "page": page,
+    "extractionMethod": extractionMethod.toJson(),
+    "originalText": originalText,
+    "nativeText": nativeText,
+    "flags": flags.map((item) => item).toList(),
   };
 }
 

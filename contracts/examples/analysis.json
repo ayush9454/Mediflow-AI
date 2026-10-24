@@ -4,11 +4,18 @@
   "issues": [],
   "jobId": "job_1",
   "provenance": {
+    "configuration": null,
+    "modelName": null,
     "modelProvider": "fixture-only",
     "modelVersion": "not-a-model-result",
+    "pageProcessingPeakRssBytes": null,
+    "pageProcessingSeconds": null,
     "pipelineVersion": "foundation",
-    "promptVersion": "not-configured"
+    "promptVersion": "not-configured",
+    "sourceSha256": null,
+    "usage": null
   },
+  "providerOutput": null,
   "reportId": "report_1",
   "rows": [
     {
@@ -30,6 +37,7 @@
     }
   ],
   "schemaVersion": "1.0",
+  "sourcePages": [],
   "summary": "One synthetic laboratory row was extracted.",
   "version": 1
 }

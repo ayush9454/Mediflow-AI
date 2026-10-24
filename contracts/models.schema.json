@@ -80,6 +80,19 @@
         "provenance": {
           "$ref": "#/$defs/AnalysisProvenance"
         },
+        "providerOutput": {
+          "anyOf": [
+            {
+              "maxLength": 200000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provideroutput"
+        },
         "reportId": {
           "maxLength": 128,
           "minLength": 1,
@@ -99,6 +112,14 @@
           "default": "1.0",
           "title": "Schemaversion",
           "type": "string"
+        },
+        "sourcePages": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SourcePage"
+          },
+          "title": "Sourcepages",
+          "type": "array"
         },
         "summary": {
           "anyOf": [
@@ -135,6 +156,31 @@
     "AnalysisProvenance": {
       "additionalProperties": false,
       "properties": {
+        "configuration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExtractionConfiguration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "modelName": {
+          "anyOf": [
+            {
+              "maxLength": 5000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modelname"
+        },
         "modelProvider": {
           "maxLength": 5000,
           "minLength": 1,
@@ -147,6 +193,32 @@
           "title": "Modelversion",
           "type": "string"
         },
+        "pageProcessingPeakRssBytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pageprocessingpeakrssbytes"
+        },
+        "pageProcessingSeconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pageprocessingseconds"
+        },
         "pipelineVersion": {
           "maxLength": 5000,
           "minLength": 1,
@@ -158,6 +230,30 @@
           "minLength": 1,
           "title": "Promptversion",
           "type": "string"
+        },
+        "sourceSha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sourcesha256"
+        },
+        "usage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProviderUsage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -500,7 +596,9 @@
         "temporarily_unavailable",
         "integration_not_configured",
         "not_implemented",
-        "internal_error"
+        "internal_error",
+        "provider_invalid_response",
+        "processing_limit_exceeded"
       ],
       "title": "ErrorCode",
       "type": "string"
@@ -599,6 +697,68 @@
         "extractionMethod"
       ],
       "title": "EvidenceReference",
+      "type": "object"
+    },
+    "ExtractionConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceNormalization": {
+          "const": "unicode_whitespace_only_v1",
+          "default": "unicode_whitespace_only_v1",
+          "title": "Evidencenormalization",
+          "type": "string"
+        },
+        "maxInputCharacters": {
+          "default": 60000,
+          "exclusiveMinimum": 0,
+          "maximum": 60000,
+          "title": "Maxinputcharacters",
+          "type": "integer"
+        },
+        "maxOutputTokens": {
+          "exclusiveMinimum": 0,
+          "maximum": 8192,
+          "title": "Maxoutputtokens",
+          "type": "integer"
+        },
+        "promptSha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Promptsha256",
+          "type": "string"
+        },
+        "schemaSha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Schemasha256",
+          "type": "string"
+        },
+        "temperature": {
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Temperature",
+          "type": "number"
+        },
+        "thinkingLevel": {
+          "maxLength": 5000,
+          "minLength": 1,
+          "title": "Thinkinglevel",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 5000,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "promptSha256",
+        "schemaSha256",
+        "maxOutputTokens",
+        "temperature",
+        "thinkingLevel"
+      ],
+      "title": "ExtractionConfiguration",
       "type": "object"
     },
     "ExtractionMethod": {
@@ -844,6 +1004,51 @@
       ],
       "title": "ProcessingStatus",
       "type": "string"
+    },
+    "ProviderUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "elapsedSeconds": {
+          "minimum": 0,
+          "title": "Elapsedseconds",
+          "type": "number"
+        },
+        "inputTokens": {
+          "minimum": 0,
+          "title": "Inputtokens",
+          "type": "integer"
+        },
+        "outputTokens": {
+          "minimum": 0,
+          "title": "Outputtokens",
+          "type": "integer"
+        },
+        "requests": {
+          "const": 1,
+          "default": 1,
+          "title": "Requests",
+          "type": "integer"
+        },
+        "thinkingTokens": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Thinkingtokens",
+          "type": "integer"
+        },
+        "totalTokens": {
+          "minimum": 0,
+          "title": "Totaltokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "inputTokens",
+        "outputTokens",
+        "totalTokens",
+        "elapsedSeconds"
+      ],
+      "title": "ProviderUsage",
+      "type": "object"
     },
     "ReportMetadata": {
       "additionalProperties": false,
@@ -1303,6 +1508,46 @@
         "reason"
       ],
       "title": "RowCorrection",
+      "type": "object"
+    },
+    "SourcePage": {
+      "additionalProperties": false,
+      "properties": {
+        "extractionMethod": {
+          "$ref": "#/$defs/ExtractionMethod"
+        },
+        "flags": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Flags",
+          "type": "array"
+        },
+        "nativeText": {
+          "maxLength": 100000,
+          "title": "Nativetext",
+          "type": "string"
+        },
+        "originalText": {
+          "maxLength": 100000,
+          "title": "Originaltext",
+          "type": "string"
+        },
+        "page": {
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Page",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "page",
+        "extractionMethod",
+        "originalText",
+        "nativeText"
+      ],
+      "title": "SourcePage",
       "type": "object"
     },
     "UnresolvedAcknowledgement": {

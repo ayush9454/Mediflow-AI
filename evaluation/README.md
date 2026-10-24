@@ -1,7 +1,9 @@
 # Synthetic laboratory benchmark
 
-Ticket 03 establishes data and measurement. **No extraction accuracy has been measured.**
-The 95% strict row precision and recall target is a later release gate. These forty
+Ticket 03 establishes data and measurement. Ticket 08's
+[development results](reports/laboratory-development.md) measure the real pipeline
+on development data only. The 95% strict row precision and recall target is a later
+held-out release gate. These forty
 invented documents support a college demonstration, not a clinical effectiveness claim.
 
 ## Reproduce

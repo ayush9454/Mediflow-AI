@@ -849,13 +849,13 @@ dependencies = [
     { name = "azure-storage-queue" },
     { name = "fastapi" },
     { name = "firebase-admin" },
+    { name = "httpx" },
     { name = "pydantic" },
     { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "mypy" },
     { name = "pytest" },
     { name = "ruff" },
@@ -879,7 +879,7 @@ requires-dist = [
     { name = "azure-storage-queue", specifier = ">=12.15,<13" },
     { name = "fastapi", specifier = "==0.116.1" },
     { name = "firebase-admin", specifier = ">=7,<8" },
-    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1,<1" },
+    { name = "httpx", specifier = ">=0.28.1,<1" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.18,<2" },
     { name = "pillow", marker = "extra == 'evaluation'", specifier = ">=12,<13" },
     { name = "pillow", marker = "extra == 'processing'", specifier = ">=12,<13" },

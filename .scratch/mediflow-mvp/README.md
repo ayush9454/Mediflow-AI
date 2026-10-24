@@ -22,7 +22,7 @@ This directory records the shared understanding confirmed by the user. The origi
 | [05](issues/05-private-report-upload.md) | Private upload, verification, duplicates, and upload limits | completed | 01, 04 |
 | [06](issues/06-durable-processing-jobs.md) | Durable jobs, queue delivery, retries, and recovery | completed | 01, 04 |
 | [07](issues/07-pdf-ocr-evidence.md) | Native PDF extraction, OCR, and page evidence | completed | 03 |
-| [08](issues/08-laboratory-ai-validation.md) | Laboratory extraction, validation, and summaries | ready-for-agent | 03, 06, 07 |
+| [08](issues/08-laboratory-ai-validation.md) | Laboratory extraction, validation, and summaries | in-progress | 03, 06, 07 |
 | [09](issues/09-android-upload-status.md) | Android upload and processing-status workflow | ready-for-agent | 05, 06 |
 | [10](issues/10-evidence-result-viewer.md) | Extracted results and PDF evidence viewer | ready-for-agent | 08, 09 |
 | [11](issues/11-assignment-doctor-review.md) | Administrator assignment and versioned doctor review | ready-for-agent | 04, 10 |

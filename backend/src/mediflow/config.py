@@ -1,7 +1,7 @@
 """Configuration without implicit cloud access or client-visible secrets."""
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Self
 
 
@@ -13,6 +13,8 @@ class Settings:
     azure_document_container: str = "reports"
     azure_queue_name: str = "report-processing"
     gemini_model: str = ""
+    gemini_api_key: str = field(default="", repr=False)
+    gemini_free_tier_confirmed: bool = False
     job_timeout_seconds: int = 270
 
     def __post_init__(self) -> None:
@@ -30,5 +32,7 @@ class Settings:
             azure_document_container=os.getenv("MEDIFLOW_AZURE_DOCUMENT_CONTAINER", "reports"),
             azure_queue_name=os.getenv("MEDIFLOW_AZURE_QUEUE_NAME", "report-processing"),
             gemini_model=os.getenv("MEDIFLOW_GEMINI_MODEL", ""),
+            gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
+            gemini_free_tier_confirmed=os.getenv("MEDIFLOW_GEMINI_FREE_TIER_CONFIRMED") == "true",
             job_timeout_seconds=int(os.getenv("MEDIFLOW_JOB_TIMEOUT_SECONDS", "270")),
         )

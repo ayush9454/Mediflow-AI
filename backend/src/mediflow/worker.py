@@ -69,12 +69,19 @@ def main() -> int:
     arguments = parser.parse_args()
     settings = Settings.from_environment()
     if arguments.check_config:
+        from mediflow.laboratory import GeminiProvider
+
+        try:
+            GeminiProvider.from_settings(settings)
+            analysis_adapter = "configured"
+        except ProcessingFailure:
+            analysis_adapter = "not_configured"
         print(
             json.dumps(
                 {
                     "status": "not_ready",
                     "queueAdapter": "implemented",
-                    "analysisAdapter": "not_configured",
+                    "analysisAdapter": analysis_adapter,
                 },
                 sort_keys=True,
             )

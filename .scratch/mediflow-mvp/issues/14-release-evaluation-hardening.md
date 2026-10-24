@@ -46,4 +46,12 @@ Not started. Record actual changes, verification commands/results, measured find
 
 ## Comments
 
+- 2026-10-24: Ticket 08's real development benchmark is recorded in
+  [laboratory-development.md](../../../evaluation/reports/laboratory-development.md).
+  Digital strict row precision/recall: 96.43%/96.43%; scanned: 29.09%/28.57%.
+  Scanned units, flags, some values and one omitted row require improvement on
+  development data before freezing and running this ticket's held-out evaluation.
+  No held-out example was used; do not weaken strict normalization to hide OCR
+  character changes. This is a known release-quality limitation, not a passed gate.
+
 - 2026-10-20: Created from the user-confirmed project plan. No implementation performed.

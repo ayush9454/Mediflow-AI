@@ -11,6 +11,10 @@ param firebaseProject string
 param queueName string = 'report-processing'
 @secure()
 param googleAdc string
+@secure()
+param geminiApiKey string
+param geminiModel string = 'gemini-3.5-flash-lite'
+param geminiFreeTierConfirmed bool = false
 
 var environment = [
   { name: 'MEDIFLOW_ENV', value: 'production' }
@@ -32,7 +36,10 @@ resource worker 'Microsoft.App/jobs@2026-07-01' = {
       triggerType: 'Event'
       replicaTimeout: 420
       replicaRetryLimit: 0
-      secrets: [{ name: 'google-adc', value: googleAdc }]
+      secrets: [
+        { name: 'google-adc', value: googleAdc }
+        { name: 'gemini-api-key', value: geminiApiKey }
+      ]
       registries: [{ server: registryServer, identity: identityId }]
       eventTriggerConfig: {
         parallelism: 1
@@ -56,7 +63,11 @@ resource worker 'Microsoft.App/jobs@2026-07-01' = {
         image: workerImage
         command: ['python', '-m', 'mediflow.worker']
         resources: { cpu: json('0.5'), memory: '1Gi' }
-        env: environment
+        env: concat(environment, [
+          { name: 'MEDIFLOW_GEMINI_MODEL', value: geminiModel }
+          { name: 'MEDIFLOW_GEMINI_FREE_TIER_CONFIRMED', value: string(geminiFreeTierConfirmed) }
+          { name: 'GEMINI_API_KEY', secretRef: 'gemini-api-key' }
+        ])
         volumeMounts: [{ volumeName: 'google', mountPath: '/secrets' }]
       }]
       volumes: [{

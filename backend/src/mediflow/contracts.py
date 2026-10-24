@@ -80,6 +80,8 @@ class ErrorCode(StrEnum):
     INTEGRATION_NOT_CONFIGURED = "integration_not_configured"
     NOT_IMPLEMENTED = "not_implemented"
     INTERNAL_ERROR = "internal_error"
+    PROVIDER_INVALID_RESPONSE = "provider_invalid_response"
+    PROCESSING_LIMIT_EXCEEDED = "processing_limit_exceeded"
 
 
 class Account(VersionedModel):
@@ -125,11 +127,45 @@ class LaboratoryRow(WireModel):
         return self
 
 
+class ProviderUsage(WireModel):
+    input_tokens: Annotated[int, Field(ge=0)]
+    output_tokens: Annotated[int, Field(ge=0)]
+    thinking_tokens: Annotated[int, Field(ge=0)] = 0
+    total_tokens: Annotated[int, Field(ge=0)]
+    requests: Literal[1] = 1
+    elapsed_seconds: Annotated[float, Field(ge=0, allow_inf_nan=False)]
+
+
+class SourcePage(WireModel):
+    page: Annotated[int, Field(ge=1, le=10)]
+    extraction_method: ExtractionMethod
+    original_text: Annotated[str, Field(max_length=100_000)]
+    native_text: Annotated[str, Field(max_length=100_000)]
+    flags: tuple[str, ...] = ()
+
+
+class ExtractionConfiguration(WireModel):
+    version: PrintedText
+    prompt_sha256: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+    schema_sha256: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+    max_output_tokens: Annotated[int, Field(gt=0, le=8192)]
+    temperature: Annotated[float, Field(ge=0, le=2)]
+    thinking_level: PrintedText
+    max_input_characters: Annotated[int, Field(gt=0, le=60_000)] = 60_000
+    evidence_normalization: Literal["unicode_whitespace_only_v1"] = "unicode_whitespace_only_v1"
+
+
 class AnalysisProvenance(WireModel):
     pipeline_version: PrintedText
     prompt_version: PrintedText
     model_provider: PrintedText
     model_version: PrintedText
+    model_name: PrintedText | None = None
+    usage: ProviderUsage | None = None
+    configuration: ExtractionConfiguration | None = None
+    source_sha256: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")] | None = None
+    page_processing_seconds: Annotated[float, Field(ge=0, allow_inf_nan=False)] | None = None
+    page_processing_peak_rss_bytes: Annotated[int, Field(ge=0)] | None = None
 
 
 class AnalysisCandidate(VersionedModel):
@@ -138,6 +174,8 @@ class AnalysisCandidate(VersionedModel):
     job_id: Identifier
     version: Annotated[int, Field(ge=1)]
     rows: tuple[LaboratoryRow, ...]
+    source_pages: tuple[SourcePage, ...] = ()
+    provider_output: Annotated[str, Field(max_length=200_000)] | None = None
     summary: PrintedText | None = None
     issues: tuple[ValidationIssue, ...] = ()
     provenance: AnalysisProvenance
