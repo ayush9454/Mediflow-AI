@@ -1,6 +1,6 @@
 # 12: Complete the three role journeys and approved patient results
 
-Status: ready-for-agent
+Status: completed
 Type: task
 Blocked by: 09, 11
 Estimate: 8 hours
@@ -41,7 +41,7 @@ Run an end-to-end journey with two patients, two doctors and an administrator, i
 
 ## Implementation record
 
-In progress. Dependencies 09 and 11 are completed. Implementation baseline:
+Completed. Dependencies 09 and 11 are completed. Implementation baseline:
 `d4698cb263d5ae637051044e7e4c610bfd2312a6` on `main`. Reused the existing confirmed
 HTTP, Flutter and Firebase integration boundaries from tickets 04, 09 and 11.
 
@@ -92,12 +92,17 @@ their fixes. Implementation commits: `14a3f10`, `f3f51f5` and `1376d97`. See the
 
 The app left zero private temporary PDFs and filtered Flutter diagnostics were
 empty. App/emulator, Firebase emulators and the local test VM are stopped. Run-owned
-Firestore payloads and reservations are confirmed absent. Azure resource-group
-deletion is still finishing its empty `ScheduledForDelete` environment; verify
-absence before marking this ticket complete. The APK uses debug signing and needs
-a new hosted API configuration after teardown; release signing and held-out
-extraction accuracy remain separate gates.
+Firestore payloads and reservations are confirmed absent. Azure's empty environment
+temporarily remained `ScheduledForDelete`; the guarded retry and final resource-group
+absence check confirm that all temporary Azure resources are now deleted. The APK
+uses debug signing and needs a new hosted API configuration after teardown;
+release signing and held-out extraction accuracy remain separate gates.
 
 ## Comments
 
 - 2026-10-20: Created from the user-confirmed project plan. No implementation performed.
+
+- 2026-10-25: Completed all acceptance criteria through the real hosted Android
+  journey, public-boundary tests and independent corrective reviews. Confirmed
+  run-owned payload/reservation absence and complete temporary Azure teardown;
+  stopped all local test runtimes. No ticket-12 acceptance gate remains open.

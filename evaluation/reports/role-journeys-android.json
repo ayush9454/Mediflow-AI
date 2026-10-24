@@ -124,7 +124,7 @@
     "The held-out extraction-accuracy release gate remains separate; these invented sources were not used to claim clinical accuracy."
   ],
   "teardown": {
-    "status": "waiting for Azure empty-environment deletion",
+    "status": "completed",
     "run_owned_firestore_payloads_deleted": true,
     "remaining_firestore_documents": 0,
     "remaining_upload_reservations": 0,
@@ -132,6 +132,12 @@
     "android_app": "stopped",
     "android_emulator": "stopped; adb lists no devices",
     "firebase_emulators": "stopped after successful exec",
-    "local_test_vm": "stopped; colima confirms not running"
+    "local_test_vm": "stopped; colima confirms not running",
+    "temporary_resource_group_exists": false,
+    "all_temporary_azure_resources_deleted": true,
+    "azure_checked_at": "2026-10-24T21:05:40.640403+00:00",
+    "firestore_checked_at": "2026-10-24T21:05:43.386027+00:00",
+    "empty_environment_was_scheduled_for_delete": true,
+    "guarded_empty_environment_deletion_retried": true
   }
 }

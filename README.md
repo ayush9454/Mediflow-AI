@@ -29,6 +29,12 @@ The issue-01 synthetic hosting probe verified protected Azure student access, Ce
 
 ## Quick start
 
+The [complete three-role Android journey](evaluation/reports/role-journeys-android.json)
+is verified with two patients, two doctors and an administrator against actual
+hosted services. Temporary test data and cloud resources are removed. Use the
+[sample journey](docs/sample-journey.md) and its hosted probe to repeat it with a
+fresh API configuration.
+
 Use Python 3.12, Flutter 3.35.5/Dart 3.9.2, and JDK 17 for the documented build baseline. An Android SDK/emulator or Android device is required for APK installation.
 
 From the repository root:
