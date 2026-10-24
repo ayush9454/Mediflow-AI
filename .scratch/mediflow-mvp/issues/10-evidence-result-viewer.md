@@ -1,6 +1,6 @@
 # 10: Build laboratory results and authenticated PDF evidence navigation
 
-Status: ready-for-agent
+Status: in-progress
 Type: task
 Blocked by: 08, 09
 Estimate: 8 hours
@@ -41,7 +41,24 @@ Manually inspect representative digital/scanned reports on Android and test page
 
 ## Implementation record
 
-Not started. Record actual changes, verification commands/results, measured findings, and any remaining gate here. A readiness label does not imply completion or override the Blocked by line.
+Implemented the role-scoped result HTTP reader, immutable approved-snapshot read
+contract, client result-kind/identity checks, laboratory rows/summary/provenance,
+explicit evidence issues, narrow tabs/wide split view, authenticated exact-page
+navigation and lifecycle/retention/access-revocation clearing. The user confirmed
+all three testing boundaries and starting review commit `4b59cca` on 2026-10-25.
+Assignment, assigned-case discovery and review writes remain in ticket 11; doctors
+can currently open an assigned report by its server-created reference.
+
+Verification so far: Linux backend suite **168 passed, one optional Firebase-emulator
+test skipped**; full Flutter suite **44 passed**; focused viewer **8 passed** after
+format-only fixes. Python format/lint, mypy (39 sources), compileall, eight generated
+contract artifacts, Flutter analysis, Dart contract smoke, nine hosting-probe tests,
+two deployment-guard tests and the configured development APK build pass.
+A real Firebase doctor sign-in against the local synthetic test API opened and
+rendered a native source page on Android 15/API 35. Reassignment cleared the viewer;
+private temporary PDF files were absent. Final scanned-page inspection and the
+required separate Standards/Spec review are in progress. See the
+[viewer contract and limits](../../../docs/evidence-viewer.md).
 
 ## Comments
 

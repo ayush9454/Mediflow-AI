@@ -6,6 +6,7 @@ import '../../features/auth/preview_controller.dart';
 import '../../features/auth/session.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/workspace/workspace_screen.dart';
+import '../../features/reports/evidence_host.dart';
 import '../config/app_config.dart';
 import '../contracts/contracts.g.dart';
 
@@ -19,6 +20,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final path = state.uri.path;
       final account = ref.read(sessionProvider).account;
+      if (path.startsWith('/results/')) {
+        if (account == null) return '/sign-in';
+        if (account.role == Role.administrator) return '/administrator';
+      }
       if (path == '/' || path == '/sign-in') {
         if (account != null) return '/${account.role.value}';
         return path == '/' ? '/sign-in' : null;
@@ -41,6 +46,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/', redirect: (_, __) => '/sign-in'),
       GoRoute(path: '/sign-in', builder: (_, __) => const SignInScreen()),
+      GoRoute(
+        path: '/results/:reportId',
+        builder: (_, state) =>
+            EvidenceResultHost(reportId: state.pathParameters['reportId']!),
+      ),
       for (final role in Role.values)
         GoRoute(
           path: '/preview/${role.value}',

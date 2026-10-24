@@ -261,6 +261,57 @@ class PatientReportApi {
     timeout: const Duration(seconds: 90),
   );
 
+  Future<ReportResult> result(
+    String token,
+    ReportMetadata report, {
+    required Role role,
+    bool approved = false,
+  }) async {
+    if (role == Role.administrator) {
+      throw const ApiFailure('This account cannot access laboratory results.');
+    }
+    final kind = role == Role.patient || approved
+        ? ResultKind.approved
+        : ResultKind.draft;
+    try {
+      final value = ReportResult.fromJson(
+        _json(
+          await _send(
+            token,
+            'GET',
+            '/api/v1/reports/${_id(report.reportId)}/result?kind=${kind.value}',
+          ),
+        ),
+      );
+      if (value.schemaVersion != '1.0' ||
+          value.kind != kind ||
+          (kind == ResultKind.approved
+              ? value.draft != null ||
+                    value.approved == null ||
+                    value.approved!.reportId != report.reportId ||
+                    value.approved!.analysisId != report.approvedAnalysisId
+              : value.approved != null ||
+                    value.draft == null ||
+                    value.draft!.reportId != report.reportId ||
+                    value.draft!.analysisId != report.latestAnalysisId)) {
+        throw const FormatException('Unexpected result identity');
+      }
+      return value;
+    } on ApiFailure catch (error) {
+      if (error.code == ErrorCode.conflict) {
+        throw const ApiFailure(
+          'This result is not available yet. Refresh to check again.',
+          code: ErrorCode.conflict,
+        );
+      }
+      rethrow;
+    } catch (_) {
+      throw const ApiFailure(
+        'The result could not be read safely. Refresh and try again.',
+      );
+    }
+  }
+
   void close() {
     _closed = true;
     for (final abort in _inflight) {

@@ -1,0 +1,21 @@
+{
+  "ticket": 10,
+  "environment": "local test API with invented in-memory payloads; real Firebase sign-in; normal Android development APK",
+  "android_api": 35,
+  "display_pixels": [
+    1080,
+    2400
+  ],
+  "display_dpi": 420,
+  "source_fixture": "mediflow.processing.fixtures.supplemental_pdf(pages=2, mixed=True)",
+  "digital_source_page_visually_inspected": true,
+  "scanned_source_page_visually_inspected": false,
+  "assignment_revocation_cleared_viewer": true,
+  "private_temporary_pdf_files_after_render": 0,
+  "final_apk_build_and_install_passed": true,
+  "final_scanned_inspection": "pending",
+  "new_cloud_resources": 0,
+  "model_calls": 0,
+  "cloud_clinical_payload_writes": 0,
+  "scope_limit": "Read-only viewer check; no claim of extraction accuracy or completed hosted review workflow."
+}

@@ -93,7 +93,7 @@ independent scheduled Job for missed dispatches and expired leases. The normal
 provider runs the configured [laboratory extraction pipeline](laboratory-extraction.md)
 and never substitutes test rows. See [job deployment, recovery and retry bounds](jobs.md).
 
-Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Real sign-in requires the public `FIREBASE_API_KEY` and an API configured with Firebase/Firestore credentials. The patient Reports/History tabs implement [PDF upload and status recovery](patient-upload.md); doctor/admin panels remain placeholders for later tickets. Tokens and temporary clinical bytes stay in memory and are cleared on logout/account change/expiry.
+Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Real sign-in requires the public `FIREBASE_API_KEY` and an API configured with Firebase/Firestore credentials. The patient Reports/History tabs implement [PDF upload and status recovery](patient-upload.md); doctors can open the [result/evidence viewer](evidence-viewer.md) using an assigned report reference. Assigned-case discovery, review writes and administrator workflows remain in later tickets. Tokens and temporary clinical bytes stay in memory and are cleared on logout/account change/expiry.
 
 ## PDF/OCR worker and verification
 

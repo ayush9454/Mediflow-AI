@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:go_router/go_router.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/config/app_config.dart';
@@ -346,6 +347,15 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
                         'A new version is processing. Your previous approval remains recorded.',
                       ),
                     const SizedBox(height: 16),
+                    if (report.approvedAnalysisId != null)
+                      FilledButton.icon(
+                        onPressed:
+                            report.expiresAt?.isAfter(DateTime.now()) == false
+                            ? null
+                            : () => context.push('/results/${report.reportId}'),
+                        icon: const Icon(Icons.fact_check_outlined),
+                        label: const Text('View approved result'),
+                      ),
                     FilledButton.tonalIcon(
                       onPressed:
                           state.busy ||

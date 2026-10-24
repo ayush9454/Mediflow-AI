@@ -273,6 +273,27 @@
             "title": "Analysisversion",
             "type": "integer"
           },
+          "correctedRowIds": {
+            "default": [],
+            "items": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            "title": "Correctedrowids",
+            "type": "array"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "reportId": {
             "maxLength": 128,
             "minLength": 1,
@@ -3361,6 +3382,22 @@
               "pattern": "^[A-Za-z0-9_-]{1,128}$",
               "title": "Report Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ResultKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
             }
           }
         ],

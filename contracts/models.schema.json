@@ -280,6 +280,28 @@
           "title": "Analysisversion",
           "type": "integer"
         },
+        "correctedRowIds": {
+          "default": [],
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "type": "string"
+          },
+          "title": "Correctedrowids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AnalysisProvenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "reportId": {
           "maxLength": 128,
           "minLength": 1,

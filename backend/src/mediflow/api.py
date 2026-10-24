@@ -22,6 +22,7 @@ from mediflow.contracts import (
     ReportRegistration,
     ReportResult,
     ReprocessingRequest,
+    ResultKind,
     ReviewRecord,
     ReviewRequest,
     Role,
@@ -187,10 +188,17 @@ async def report_metadata(
 async def report_result(
     request: Request,
     report_id: ResourceId,
+    kind: ResultKind | None = None,
     account: Account = Depends(current_account),
 ) -> ReportResult:
-    authorization(request).report_access(account, report_id, "result", request.state.request_id)
-    pending()
+    from mediflow.results import report_result as read_result
+
+    await run_in_threadpool(
+        authorization(request).report_access, account, report_id, "result", request.state.request_id
+    )
+    return await run_in_threadpool(
+        read_result, upload_module(request).database, account, report_id, kind
+    )
 
 
 @router.get(

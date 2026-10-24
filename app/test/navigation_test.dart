@@ -10,6 +10,8 @@ import 'package:mediflow_ai/core/routing/app_router.dart';
 import 'package:mediflow_ai/features/auth/preview_controller.dart';
 import 'package:mediflow_ai/features/auth/session.dart';
 import 'package:mediflow_ai/features/reports/report_screen.dart';
+import 'result_api_test.dart' show fixture, resultReport;
+import 'evidence_screen_test.dart' show jsonResponse;
 import 'report_workflow_test.dart' show DeviceFiles;
 
 class SeededGateway implements SessionGateway {
@@ -39,6 +41,56 @@ ProviderContainer container({bool preview = true}) => ProviderContainer(
 );
 
 void main() {
+  testWidgets(
+    'result route clears clinical content on logout and denies anonymous navigation',
+    (tester) async {
+      final scope = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(
+            const AppConfig(apiBaseUrl: null, enableRolePreview: false),
+          ),
+          sessionGatewayProvider.overrideWithValue(SeededGateway(Role.doctor)),
+          reportPlatformProvider.overrideWithValue(DeviceFiles()),
+          reportHttpClientFactoryProvider.overrideWithValue(
+            () => MockClient((request) async {
+              if (request.url.path.endsWith('/result')) {
+                return jsonResponse({
+                  'schemaVersion': '1.0',
+                  'kind': 'draft',
+                  'draft': fixture('analysis'),
+                  'approved': null,
+                });
+              }
+              return jsonResponse({
+                ...resultReport().toJson(),
+                'hospitalId': 'hospital_demo',
+                'assignedDoctorId': 'doctor',
+              });
+            }),
+          ),
+        ],
+      );
+      addTearDown(scope.dispose);
+      await scope
+          .read(sessionProvider.notifier)
+          .signIn('synthetic@example.test', 'synthetic');
+      await tester.pumpWidget(
+        UncontrolledProviderScope(container: scope, child: const MediFlowApp()),
+      );
+      await tester.pumpAndSettle();
+      scope.read(appRouterProvider).push('/results/report_1');
+      await tester.pumpAndSettle();
+      expect(find.text('AI candidate · not approved'), findsOneWidget);
+      scope.read(sessionProvider.notifier).signOut();
+      await tester.pumpAndSettle();
+      expect(find.text('AI candidate · not approved'), findsNothing);
+      expect(find.text('Sign in'), findsOneWidget);
+      scope.read(appRouterProvider).go('/results/report_1');
+      await tester.pumpAndSettle();
+      expect(find.text('Sign in'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
   testWidgets(
     'same user moving hospital replaces the entire protected reports controller',
     (tester) async {

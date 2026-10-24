@@ -344,6 +344,8 @@ class ApprovedResult(VersionedModel):
     rows: tuple[LaboratoryRow, ...]
     summary: PrintedText | None = None
     unresolved_acknowledgements: tuple[UnresolvedAcknowledgement, ...] = ()
+    corrected_row_ids: tuple[Identifier, ...] = ()
+    provenance: AnalysisProvenance | None = None
 
 
 class ResultKind(StrEnum):

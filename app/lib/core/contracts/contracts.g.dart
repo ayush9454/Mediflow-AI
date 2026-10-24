@@ -162,6 +162,8 @@ final class ApprovedResult {
     required this.rows,
     required this.summary,
     required this.unresolvedAcknowledgements,
+    required this.correctedRowIds,
+    required this.provenance,
   });
 
   final String schemaVersion;
@@ -174,6 +176,8 @@ final class ApprovedResult {
   final List<LaboratoryRow> rows;
   final String? summary;
   final List<UnresolvedAcknowledgement> unresolvedAcknowledgements;
+  final List<String> correctedRowIds;
+  final AnalysisProvenance? provenance;
 
   factory ApprovedResult.fromJson(Map<String, Object?> json) => ApprovedResult(
     schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
@@ -186,6 +190,8 @@ final class ApprovedResult {
     rows: List<LaboratoryRow>.unmodifiable((json["rows"] as List).map((item) => LaboratoryRow.fromJson((item as Map).cast<String, Object?>()))),
     summary: json["summary"] == null ? null : json["summary"] as String,
     unresolvedAcknowledgements: List<UnresolvedAcknowledgement>.unmodifiable(((json["unresolvedAcknowledgements"] ?? []) as List).map((item) => UnresolvedAcknowledgement.fromJson((item as Map).cast<String, Object?>()))),
+    correctedRowIds: List<String>.unmodifiable(((json["correctedRowIds"] ?? []) as List).map((item) => item as String)),
+    provenance: json["provenance"] == null ? null : AnalysisProvenance.fromJson((json["provenance"] as Map).cast<String, Object?>()),
   );
 
   Map<String, Object?> toJson() => {
@@ -199,6 +205,8 @@ final class ApprovedResult {
     "rows": rows.map((item) => item.toJson()).toList(),
     "summary": summary,
     "unresolvedAcknowledgements": unresolvedAcknowledgements.map((item) => item.toJson()).toList(),
+    "correctedRowIds": correctedRowIds.map((item) => item).toList(),
+    "provenance": provenance?.toJson(),
   };
 }
 

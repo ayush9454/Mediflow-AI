@@ -20,6 +20,8 @@ class WorkspaceScreen extends ConsumerStatefulWidget {
 
 class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
     with WidgetsBindingObserver {
+  final reportReference = TextEditingController();
+  String? referenceError;
   @override
   void initState() {
     super.initState();
@@ -28,6 +30,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
 
   @override
   void dispose() {
+    reportReference.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -149,6 +152,35 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
                               : 'Completed activity will appear here when the workflow is connected. No records are loaded.',
                         )
                       else ...[
+                        if (!widget.preview && role == Role.doctor) ...[
+                          TextField(
+                            controller: reportReference,
+                            decoration: InputDecoration(
+                              labelText: 'Assigned report reference',
+                              errorText: referenceError,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            icon: const Icon(Icons.find_in_page_outlined),
+                            label: const Text('Open laboratory evidence'),
+                            onPressed: () {
+                              final id = reportReference.text.trim();
+                              if (!RegExp(
+                                r'^[A-Za-z0-9_-]{1,128}$',
+                              ).hasMatch(id)) {
+                                setState(
+                                  () => referenceError =
+                                      'Enter a valid report reference from your assigned case.',
+                                );
+                                return;
+                              }
+                              setState(() => referenceError = null);
+                              context.push('/results/$id');
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                         _Panel(
                           icon: switch (role) {
                             Role.patient => Icons.upload_file_outlined,
