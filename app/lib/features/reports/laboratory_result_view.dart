@@ -12,7 +12,7 @@ class LaboratoryResultView extends StatelessWidget {
   });
   final ReportResult result;
   final int? pageCount;
-  final void Function(EvidenceReference) onOpenEvidence;
+  final void Function(EvidenceReference)? onOpenEvidence;
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +110,9 @@ class LaboratoryResultView extends StatelessWidget {
                         'Page ${evidence.page} · ${evidence.extractionMethod == ExtractionMethod.ocr ? 'OCR; visually check the scan' : 'Digital text'}',
                       ),
                       OutlinedButton.icon(
-                        onPressed: () => onOpenEvidence(evidence),
+                        onPressed: onOpenEvidence == null
+                            ? null
+                            : () => onOpenEvidence!(evidence),
                         icon: const Icon(Icons.find_in_page_outlined),
                         label: Text('Open source page ${evidence.page}'),
                       ),

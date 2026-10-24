@@ -9,13 +9,61 @@
   "display_dpi": 420,
   "source_fixture": "mediflow.processing.fixtures.supplemental_pdf(pages=2, mixed=True)",
   "digital_source_page_visually_inspected": true,
-  "scanned_source_page_visually_inspected": false,
+  "scanned_source_page_visually_inspected": true,
   "assignment_revocation_cleared_viewer": true,
   "private_temporary_pdf_files_after_render": 0,
   "final_apk_build_and_install_passed": true,
-  "final_scanned_inspection": "pending",
+  "final_scanned_inspection": "passed",
   "new_cloud_resources": 0,
   "model_calls": 0,
   "cloud_clinical_payload_writes": 0,
-  "scope_limit": "Read-only viewer check; no claim of extraction accuracy or completed hosted review workflow."
+  "scope_limit": "Read-only viewer check; no claim of extraction accuracy or completed hosted review workflow.",
+  "http_access": {
+    "copied_document_without_token": 401,
+    "invalid_token": 401,
+    "patient_a": {
+      "document_status": 200,
+      "result_status": 200,
+      "kind": "approved"
+    },
+    "patient_explicit_draft": 403,
+    "patient_b": {
+      "document_status": 403,
+      "result_status": 403
+    },
+    "doctor_a": {
+      "document_status": 200,
+      "result_status": 200,
+      "kind": "draft"
+    },
+    "doctor_b": {
+      "document_status": 403,
+      "result_status": 403
+    },
+    "administrator": {
+      "document_status": 403,
+      "result_status": 403
+    }
+  },
+  "source_navigation": {
+    "glucose": {
+      "one_based_page": 1,
+      "origin": "native"
+    },
+    "sodium": {
+      "one_based_page": 2,
+      "origin": "ocr_scan"
+    }
+  },
+  "fixture_note": "The raster page repeats the fixture image whose printed footer reads Source page 1; its PDF page index is 2. The native bridge opens the validated zero-based page index.",
+  "automated_checks": {
+    "backend_passed": 168,
+    "backend_optional_firebase_emulator_skipped": 1,
+    "flutter_full_before_review_fix": 44,
+    "viewer_after_review_fix": 9
+  },
+  "review_corrections": [
+    "Disabled source links during authorization refresh/rendering; regression observed red then green.",
+    "Shared access-error clearing/session-expiry handling."
+  ]
 }

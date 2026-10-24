@@ -59,6 +59,59 @@ http.Response jsonResponse(Object value) =>
     http.Response.bytes(utf8.encode(jsonEncode(value)), 200);
 
 void main() {
+  testWidgets(
+    'source links show disabled state while authorization refresh is pending',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      final refresh = Completer<http.Response>();
+      var metadataReads = 0;
+      final metadata = {
+        ...resultReport().toJson(),
+        'assignedDoctorId': 'doctor_a',
+      };
+      final api = PatientReportApi(
+        Uri.parse('https://example.invalid'),
+        MockClient((request) async {
+          if (request.url.path.endsWith('/result'))
+            return jsonResponse(draftPayload());
+          return ++metadataReads == 1 ? jsonResponse(metadata) : refresh.future;
+        }),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: EvidenceResultScreen(
+            account: doctor,
+            reportId: 'report_1',
+            api: api,
+            platform: PageRenderer(),
+            token: () => 'token',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Open source page 2'));
+      await tester.pump(const Duration(seconds: 16));
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.byWidgetPredicate((widget) => widget is OutlinedButton),
+            )
+            .onPressed,
+        isNull,
+      );
+      refresh.complete(jsonResponse(metadata));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.byWidgetPredicate((widget) => widget is OutlinedButton),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
   testWidgets('an unreadable source page reports an explicit evidence issue', (
     tester,
   ) async {

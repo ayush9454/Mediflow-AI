@@ -152,13 +152,7 @@ class _EvidenceResultScreenState extends State<EvidenceResultScreen>
       );
     } on ApiFailure catch (error) {
       if (!mounted || current != generation) return;
-      setState(() {
-        _clear();
-        message = error.message;
-      });
-      if (error.code == ErrorCode.unauthenticated) {
-        widget.onSessionEnded?.call();
-      }
+      _handleFailure(error);
     } catch (_) {
       if (mounted && current == generation) {
         setState(() {
@@ -169,6 +163,16 @@ class _EvidenceResultScreenState extends State<EvidenceResultScreen>
       }
     } finally {
       if (mounted && current == generation) setState(() => loading = false);
+    }
+  }
+
+  void _handleFailure(ApiFailure error) {
+    setState(() {
+      _clear();
+      message = error.message;
+    });
+    if (error.code == ErrorCode.unauthenticated) {
+      widget.onSessionEnded?.call();
     }
   }
 
@@ -208,13 +212,7 @@ class _EvidenceResultScreenState extends State<EvidenceResultScreen>
       });
     } on ApiFailure catch (error) {
       if (!mounted || current != generation) return;
-      setState(() {
-        _clear();
-        message = error.message;
-      });
-      if (error.code == ErrorCode.unauthenticated) {
-        widget.onSessionEnded?.call();
-      }
+      _handleFailure(error);
     } catch (_) {
       if (mounted && current == generation) {
         setState(
@@ -335,7 +333,7 @@ class _EvidenceResultScreenState extends State<EvidenceResultScreen>
                   final rows = LaboratoryResultView(
                     result: result!,
                     pageCount: report!.pageCount,
-                    onOpenEvidence: _open,
+                    onOpenEvidence: loading || rendering ? null : _open,
                   );
                   if (constraints.maxWidth >= 840) {
                     return Row(
