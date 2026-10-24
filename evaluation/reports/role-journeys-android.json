@@ -1,0 +1,137 @@
+{
+  "ticket": 12,
+  "verified_on": "2026-10-25",
+  "synthetic_data_only": true,
+  "implementation": "1376d97",
+  "apk": {
+    "type": "debug development APK",
+    "sha256": "ec93ddc329476932ce09c309ce3993600c84aaaae1d1a068dec8c2630e9cb71e",
+    "device": "Android 15 / API 35 emulator"
+  },
+  "services": {
+    "api": "actual temporary authenticated Azure HTTPS API",
+    "authentication": "real Firebase synthetic accounts and server token verification",
+    "persistence": "real Firestore, private Blob storage and Storage Queue",
+    "processing": "normal event worker and five-minute scheduled reconciler with the real configured free-tier provider",
+    "image_digest": "sha256:f1ec5b961b375cdec0a5daf073dfa4ba1e018af26a67a4411785902c2d918339",
+    "spending_protection_before_provisioning": "On",
+    "canned_analysis_or_approval_records": false
+  },
+  "installed_android_checks": {
+    "two_separate_patient_uploads": true,
+    "preapproval_no_result_button_or_draft": true,
+    "administrator_assignment_and_reassignment": true,
+    "active_eligible_doctor_picker": true,
+    "former_doctor_loses_reassigned_case": true,
+    "both_doctors_review_only_current_assignments": true,
+    "protected_source_page_rendered": true,
+    "source_grounded_citation_correction": true,
+    "explicit_unresolved_qualification": true,
+    "attributed_immutable_approval_and_rejection_history": true,
+    "previous_approval_visible_during_reprocessing": true,
+    "rejected_replacement_keeps_previous_approval": true,
+    "previous_approval_visible_during_real_transient_retry": true,
+    "new_approval_selects_version_3": true,
+    "patient_b_separate_version_1_and_reviewer": true,
+    "account_switching_isolation": true,
+    "automatic_history_refresh_after_decisions": true,
+    "patient_actions_stable_during_polling": true,
+    "private_temporary_pdf_files_after_flow": 0,
+    "filtered_flutter_error_diagnostics": "empty"
+  },
+  "hosted_http_checks": {
+    "preapproval_owner_result_status": 409,
+    "patient_explicit_draft_request_status": 403,
+    "cross_patient_result_status": 403,
+    "former_doctor_result_status": 403,
+    "administrator_result_document_and_reviews_status": 403,
+    "protected_case_lists_cache_control": "no-store",
+    "case_counts": {
+      "patient_a": 1,
+      "patient_b": 1,
+      "doctor_a": 1,
+      "doctor_b": 1,
+      "administrator": 2
+    },
+    "case_metadata_excludes_clinical_payloads": true,
+    "cross_account_cursor_status": 400,
+    "cross_view_cursor_status": 400,
+    "approved_versions": {
+      "patient_a": 3,
+      "patient_b": 1
+    },
+    "review_counts": {
+      "patient_a": 3,
+      "patient_b": 1
+    },
+    "patient_a_decision_sequence": [
+      "approved with citation correction and qualification",
+      "rejected replacement",
+      "approved replacement"
+    ],
+    "original_ai_row_and_correction_preserved": true,
+    "patient_result_contains_only_server_selected_approved_snapshot": true
+  },
+  "actual_processing": {
+    "reports": 2,
+    "jobs": 4,
+    "immutable_analyses": 4,
+    "terminal_job_states": [
+      "succeeded",
+      "succeeded",
+      "succeeded",
+      "succeeded"
+    ],
+    "sorted_attempt_counts": [
+      1,
+      1,
+      1,
+      2
+    ],
+    "observed_transient_failure_code": "temporarily_unavailable",
+    "automatic_retry_recovered_without_manual_data_changes": true
+  },
+  "automated_checks": {
+    "linux_backend": {
+      "passed": 196,
+      "skipped": 2,
+      "skip": "opt-in Firebase tests run separately"
+    },
+    "real_firebase_auth_and_firestore_emulators": {
+      "passed": 42
+    },
+    "flutter": {
+      "passed": 55
+    },
+    "python_format_lint_compile_and_mypy": "passed; 42 backend source files",
+    "generated_contracts": "8 artifacts checked",
+    "flutter_analysis_format_and_dart_smoke": "passed",
+    "hosting_probe_tests": 9,
+    "deployment_guard_tests": 2,
+    "seed_reset_signin_and_old_password_denial": "passed with real Firebase emulators",
+    "apk_build_install": "passed"
+  },
+  "review": {
+    "baseline": "d4698cb",
+    "final_code": "1376d97",
+    "standards_unresolved": 0,
+    "spec_unresolved": 0
+  },
+  "limits": [
+    "The development APK uses debug signing; signed release distribution remains a later gate.",
+    "The temporary acceptance endpoint is removed after verification; the APK needs new live API configuration for another run.",
+    "This run uses an Android emulator and makes no new physical-phone/laptop-off verification claim.",
+    "The held-out extraction-accuracy release gate remains separate; these invented sources were not used to claim clinical accuracy."
+  ],
+  "teardown": {
+    "status": "waiting for Azure empty-environment deletion",
+    "run_owned_firestore_payloads_deleted": true,
+    "remaining_firestore_documents": 0,
+    "remaining_upload_reservations": 0,
+    "seed_accounts_and_truthful_quota_usage_preserved": true,
+    "android_app": "stopped",
+    "android_emulator": "stopped; adb lists no devices",
+    "firebase_emulators": "stopped after successful exec",
+    "local_test_vm": "stopped; colima confirms not running"
+  }
+}

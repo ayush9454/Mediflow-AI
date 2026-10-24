@@ -29,11 +29,11 @@ Keep original source/AI versus reviewed record distinctions visible without crea
 
 ## Acceptance criteria
 
-- [ ] Patient → administrator → doctor → patient workflow completes on the Android APK using actual hosted services.
-- [ ] Patient sees no AI result before approval and sees only the approved snapshot afterwards.
-- [ ] Unresolved qualifications, rejected replacement state and approved-version attribution remain understandable.
-- [ ] Each role's list is paginated/scoped and contains only the authorized fields.
-- [ ] No screen promises deferred features or exposes implementation/secrets to the product user.
+- [x] Patient → administrator → doctor → patient workflow completes on the Android APK using actual hosted services.
+- [x] Patient sees no AI result before approval and sees only the approved snapshot afterwards.
+- [x] Unresolved qualifications, rejected replacement state and approved-version attribution remain understandable.
+- [x] Each role's list is paginated/scoped and contains only the authorized fields.
+- [x] No screen promises deferred features or exposes implementation/secrets to the product user.
 
 ## Verification
 
@@ -54,10 +54,49 @@ The hosted probe uses an isolated run prefix and removes review/approved payload
 alongside run-owned upload/processing data.
 
 The full isolated Linux backend suite passes 196 tests (two opt-in Firebase tests
-skipped there). The full Flutter suite passes 54 tests; the subsequently added
-automatic history refresh also passes its six focused review-screen tests. Real
-Firebase seed/reset and authorization tests pass. Final emulator integration,
-hosted Android replacement checks and independent reviews remain in progress.
+skipped there). All 55 Flutter tests and 42 actual Firebase Auth/Firestore emulator
+integration tests pass. Python format/lint/compile, mypy on 42 sources, eight
+generated contract artifacts, Flutter analysis/format, Dart contract/API smoke,
+nine hosting-probe tests, two deployment-guard tests and the final debug APK
+build/install pass. Commands follow `docs/development.md`; Linux tests ran in the
+existing isolated amd64 test container, and Firebase checks used
+`firebase emulators:exec` with `MEDIFLOW_UPLOAD_TEST_FIRESTORE=1` for the case,
+result, review and real-token/rules suites.
+
+The installed Android 15/API 35 APK exercised actual Firebase sign-in, hosted
+HTTPS API, Firestore, private Blob/Queue, configured model, event worker and
+scheduled reconciler with two patients, two doctors and an administrator.
+Observed assignment/reassignment revoked the former doctor's case; both doctors
+subsequently approved only their current assignments. Patient A's first approval
+included a source-grounded citation expansion and an explicit missing-flag
+qualification, without altering the printed value. Original AI data and that
+correction remain in immutable review history. The patient retained approved
+version 1 while replacement version 2 processed and after its rejection.
+
+The final replacement encountered `temporarily_unavailable` and recovered through
+the normal automatic retry, without direct record changes. Four jobs committed
+four immutable analyses with attempt counts 1, 1, 1 and 2. After fresh approval,
+patient A saw approved version 3 with new attribution; patient B saw their separate
+version 1 approved by doctor A. Actual hosted assertions verify owner preapproval
+409, draft/cross-patient/former-doctor/admin clinical denial, scoped list counts,
+metadata-only list fields, no-store headers and account/view-bound cursors.
+
+Independent Standards and Spec reviews and corrective re-reviews report **zero
+unresolved findings**. Reviews caught a stale documentation invariant and shared
+probe Docker configuration; both were corrected. The real Android run also exposed
+post-decision refresh and polling layout gaps; public-boundary regressions verified
+their fixes. Implementation commits: `14a3f10`, `f3f51f5` and `1376d97`. See the
+[review](../review-12.md), [sample journey](../../../docs/sample-journey.md),
+[repeatable hosted probe](../../../tools/journey_smoke/README.md) and
+[sanitized Android evidence](../../../evaluation/reports/role-journeys-android.json).
+
+The app left zero private temporary PDFs and filtered Flutter diagnostics were
+empty. App/emulator, Firebase emulators and the local test VM are stopped. Run-owned
+Firestore payloads and reservations are confirmed absent. Azure resource-group
+deletion is still finishing its empty `ScheduledForDelete` environment; verify
+absence before marking this ticket complete. The APK uses debug signing and needs
+a new hosted API configuration after teardown; release signing and held-out
+extraction accuracy remain separate gates.
 
 ## Comments
 

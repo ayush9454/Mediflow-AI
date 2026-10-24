@@ -113,6 +113,18 @@ builds continue to use JDK 17.
 
 ## Verification record
 
+Ticket 12 verification (2026-10-25): 196 Linux backend tests passed with two opt-in
+Firebase tests skipped in that isolated run; 42 tests passed against actual Auth
+and Firestore emulators; all 55 Flutter tests passed. Python format/lint/compile,
+mypy on 42 sources, generated contracts, Flutter analysis/format, Dart smoke and
+the hosted-configured debug APK build/install passed. The actual hosted Android
+journey used two patients, two doctors and an administrator, including reassignment,
+source-grounded correction, qualification, rejection, reprocessing and a real
+automatic transient retry. See the [sample journey](sample-journey.md),
+[sanitized evidence](../evaluation/reports/role-journeys-android.json) and
+[independent review](../.scratch/mediflow-mvp/review-12.md). The earlier foundation
+record below is historical.
+
 Python 3.12.15 was installed into the ignored workspace tooling directory and a fresh locked backend environment was created. Contract/API checks, Python formatting/linting, static type checking, generated-artifact checks, Flutter analysis, routing tests and Dart fixture tests pass. All 24 backend tests and 11 Flutter tests pass. The JDK 17 debug APK build passes and the APK installs/cold-starts on an Android 15/API 35 emulator. All three role previews open, remain explicitly labeled, and return to sign-in; screenshots were inspected and runtime error logs were empty. A real Uvicorn process served health, Swagger UI and OpenAPI locally.
 
 The previous restricted-session socket, package-download and Git-write limitations no longer apply. See [ticket 02](../.scratch/mediflow-mvp/issues/02-foundation-contracts-ci.md) for final suite/build results and remaining limits.
