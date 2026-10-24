@@ -179,7 +179,9 @@ void main() {
         find.text(
           role == Role.patient
               ? 'Your laboratory reports'
-              : '${role.label} workspace',
+              : role == Role.doctor
+              ? 'Your assigned cases'
+              : 'Hospital case assignments',
         ),
         findsOneWidget,
       );

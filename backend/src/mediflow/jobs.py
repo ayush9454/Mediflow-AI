@@ -17,6 +17,7 @@ from mediflow.contracts import (
 from mediflow.job_queue import Queue
 from mediflow.uploads import fail, scoped_key
 from mediflow.uploads.database import Database, Record, Transaction
+from mediflow.workflow import active_account
 
 TERMINAL = {"succeeded", "failed", "rejected"}
 
@@ -489,6 +490,7 @@ class Jobs:
         job_id = uuid4().hex
 
         def operation(tx: Transaction) -> ProcessingJob:
+            active_account(tx, account, Role.DOCTOR)
             report = tx.get("reports", report_id)
             case = tx.get("cases", report["caseId"]) if report else None
             if (

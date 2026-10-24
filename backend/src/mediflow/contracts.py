@@ -217,6 +217,7 @@ class CaseSummary(VersionedModel):
     review_version: Annotated[int, Field(ge=0)]
     created_at: AwareDatetime
     expires_at: AwareDatetime | None = None
+    failure_code: ErrorCode | None = None
 
 
 class CasePage(VersionedModel):
@@ -271,6 +272,13 @@ class ReprocessingRequest(VersionedModel):
 class AssignmentRequest(VersionedModel):
     doctor_id: Identifier
     expected_case_version: Annotated[int, Field(ge=1)]
+
+
+class BeginReviewRequest(VersionedModel):
+    analysis_id: Identifier
+    expected_analysis_version: Annotated[int, Field(ge=1)]
+    expected_case_version: Annotated[int, Field(ge=1)]
+    expected_review_version: Annotated[int, Field(ge=0)]
 
 
 class RowCorrection(WireModel):
@@ -332,6 +340,12 @@ class ReviewRecord(VersionedModel):
     reviewer_id: Identifier
     reviewed_at: AwareDatetime
     request: ReviewRequest
+    original_rows: tuple[LaboratoryRow, ...] = ()
+
+
+class ReviewPage(VersionedModel):
+    items: tuple[ReviewRecord, ...]
+    next_cursor: str | None = None
 
 
 class ApprovedResult(VersionedModel):

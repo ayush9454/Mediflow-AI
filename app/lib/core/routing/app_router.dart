@@ -6,6 +6,7 @@ import '../../features/auth/preview_controller.dart';
 import '../../features/auth/session.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/workspace/workspace_screen.dart';
+import '../../features/workspace/workflow_screen.dart';
 import '../../features/reports/evidence_host.dart';
 import '../config/app_config.dart';
 import '../contracts/contracts.g.dart';
@@ -20,6 +21,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final path = state.uri.path;
       final account = ref.read(sessionProvider).account;
+      if (path.startsWith('/review/')) {
+        if (account == null) return '/sign-in';
+        if (account.role != Role.doctor) return '/${account.role.value}';
+      }
       if (path.startsWith('/results/')) {
         if (account == null) return '/sign-in';
         if (account.role == Role.administrator) return '/administrator';
@@ -50,6 +55,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/results/:reportId',
         builder: (_, state) =>
             EvidenceResultHost(reportId: state.pathParameters['reportId']!),
+      ),
+      GoRoute(
+        path: '/review/:reportId',
+        builder: (_, state) =>
+            WorkflowHost(reportId: state.pathParameters['reportId']!),
       ),
       for (final role in Role.values)
         GoRoute(

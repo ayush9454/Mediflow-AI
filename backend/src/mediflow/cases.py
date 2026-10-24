@@ -1,35 +1,44 @@
-"""Bounded patient-owned workflow metadata, without document or analysis payloads."""
+"""Paginated role-scoped metadata and atomic administrator assignment."""
 
-import base64
-import hashlib
-import json
-import re
+from uuid import uuid4
 
-from mediflow.contracts import Account, CasePage, CaseSummary, ErrorCode, Role
-from mediflow.errors import ApplicationError
+from mediflow.contracts import (
+    Account,
+    AssignmentRequest,
+    CasePage,
+    CaseSummary,
+    DoctorPage,
+    DoctorSummary,
+    Role,
+)
+from mediflow.uploads import scoped_key
 from mediflow.uploads.database import Database, Transaction
+from mediflow.workflow import (
+    active_account,
+    audit,
+    case_report,
+    conflict,
+    decode_cursor,
+    denied,
+    eligible_doctor,
+    next_cursor,
+    page_scope,
+    summary,
+    unexpired,
+)
 
 
 def patient_cases(database: Database, account: Account, cursor: str | None, limit: int) -> CasePage:
-    if account.role != Role.PATIENT or not account.active:
-        raise ApplicationError(ErrorCode.PERMISSION_DENIED, 403, "Access is denied.")
-    scope = hashlib.sha256(json.dumps([account.hospital_id, account.uid]).encode()).hexdigest()
-    after = None
-    if cursor:
-        try:
-            data = json.loads(
-                base64.b64decode(cursor + "=" * (-len(cursor) % 4), altchars=b"-_", validate=True)
-            )
-            if data["scope"] != scope or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", data["after"]):
-                raise ValueError("Invalid cursor")
-            after = data["after"]
-        except (ValueError, KeyError, TypeError):
-            raise ApplicationError(
-                ErrorCode.INVALID_REQUEST, 400, "Refresh the case list."
-            ) from None
-    page = database.scoped_page(
-        "cases", {"hospitalId": account.hospital_id, "patientId": account.uid}, after, limit + 1
-    )
+    # Name retained for existing callers; all roles receive only workflow metadata.
+    if not account.active:
+        raise denied()
+    filters = {"hospitalId": account.hospital_id}
+    if account.role == Role.PATIENT:
+        filters["patientId"] = account.uid
+    elif account.role == Role.DOCTOR:
+        filters["assignedDoctorId"] = account.uid
+    scope = page_scope(account, "cases")
+    page = database.scoped_page("cases", filters, decode_cursor(cursor, scope), limit + 1)
     items = []
     for case_id, _ in page[:limit]:
 
@@ -37,47 +46,120 @@ def patient_cases(database: Database, account: Account, cursor: str | None, limi
             case = tx.get("cases", case_id)
             if (
                 not case
-                or case.get("hospitalId") != account.hospital_id
-                or case.get("patientId") != account.uid
-            ):
-                return None
-            if (
-                not {"processingStatus", "reviewStatus", "reviewVersion", "createdAt"}
+                or not all(case.get(k) == v for k, v in filters.items())
+                or not {"processingStatus", "reviewStatus", "reviewVersion", "createdAt"}
                 <= case.keys()
             ):
-                # The old authorization-only seed has no actual upload/job workflow.
                 return None
             report = tx.get("reports", case["reportId"])
             if (
                 not report
                 or report.get("caseId") != case_id
                 or report.get("hospitalId") != account.hospital_id
-                or report.get("patientId") != account.uid
+                or report.get("patientId") != case.get("patientId")
             ):
                 return None
-            return CaseSummary(
-                case_id=case_id,
-                report_id=case["reportId"],
-                patient_id=account.uid,
-                assigned_doctor_id=case.get("assignedDoctorId"),
-                processing_status=case["processingStatus"],
-                review_status=case["reviewStatus"],
-                version=case["version"],
-                review_version=case["reviewVersion"],
-                created_at=case["createdAt"],
-                expires_at=report.get("expiresAt"),
-            )
+            head = tx.get("jobHeads", case["reportId"])
+            job = tx.get("processingJobs", head["jobId"]) if head else None
+            return summary(case_id, case, report, job.get("failureCode") if job else None)
 
         item = database.run(read)
         if item is not None:
             items.append(item)
-    next_cursor = None
-    if len(page) > limit:
-        next_cursor = (
-            base64.urlsafe_b64encode(
-                json.dumps({"scope": scope, "after": page[limit - 1][0]}).encode()
+    return CasePage(items=tuple(items), next_cursor=next_cursor(page, limit, scope))
+
+
+def doctors(database: Database, account: Account, cursor: str | None, limit: int) -> DoctorPage:
+    scope = page_scope(account, "doctors")
+    page = database.scoped_page(
+        "doctors", {"hospitalId": account.hospital_id}, decode_cursor(cursor, scope), limit + 1
+    )
+    items = []
+    for uid, _ in page[:limit]:
+
+        def read(tx: Transaction, uid: str = uid) -> DoctorSummary | None:
+            active_account(tx, account, Role.ADMINISTRATOR)
+            doctor = eligible_doctor(tx, uid, account.hospital_id)
+            return (
+                DoctorSummary(
+                    doctor_id=uid,
+                    display_name=doctor["displayName"],
+                    department=doctor.get("department", "General"),
+                    active=True,
+                )
+                if doctor
+                else None
             )
-            .decode()
-            .rstrip("=")
+
+        item = database.run(read)
+        if item:
+            items.append(item)
+    return DoctorPage(items=tuple(items), next_cursor=next_cursor(page, limit, scope))
+
+
+def assign(
+    database: Database,
+    account: Account,
+    case_id: str,
+    body: AssignmentRequest,
+    key: str,
+    request_id: str,
+) -> CaseSummary:
+    index = scoped_key(account.hospital_id, account.uid, case_id, "assignment", key)
+    fingerprint = scoped_key(body.model_dump_json())
+    event_id = uuid4().hex
+
+    def change(tx: Transaction) -> CaseSummary:
+        active_account(tx, account, Role.ADMINISTRATOR)
+        stored_case = tx.get("cases", case_id)
+        if not stored_case:
+            raise denied()
+        case, report = case_report(tx, account, stored_case["reportId"])
+        if report["caseId"] != case_id:
+            raise denied()
+        unexpired(report)
+        previous = tx.get("assignmentKeys", index)
+        if previous:
+            if previous["fingerprint"] != fingerprint:
+                raise conflict()
+            return CaseSummary.model_validate(previous["response"])
+        if case["version"] != body.expected_case_version:
+            raise conflict()
+        if not eligible_doctor(tx, body.doctor_id, account.hospital_id):
+            raise denied()
+        old_doctor = case.get("assignedDoctorId")
+        case.update(assignedDoctorId=body.doctor_id, version=case["version"] + 1)
+        # A new doctor must explicitly begin review again.
+        if case["reviewStatus"] == "under_review":
+            case["reviewStatus"] = "pending"
+        report.update(
+            assignedDoctorId=body.doctor_id,
+            caseVersion=case["version"],
+            reviewStatus=case["reviewStatus"],
         )
-    return CasePage(items=tuple(items), next_cursor=next_cursor)
+        response = summary(case_id, case, report)
+        tx.put("cases", case_id, case)
+        tx.put("reports", report["reportId"], report)
+        tx.put(
+            "assignmentKeys",
+            index,
+            {
+                "fingerprint": fingerprint,
+                "response": response.model_dump(mode="json", by_alias=True),
+                "expiresAt": report.get("expiresAt"),
+            },
+        )
+        audit(
+            tx,
+            event_id,
+            account,
+            report["reportId"],
+            "case_assigned",
+            request_id,
+            previousDoctorId=old_doctor,
+            assignedDoctorId=body.doctor_id,
+            caseVersion=case["version"],
+        )
+        return response
+
+    return database.run(change)

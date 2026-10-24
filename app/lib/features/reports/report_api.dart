@@ -312,6 +312,143 @@ class PatientReportApi {
     }
   }
 
+  Future<Map<String, dynamic>> workflowRequest(
+    String token,
+    String method,
+    String path, {
+    Map<String, Object?>? body,
+    String? key,
+    int expected = 200,
+  }) async {
+    try {
+      return _json(
+        await _send(
+          token,
+          method,
+          path,
+          body: body,
+          key: key,
+          expected: expected,
+        ),
+      );
+    } on ApiFailure catch (error) {
+      if (error.code == ErrorCode.conflict) {
+        throw const ApiFailure(
+          'The case changed. Refresh before continuing.',
+          code: ErrorCode.conflict,
+        );
+      }
+      if (error.code == ErrorCode.invalidUpload) {
+        throw const ApiFailure(
+          'Check the fields, source evidence and unresolved reasons. Every blocking issue needs a correction or an explicit unresolved reason.',
+          code: ErrorCode.invalidRequest,
+        );
+      }
+      if (error.code == ErrorCode.quotaExhausted) {
+        throw const ApiFailure(
+          'Reprocessing is limited to two requests per report per UTC day, at least one minute apart.',
+          code: ErrorCode.quotaExhausted,
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<DoctorPage> doctors(String token, {String? cursor}) async =>
+      DoctorPage.fromJson(
+        await workflowRequest(
+          token,
+          'GET',
+          Uri(
+            path: '/api/v1/doctors',
+            queryParameters: {
+              'limit': '20',
+              if (cursor != null) 'cursor': cursor,
+            },
+          ).toString(),
+        ),
+      );
+
+  Future<CaseSummary> assign(
+    String token,
+    CaseSummary item,
+    String doctorId,
+    String key,
+  ) async => CaseSummary.fromJson(
+    await workflowRequest(
+      token,
+      'POST',
+      '/api/v1/cases/${_id(item.caseId)}/assignment',
+      body: {'doctorId': _id(doctorId), 'expectedCaseVersion': item.version},
+      key: key,
+    ),
+  );
+
+  Future<CaseSummary> beginReview(
+    String token,
+    String id,
+    BeginReviewRequest body,
+    String key,
+  ) async => CaseSummary.fromJson(
+    await workflowRequest(
+      token,
+      'POST',
+      '/api/v1/reports/${_id(id)}/begin-review',
+      body: body.toJson(),
+      key: key,
+    ),
+  );
+
+  Future<ReviewRecord> review(
+    String token,
+    String id,
+    ReviewRequest body,
+    String key,
+  ) async => ReviewRecord.fromJson(
+    await workflowRequest(
+      token,
+      'POST',
+      '/api/v1/reports/${_id(id)}/review',
+      body: body.toJson(),
+      key: key,
+      expected: 201,
+    ),
+  );
+
+  Future<ReviewPage> reviews(String token, String id, {String? cursor}) async =>
+      ReviewPage.fromJson(
+        await workflowRequest(
+          token,
+          'GET',
+          Uri(
+            path: '/api/v1/reports/${_id(id)}/reviews',
+            queryParameters: {
+              'limit': '20',
+              if (cursor != null) 'cursor': cursor,
+            },
+          ).toString(),
+        ),
+      );
+
+  Future<ProcessingJob> reprocess(
+    String token,
+    ReportMetadata report,
+    String reason,
+    String key,
+  ) async => ProcessingJob.fromJson(
+    await workflowRequest(
+      token,
+      'POST',
+      '/api/v1/reports/${_id(report.reportId)}/reprocess',
+      body: {
+        'expectedLatestAnalysisId': report.latestAnalysisId,
+        'reason': reason,
+      },
+      key: key,
+      expected: 202,
+    ),
+  );
+
   void close() {
     _closed = true;
     for (final abort in _inflight) {

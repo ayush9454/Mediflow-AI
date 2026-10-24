@@ -11,6 +11,7 @@ from mediflow.authorization import Authorization
 from mediflow.contracts import (
     Account,
     AssignmentRequest,
+    BeginReviewRequest,
     CasePage,
     CaseSummary,
     CompletionRequest,
@@ -23,6 +24,7 @@ from mediflow.contracts import (
     ReportResult,
     ReprocessingRequest,
     ResultKind,
+    ReviewPage,
     ReviewRecord,
     ReviewRequest,
     Role,
@@ -265,7 +267,17 @@ async def review(
     account: Account = Depends(current_account),
 ) -> ReviewRecord:
     authorization(request).report_access(account, report_id, "review", request.state.request_id)
-    pending()
+    from mediflow.reviews import decide
+
+    return await run_in_threadpool(
+        decide,
+        upload_module(request).database,
+        account,
+        report_id,
+        body,
+        idempotency_key,
+        request.state.request_id,
+    )
 
 
 @router.get("/cases", response_model=CasePage, tags=["cases"])
@@ -278,7 +290,10 @@ async def list_cases(
     from mediflow.cases import patient_cases
 
     await run_in_threadpool(
-        authorization(request).require_role, account, {Role.PATIENT}, request.state.request_id
+        authorization(request).require_role,
+        account,
+        {Role.PATIENT, Role.DOCTOR, Role.ADMINISTRATOR},
+        request.state.request_id,
     )
     return await run_in_threadpool(
         patient_cases, upload_module(request).database, account, cursor, limit
@@ -293,7 +308,9 @@ async def list_doctors(
     account: Account = Depends(current_account),
 ) -> DoctorPage:
     authorization(request).require_role(account, {Role.ADMINISTRATOR}, request.state.request_id)
-    pending()
+    from mediflow.cases import doctors
+
+    return await run_in_threadpool(doctors, upload_module(request).database, account, cursor, limit)
 
 
 @router.post("/cases/{case_id}/assignment", response_model=CaseSummary, tags=["cases"])
@@ -306,4 +323,52 @@ async def assign_case(
 ) -> CaseSummary:
     authorization(request).require_role(account, {Role.ADMINISTRATOR}, request.state.request_id)
     authorization(request).case_access(account, case_id, request.state.request_id)
-    pending()
+    from mediflow.cases import assign
+
+    return await run_in_threadpool(
+        assign,
+        upload_module(request).database,
+        account,
+        case_id,
+        body,
+        idempotency_key,
+        request.state.request_id,
+    )
+
+
+@router.post("/reports/{report_id}/begin-review", response_model=CaseSummary, tags=["reviews"])
+async def begin_review(
+    request: Request,
+    report_id: ResourceId,
+    body: BeginReviewRequest,
+    idempotency_key: IdempotencyKey,
+    account: Account = Depends(current_account),
+) -> CaseSummary:
+    authorization(request).report_access(account, report_id, "review", request.state.request_id)
+    from mediflow.reviews import begin
+
+    return await run_in_threadpool(
+        begin,
+        upload_module(request).database,
+        account,
+        report_id,
+        body,
+        idempotency_key,
+        request.state.request_id,
+    )
+
+
+@router.get("/reports/{report_id}/reviews", response_model=ReviewPage, tags=["reviews"])
+async def review_history(
+    request: Request,
+    report_id: ResourceId,
+    cursor: str | None = Query(default=None, max_length=1000),
+    limit: int = Query(default=20, ge=1, le=100),
+    account: Account = Depends(current_account),
+) -> ReviewPage:
+    authorization(request).report_access(account, report_id, "review", request.state.request_id)
+    from mediflow.reviews import history
+
+    return await run_in_threadpool(
+        history, upload_module(request).database, account, report_id, cursor, limit
+    )

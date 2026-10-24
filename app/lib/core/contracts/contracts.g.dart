@@ -234,6 +234,38 @@ final class AssignmentRequest {
   };
 }
 
+final class BeginReviewRequest {
+  const BeginReviewRequest({
+    required this.schemaVersion,
+    required this.analysisId,
+    required this.expectedAnalysisVersion,
+    required this.expectedCaseVersion,
+    required this.expectedReviewVersion,
+  });
+
+  final String schemaVersion;
+  final String analysisId;
+  final int expectedAnalysisVersion;
+  final int expectedCaseVersion;
+  final int expectedReviewVersion;
+
+  factory BeginReviewRequest.fromJson(Map<String, Object?> json) => BeginReviewRequest(
+    schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
+    analysisId: json["analysisId"] as String,
+    expectedAnalysisVersion: json["expectedAnalysisVersion"] as int,
+    expectedCaseVersion: json["expectedCaseVersion"] as int,
+    expectedReviewVersion: json["expectedReviewVersion"] as int,
+  );
+
+  Map<String, Object?> toJson() => {
+    "schemaVersion": schemaVersion,
+    "analysisId": analysisId,
+    "expectedAnalysisVersion": expectedAnalysisVersion,
+    "expectedCaseVersion": expectedCaseVersion,
+    "expectedReviewVersion": expectedReviewVersion,
+  };
+}
+
 final class CasePage {
   const CasePage({
     required this.schemaVersion,
@@ -271,6 +303,7 @@ final class CaseSummary {
     required this.reviewVersion,
     required this.createdAt,
     required this.expiresAt,
+    required this.failureCode,
   });
 
   final String schemaVersion;
@@ -284,6 +317,7 @@ final class CaseSummary {
   final int reviewVersion;
   final DateTime createdAt;
   final DateTime? expiresAt;
+  final ErrorCode? failureCode;
 
   factory CaseSummary.fromJson(Map<String, Object?> json) => CaseSummary(
     schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
@@ -297,6 +331,7 @@ final class CaseSummary {
     reviewVersion: json["reviewVersion"] as int,
     createdAt: DateTime.parse(json["createdAt"] as String),
     expiresAt: json["expiresAt"] == null ? null : DateTime.parse(json["expiresAt"] as String),
+    failureCode: json["failureCode"] == null ? null : ErrorCode.fromJson(json["failureCode"] as String),
   );
 
   Map<String, Object?> toJson() => {
@@ -311,6 +346,7 @@ final class CaseSummary {
     "reviewVersion": reviewVersion,
     "createdAt": createdAt.toUtc().toIso8601String(),
     "expiresAt": expiresAt?.toUtc().toIso8601String(),
+    "failureCode": failureCode?.toJson(),
   };
 }
 
@@ -933,6 +969,30 @@ enum ReviewDecision {
   );
 }
 
+final class ReviewPage {
+  const ReviewPage({
+    required this.schemaVersion,
+    required this.items,
+    required this.nextCursor,
+  });
+
+  final String schemaVersion;
+  final List<ReviewRecord> items;
+  final String? nextCursor;
+
+  factory ReviewPage.fromJson(Map<String, Object?> json) => ReviewPage(
+    schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
+    items: List<ReviewRecord>.unmodifiable((json["items"] as List).map((item) => ReviewRecord.fromJson((item as Map).cast<String, Object?>()))),
+    nextCursor: json["nextCursor"] == null ? null : json["nextCursor"] as String,
+  );
+
+  Map<String, Object?> toJson() => {
+    "schemaVersion": schemaVersion,
+    "items": items.map((item) => item.toJson()).toList(),
+    "nextCursor": nextCursor,
+  };
+}
+
 final class ReviewRecord {
   const ReviewRecord({
     required this.schemaVersion,
@@ -942,6 +1002,7 @@ final class ReviewRecord {
     required this.reviewerId,
     required this.reviewedAt,
     required this.request,
+    required this.originalRows,
   });
 
   final String schemaVersion;
@@ -951,6 +1012,7 @@ final class ReviewRecord {
   final String reviewerId;
   final DateTime reviewedAt;
   final ReviewRequest request;
+  final List<LaboratoryRow> originalRows;
 
   factory ReviewRecord.fromJson(Map<String, Object?> json) => ReviewRecord(
     schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
@@ -960,6 +1022,7 @@ final class ReviewRecord {
     reviewerId: json["reviewerId"] as String,
     reviewedAt: DateTime.parse(json["reviewedAt"] as String),
     request: ReviewRequest.fromJson((json["request"] as Map).cast<String, Object?>()),
+    originalRows: List<LaboratoryRow>.unmodifiable(((json["originalRows"] ?? []) as List).map((item) => LaboratoryRow.fromJson((item as Map).cast<String, Object?>()))),
   );
 
   Map<String, Object?> toJson() => {
@@ -970,6 +1033,7 @@ final class ReviewRecord {
     "reviewerId": reviewerId,
     "reviewedAt": reviewedAt.toUtc().toIso8601String(),
     "request": request.toJson(),
+    "originalRows": originalRows.map((item) => item.toJson()).toList(),
   };
 }
 

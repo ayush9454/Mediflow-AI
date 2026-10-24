@@ -99,6 +99,11 @@ def test_copied_document_path_requires_fresh_auth_and_assignment(result_setup):
     client, uploads, _, report, _ = result_setup
     path = f"/api/v1/reports/{report['reportId']}/document"
     assert client.get(path).status_code == 401
-    report["assignedDoctorId"] = "other"
-    uploads.database.run(lambda tx: tx.put("reports", report["reportId"], report))
+
+    def reassign(tx):
+        case = tx.get("cases", report["caseId"])
+        case["assignedDoctorId"] = "other"
+        tx.put("cases", report["caseId"], case)
+
+    uploads.database.run(reassign)
     assert client.get(path, headers=headers("doctor_a")).status_code == 403

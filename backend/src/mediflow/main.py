@@ -55,7 +55,8 @@ def create_app(
             "Synthetic laboratory document workflow. Foundation build: liveness and contracts "
             "are available. Firebase authorization and bounded private PDF uploads "
             "and durable queued jobs are configurable; "
-            "AI results and review remain pending."
+            "laboratory results, assignment and simulated doctor review "
+            "are available when configured."
         ),
         openapi_url="/api/v1/openapi.json",
         docs_url="/api/v1/docs",

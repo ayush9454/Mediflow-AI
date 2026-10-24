@@ -405,6 +405,47 @@
       "title": "AssignmentRequest",
       "type": "object"
     },
+    "BeginReviewRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "analysisId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Analysisid",
+          "type": "string"
+        },
+        "expectedAnalysisVersion": {
+          "minimum": 1,
+          "title": "Expectedanalysisversion",
+          "type": "integer"
+        },
+        "expectedCaseVersion": {
+          "minimum": 1,
+          "title": "Expectedcaseversion",
+          "type": "integer"
+        },
+        "expectedReviewVersion": {
+          "minimum": 0,
+          "title": "Expectedreviewversion",
+          "type": "integer"
+        },
+        "schemaVersion": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schemaversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "analysisId",
+        "expectedAnalysisVersion",
+        "expectedCaseVersion",
+        "expectedReviewVersion"
+      ],
+      "title": "BeginReviewRequest",
+      "type": "object"
+    },
     "CasePage": {
       "additionalProperties": false,
       "properties": {
@@ -482,6 +523,17 @@
           ],
           "default": null,
           "title": "Expiresat"
+        },
+        "failureCode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "patientId": {
           "maxLength": 128,
@@ -1366,9 +1418,52 @@
       "title": "ReviewDecision",
       "type": "string"
     },
+    "ReviewPage": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ReviewRecord"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "nextCursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nextcursor"
+        },
+        "schemaVersion": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schemaversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "ReviewPage",
+      "type": "object"
+    },
     "ReviewRecord": {
       "additionalProperties": false,
       "properties": {
+        "originalRows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/LaboratoryRow"
+          },
+          "title": "Originalrows",
+          "type": "array"
+        },
         "reportId": {
           "maxLength": 128,
           "minLength": 1,

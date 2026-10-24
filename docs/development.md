@@ -77,7 +77,7 @@ backend/.venv/bin/python tools/export_contracts.py --check
 
 Commit OpenAPI, JSON Schema, Dart models and synthetic fixtures together. Do not hand-edit `contracts.g.dart`. `backend/uv.lock` pins dependencies used by development, CI and the Docker build. Update dependencies intentionally, regenerate contracts and rerun both language checks when the lock changes.
 
-Dart wire models enforce JSON types; semantic constraints and authorization belong on the backend. Parsed lists are unmodifiable. Fixtures are never served as clinical results. Report metadata exposes case and review versions, and case summaries also expose review versions. Review versions start at zero and increase monotonically per report across reprocessing. Review requests include analysis, case and prior review versions; future persistence must compare these atomically with current assignment and review records.
+Dart wire models enforce JSON types; semantic constraints and authorization belong on the backend. Parsed lists are unmodifiable. Fixtures are never served as clinical results. Report metadata exposes case and review versions, and case summaries also expose review versions. Review versions start at zero and increase monotonically per report across reprocessing. Review requests include analysis, case and prior review versions; persistence compares these atomically with current assignment and review records. See [assignment and review](assignment-review.md).
 
 ## Adapter and Android boundaries
 
@@ -93,7 +93,7 @@ independent scheduled Job for missed dispatches and expired leases. The normal
 provider runs the configured [laboratory extraction pipeline](laboratory-extraction.md)
 and never substitutes test rows. See [job deployment, recovery and retry bounds](jobs.md).
 
-Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Real sign-in requires the public `FIREBASE_API_KEY` and an API configured with Firebase/Firestore credentials. The patient Reports/History tabs implement [PDF upload and status recovery](patient-upload.md); doctors can open the [result/evidence viewer](evidence-viewer.md) using an assigned report reference. Assigned-case discovery, review writes and administrator workflows remain in later tickets. Tokens and temporary clinical bytes stay in memory and are cleared on logout/account change/expiry.
+Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Real sign-in requires the public `FIREBASE_API_KEY` and an API configured with Firebase/Firestore credentials. The patient Reports/History tabs implement [PDF upload and status recovery](patient-upload.md); doctors can open the [result/evidence viewer](evidence-viewer.md) using an assigned report reference. Assigned-case discovery, administrator assignment and immutable doctor review are documented in [assignment and review](assignment-review.md). Tokens and temporary clinical bytes stay in memory and are cleared on logout/account change/expiry.
 
 ## PDF/OCR worker and verification
 

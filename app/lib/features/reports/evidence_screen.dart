@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/contracts/contracts.g.dart';
@@ -88,6 +89,7 @@ class _EvidenceResultScreenState extends State<EvidenceResultScreen>
 
   Future<void> _load({bool keepCurrent = false}) async {
     if (!_foreground) return;
+    if (keepCurrent && !TickerMode.of(context)) return;
     if (keepCurrent && loading) return;
     if (!keepCurrent) _clear();
     final current = generation;
@@ -298,6 +300,15 @@ class _EvidenceResultScreenState extends State<EvidenceResultScreen>
     appBar: AppBar(
       title: const Text('Laboratory evidence'),
       actions: [
+        if (widget.account.role == Role.doctor && report != null)
+          TextButton(
+            onPressed: loading || rendering
+                ? null
+                : () => context.push('/review/${widget.reportId}').then((_) {
+                    if (mounted) unawaited(_load());
+                  }),
+            child: const Text('Review'),
+          ),
         IconButton(
           tooltip: 'Refresh result',
           onPressed: loading ? null : _load,

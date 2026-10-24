@@ -68,7 +68,13 @@ def bootstrap(project: str, secrets: dict[str, Any]) -> None:
         db.collection("users").document(uid).set(account.model_dump(mode="json", by_alias=True))
         db.collection(
             "doctors" if role == "doctor" else "patients" if role == "patient" else "administrators"
-        ).document(uid).set({"hospitalId": "hospital_demo", "active": True})
+        ).document(uid).set(
+            {
+                "hospitalId": "hospital_demo",
+                "active": True,
+                **({"department": "Laboratory"} if role == "doctor" else {}),
+            }
+        )
     # A representative access-control fixture; not an uploaded clinical document.
     report = ReportMetadata(
         report_id="auth_fixture_report",

@@ -44,9 +44,9 @@ def test_cursors_cannot_cross_accounts_and_malformed_cursors_are_safe(patient_se
 
 
 @pytest.mark.parametrize("uid", ["doctor_a", "admin"])
-def test_patient_case_endpoint_does_not_enable_later_role_workflows(patient_setup, uid):
+def test_case_endpoint_supports_role_scoped_workflow_lists(patient_setup, uid):
     client, _, _, _ = patient_setup
-    assert client.get("/api/v1/cases", headers=headers(uid)).status_code == 403
+    assert client.get("/api/v1/cases", headers=headers(uid)).status_code == 200
 
 
 def test_list_includes_expiry_for_patient_status_without_content(patient_setup):

@@ -62,7 +62,17 @@ def setup_uploads():
             from mediflow.contracts import ReportMetadata
 
             data = database.run(lambda tx: tx.get("reports", report_id))
+            if data:
+                case = database.run(lambda tx: tx.get("cases", data["caseId"]))
+                if not case or case.get("hospitalId") != data.get("hospitalId"):
+                    return None
+                data["assignedDoctorId"] = case.get("assignedDoctorId")
+                data["caseVersion"] = case.get("version")
             return ReportMetadata.model_validate(data) if data else None
+
+        def case_report_id(self, case_id):
+            case = database.run(lambda tx: tx.get("cases", case_id))
+            return case.get("reportId") if case else None
 
     identities = Identities()
     for uid, role in [
@@ -75,6 +85,15 @@ def setup_uploads():
             uid=uid, hospital_id="hospital_1", display_name=uid, role=role, active=True
         )
     identities.hospitals.add("hospital_1")
+
+    def seed_accounts(tx):
+        tx.put("hospitals", "hospital_1", {"active": True})
+        for account in identities.accounts.values():
+            tx.put("users", account.uid, account.model_dump(mode="json", by_alias=True))
+            if account.role == "doctor":
+                tx.put("doctors", account.uid, {"hospitalId": "hospital_1", "active": True})
+
+    database.run(seed_accounts)
     uploads = Uploads(database, documents)
     app = create_app(
         Settings(environment="test"),

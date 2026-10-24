@@ -396,6 +396,47 @@
         "title": "AssignmentRequest",
         "type": "object"
       },
+      "BeginReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "analysisId": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Analysisid",
+            "type": "string"
+          },
+          "expectedAnalysisVersion": {
+            "minimum": 1.0,
+            "title": "Expectedanalysisversion",
+            "type": "integer"
+          },
+          "expectedCaseVersion": {
+            "minimum": 1.0,
+            "title": "Expectedcaseversion",
+            "type": "integer"
+          },
+          "expectedReviewVersion": {
+            "minimum": 0.0,
+            "title": "Expectedreviewversion",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schemaversion",
+            "type": "string"
+          }
+        },
+        "required": [
+          "analysisId",
+          "expectedAnalysisVersion",
+          "expectedCaseVersion",
+          "expectedReviewVersion"
+        ],
+        "title": "BeginReviewRequest",
+        "type": "object"
+      },
       "CasePage": {
         "additionalProperties": false,
         "properties": {
@@ -470,6 +511,16 @@
               }
             ],
             "title": "Expiresat"
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "patientId": {
             "maxLength": 128,
@@ -1440,9 +1491,51 @@
         "title": "ReviewDecision",
         "type": "string"
       },
+      "ReviewPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewRecord"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          },
+          "schemaVersion": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schemaversion",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ReviewPage",
+        "type": "object"
+      },
       "ReviewRecord": {
         "additionalProperties": false,
         "properties": {
+          "originalRows": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/LaboratoryRow-Output"
+            },
+            "title": "Originalrows",
+            "type": "array"
+          },
           "reportId": {
             "maxLength": 128,
             "minLength": 1,
@@ -1867,7 +1960,7 @@
     }
   },
   "info": {
-    "description": "Synthetic laboratory document workflow. Foundation build: liveness and contracts are available. Firebase authorization and bounded private PDF uploads and durable queued jobs are configurable; AI results and review remain pending.",
+    "description": "Synthetic laboratory document workflow. Foundation build: liveness and contracts are available. Firebase authorization and bounded private PDF uploads and durable queued jobs are configurable; laboratory results, assignment and simulated doctor review are available when configured.",
     "title": "MediFlow AI API",
     "version": "0.1.0"
   },
@@ -2762,6 +2855,168 @@
         "summary": "Report Metadata",
         "tags": [
           "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/{report_id}/begin-review": {
+      "post": {
+        "operationId": "begin_review_api_v1_reports__report_id__begin_review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{1,128}$",
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Reuse this key when retrying the same operation.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "description": "Reuse this key when retrying the same operation.",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Timeout"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Begin Review",
+        "tags": [
+          "reviews"
         ]
       }
     },
@@ -3681,6 +3936,173 @@
           }
         ],
         "summary": "Review",
+        "tags": [
+          "reviews"
+        ]
+      }
+    },
+    "/api/v1/reports/{report_id}/reviews": {
+      "get": {
+        "operationId": "review_history_api_v1_reports__report_id__reviews_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{1,128}$",
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 1000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Timeout"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Review History",
         "tags": [
           "reviews"
         ]

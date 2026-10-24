@@ -8,6 +8,7 @@ import '../auth/preview_controller.dart';
 import '../auth/session.dart';
 import '../reports/report_screen.dart';
 import '../reports/report_platform.dart';
+import 'workflow_screen.dart';
 
 class WorkspaceScreen extends ConsumerStatefulWidget {
   const WorkspaceScreen({required this.role, this.preview = true, super.key});
@@ -90,6 +91,13 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
                 ),
                 account: ref.watch(sessionProvider).account!,
                 history: selectedTab == 1,
+              ),
+            )
+          : !widget.preview && role != Role.patient && selectedTab < 2
+          ? SafeArea(
+              child: WorkflowHost(
+                directory: role == Role.administrator && selectedTab == 1,
+                reviews: role == Role.doctor && selectedTab == 1,
               ),
             )
           : SafeArea(
