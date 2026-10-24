@@ -25,18 +25,29 @@ String workflowLabel(
   ProcessingStatus processing,
   ReviewStatus review,
   String? assigned,
-  DateTime? expires,
-) {
+  DateTime? expires, {
+  bool hasApprovedResult = false,
+}) {
   if (expires != null && !expires.isAfter(DateTime.now())) return 'Expired';
-  if (processing == ProcessingStatus.rejected) return 'PDF not accepted';
+  if (processing == ProcessingStatus.rejected) {
+    return hasApprovedResult
+        ? 'Replacement PDF not accepted'
+        : 'PDF not accepted';
+  }
   if (processing == ProcessingStatus.failed) {
-    return 'Processing could not finish';
+    return hasApprovedResult
+        ? 'Replacement processing could not finish'
+        : 'Processing could not finish';
   }
   if (processing == ProcessingStatus.uploadPending) return 'Upload incomplete';
   if (processing == ProcessingStatus.validating) return 'Checking PDF';
   if (processing == ProcessingStatus.queued) return 'Waiting to process';
   if (processing == ProcessingStatus.processing) return 'Processing PDF';
-  if (review == ReviewStatus.rejected) return 'Doctor did not approve';
+  if (review == ReviewStatus.rejected) {
+    return hasApprovedResult
+        ? 'Replacement not approved'
+        : 'Doctor did not approve';
+  }
   if (review == ReviewStatus.approved) return 'Approved by doctor';
   if (review == ReviewStatus.underReview) return 'Doctor review in progress';
   return assigned == null
@@ -347,6 +358,7 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
                         report.reviewStatus,
                         report.assignedDoctorId,
                         report.expiresAt,
+                        hasApprovedResult: report.approvedAnalysisId != null,
                       ),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
@@ -354,7 +366,8 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
                     const Text(
                       'Processing continues on the server after this app is closed. A doctor must approve the result before it is shared.',
                     ),
-                    if (report.processingStatus == ProcessingStatus.rejected)
+                    if (report.processingStatus == ProcessingStatus.rejected &&
+                        report.approvedAnalysisId == null)
                       const Padding(
                         padding: EdgeInsets.only(top: 12),
                         child: Text(
@@ -498,6 +511,7 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
                       item.reviewStatus,
                       item.assignedDoctorId,
                       item.expiresAt,
+                      hasApprovedResult: item.hasApprovedResult,
                     ),
                   ),
                   subtitle: Text(

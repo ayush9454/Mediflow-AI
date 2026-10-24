@@ -34,11 +34,14 @@ TAGS = {"project": "mediflow", "purpose": "issue-06-jobs-smoke", "temporary": "t
 
 
 class Probe(ContainerJobProbe):
+    private_directory = ".tooling/issue-6/azure"
+    ownership_tags = TAGS
+
     def __init__(self, root, docker_binary, docker_host):
         super().__init__(
             root,
-            ".tooling/issue-6/azure",
-            TAGS,
+            self.private_directory,
+            self.ownership_tags,
             docker_binary,
             docker_host,
             result_container="reports",

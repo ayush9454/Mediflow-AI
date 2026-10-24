@@ -55,8 +55,9 @@ with `reports.approvedAnalysisId` by the future review writer. It must copy appr
 rows and qualifications into the snapshot rather than point at the latest draft.
 `correctedRowIds` identifies the snapshot's clinician-corrected rows; `provenance`
 retains candidate generation metadata without including the original provider
-payload. Both fields have backward-compatible defaults. Review ID, reviewer,
-review time and analysis version are always displayed. A replacement candidate
+payload. Both fields have backward-compatible defaults. Reviewer, review time
+and the approved analysis version are always displayed; the opaque review ID
+remains in the server record. A replacement candidate
 never supplies patient-visible rows or removes the saved approval.
 
 The authenticated `/results/:reportId` route owns the viewer. Its complete widget

@@ -26,12 +26,6 @@ class Probe(JobProbe):
     fixture_ticket = "ticket09"
     ownership_tags = TAGS
 
-    def __init__(self, root, docker_binary, docker_host):
-        super().__init__(root, docker_binary, docker_host)
-        self.private = root / self.private_directory
-        self.private.mkdir(parents=True, exist_ok=True, mode=0o700)
-        self.tags = self.ownership_tags
-
     def init(self):
         if (self.private / "state.json").exists():
             raise RuntimeError("State already exists; resume or clean this deployment")

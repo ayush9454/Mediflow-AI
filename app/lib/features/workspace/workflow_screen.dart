@@ -429,6 +429,7 @@ class _WorkflowPanelState extends State<WorkflowPanel>
                         item.reviewStatus,
                         item.assignedDoctorId,
                         item.expiresAt,
+                        hasApprovedResult: item.hasApprovedResult,
                       ),
                     ),
                     Text(

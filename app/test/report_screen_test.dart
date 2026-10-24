@@ -140,6 +140,20 @@ void main() {
           'review': 'approved',
           'expiry': '2020-01-01T00:00:00Z',
         },
+        {
+          'id': 'replacement_pdf',
+          'processing': 'rejected',
+          'review': 'approved',
+          'expiry': null,
+          'approved': true,
+        },
+        {
+          'id': 'replacement_review',
+          'processing': 'succeeded',
+          'review': 'rejected',
+          'expiry': null,
+          'approved': true,
+        },
       ];
       final controller = PatientReportsController(
         account: patient,
@@ -161,6 +175,7 @@ void main() {
                         'assignedDoctorId': null,
                         'processingStatus': row['processing'],
                         'reviewStatus': row['review'],
+                        'hasApprovedResult': row['approved'] ?? false,
                         'version': 1,
                         'reviewVersion': 0,
                         'createdAt': '2026-10-24T10:00:00Z',
@@ -186,6 +201,13 @@ void main() {
       expect(find.text('Doctor did not approve'), findsOneWidget);
       expect(find.text('Expired'), findsOneWidget);
       expect(find.textContaining('draft'), findsNothing);
+      await tester.scrollUntilVisible(
+        find.text('Replacement not approved'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Replacement PDF not accepted'), findsOneWidget);
+      expect(find.text('Replacement not approved'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     },
   );
