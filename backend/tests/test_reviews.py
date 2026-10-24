@@ -477,3 +477,72 @@ def test_successful_replacement_needs_new_decision_and_atomically_replaces_appro
     assert snapshot["analysisId"] == "replacement"
     assert snapshot["reviewId"] == second.json()["reviewId"]
     assert len(client.get(path + "/reviews", headers=headers("doctor_a")).json()["items"]) == 2
+
+
+def test_correction_can_coexist_with_explicitly_unresolved_unchanged_field(review_setup):
+    from copy import deepcopy
+
+    client, uploads, _, report, candidate = review_setup
+    row = candidate["rows"][0]
+    row["unit"] = "UNCLEAR"
+    row["issues"] = [
+        {
+            "issueId": "result_check",
+            "field": "result",
+            "code": "field_not_in_evidence",
+            "severity": "blocking",
+            "message": "Check value",
+        },
+        {
+            "issueId": "unit_check",
+            "field": "unit",
+            "code": "field_not_in_evidence",
+            "severity": "blocking",
+            "message": "Unit is unclear",
+        },
+    ]
+    uploads.database.run(lambda tx: tx.put("analyses", candidate["analysisId"], candidate))
+    assert assign(client, report).status_code == 200
+    corrected = deepcopy(row)
+    corrected["result"] = "<0.60"
+    corrected["evidence"][0]["quotation"] = "Synthetic Marker <0.60 SYN-U 0.00–1.00"
+    body = decision_body(
+        candidate,
+        corrections=[
+            {"rowId": "row_1", "correctedRow": corrected, "reason": "Source value verified"}
+        ],
+        unresolvedAcknowledgements=[
+            {"issueId": "unit_check", "reason": "Printed unit remains unclear"}
+        ],
+    )
+    path = f"/api/v1/reports/{report['reportId']}"
+    response = client.post(path + "/review", headers=headers("doctor_a"), json=body)
+    assert response.status_code == 201, response.text
+    snapshot = client.get(path + "/result", headers=headers()).json()["approved"]
+    assert snapshot["rows"][0]["result"] == "<0.60"
+    assert snapshot["rows"][0]["issues"] == [row["issues"][1]]
+    assert snapshot["unresolvedAcknowledgements"] == body["unresolvedAcknowledgements"]
+    assert response.json()["originalRows"] == candidate["rows"]
+
+
+def test_long_correction_field_returns_safe_validation_error_instead_of_internal_failure(
+    review_setup,
+):
+    from copy import deepcopy
+
+    client, _, _, report, candidate = review_setup
+    assert assign(client, report).status_code == 200
+    corrected = deepcopy(candidate["rows"][0])
+    corrected["analyte"] = "S" * 501
+    response = client.post(
+        f"/api/v1/reports/{report['reportId']}/review",
+        headers=headers("doctor_a"),
+        json=decision_body(
+            candidate,
+            corrections=[
+                {"rowId": "row_1", "correctedRow": corrected, "reason": "Source correction"}
+            ],
+        ),
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_request"

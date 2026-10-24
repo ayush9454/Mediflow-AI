@@ -287,7 +287,7 @@ async def list_cases(
     limit: int = Query(default=20, ge=1, le=100),
     account: Account = Depends(current_account),
 ) -> CasePage:
-    from mediflow.cases import patient_cases
+    from mediflow.cases import role_scoped_cases
 
     await run_in_threadpool(
         authorization(request).require_role,
@@ -296,7 +296,7 @@ async def list_cases(
         request.state.request_id,
     )
     return await run_in_threadpool(
-        patient_cases, upload_module(request).database, account, cursor, limit
+        role_scoped_cases, upload_module(request).database, account, cursor, limit
     )
 
 

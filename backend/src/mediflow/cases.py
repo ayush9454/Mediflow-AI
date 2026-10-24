@@ -28,8 +28,9 @@ from mediflow.workflow import (
 )
 
 
-def patient_cases(database: Database, account: Account, cursor: str | None, limit: int) -> CasePage:
-    # Name retained for existing callers; all roles receive only workflow metadata.
+def role_scoped_cases(
+    database: Database, account: Account, cursor: str | None, limit: int
+) -> CasePage:
     if not account.active:
         raise denied()
     filters = {"hospitalId": account.hospital_id}

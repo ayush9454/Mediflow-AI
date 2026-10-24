@@ -78,6 +78,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Assign doctor'));
       await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 16));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Synthetic Doctor · Laboratory'));
       await tester.pumpAndSettle();
       expect(submission, {'doctorId': 'doctor_a', 'expectedCaseVersion': 1});

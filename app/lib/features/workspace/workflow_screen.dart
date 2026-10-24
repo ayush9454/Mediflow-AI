@@ -128,7 +128,7 @@ class _WorkflowPanelState extends State<WorkflowPanel>
   final doctors = <DoctorSummary>[];
   String? cursor, doctorCursor, message;
   int generation = 0;
-  bool busy = false;
+  bool busy = false, choosing = false;
   Timer? poll;
   CaseSummary? pendingCase;
   String? pendingDoctor, pendingKey;
@@ -146,7 +146,8 @@ class _WorkflowPanelState extends State<WorkflowPanel>
       if (foreground &&
           TickerMode.of(context) &&
           !busy &&
-          pendingCase == null) {
+          pendingCase == null &&
+          !choosing) {
         unawaited(load());
       }
     });
@@ -154,6 +155,7 @@ class _WorkflowPanelState extends State<WorkflowPanel>
 
   void clear() {
     generation++;
+    busy = false;
     cases.clear();
     doctors.clear();
     cursor = null;
@@ -227,12 +229,13 @@ class _WorkflowPanelState extends State<WorkflowPanel>
         });
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && current == generation) setState(() => busy = false);
     }
   }
 
   Future<void> choose(CaseSummary item) async {
     final current = generation;
+    choosing = true;
     final doctor = await showDialog<DoctorSummary>(
       context: context,
       builder: (context) => SimpleDialog(
@@ -253,6 +256,7 @@ class _WorkflowPanelState extends State<WorkflowPanel>
         ],
       ),
     );
+    choosing = false;
     if (!mounted || current != generation || doctor == null) return;
     pendingCase = item;
     pendingDoctor = doctor.doctorId;
@@ -300,7 +304,7 @@ class _WorkflowPanelState extends State<WorkflowPanel>
         );
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && current == generation) setState(() => busy = false);
     }
   }
 

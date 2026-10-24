@@ -58,6 +58,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
 
   void clear() {
     generation++;
+    busy = false;
     retention?.cancel();
     report = null;
     candidate = null;
@@ -201,7 +202,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
         );
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && current == generation) setState(() => busy = false);
     }
   }
 
@@ -234,7 +235,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
         );
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && current == generation) setState(() => busy = false);
     }
   }
 
@@ -360,7 +361,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
     } on ApiFailure catch (error) {
       if (current == generation) failure(error);
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted && current == generation) setState(() => busy = false);
     }
   }
 
@@ -408,147 +409,153 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
         ],
       ),
       body: SafeArea(
-        child: ListView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          children: [
-            const Text(
-              'Synthetic document review only. Compare every printed field with the original PDF.',
-            ),
-            if (busy) const LinearProgressIndicator(),
-            if (message != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(message!),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Synthetic document review only. Compare every printed field with the original PDF.',
               ),
-            if (pending != null && !busy)
-              FilledButton(
-                onPressed: () => submit(pending!),
-                child: const Text('Retry same operation'),
-              ),
-            if (report != null) ...[
-              Text(
-                'Case version ${report!.caseVersion} · review version ${report!.reviewVersion} · ${report!.reviewStatus.value}',
-              ),
-              OutlinedButton(
-                onPressed: editable
-                    ? () => context.push('/results/${widget.reportId}')
-                    : null,
-                child: const Text('Open laboratory evidence'),
-              ),
-              if (draft != null) ...[
-                Text('Analysis ${draft.analysisId} · version ${draft.version}'),
-                if (report!.reviewStatus == ReviewStatus.pending)
-                  FilledButton(
-                    onPressed: editable ? begin : null,
-                    child: const Text('Begin review'),
+              if (busy) const LinearProgressIndicator(),
+              if (message != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(message!),
+                ),
+              if (pending != null && !busy)
+                FilledButton(
+                  onPressed: () => submit(pending!),
+                  child: const Text('Retry same operation'),
+                ),
+              if (report != null) ...[
+                Text(
+                  'Case version ${report!.caseVersion} · review version ${report!.reviewVersion} · ${report!.reviewStatus.value}',
+                ),
+                OutlinedButton(
+                  onPressed: editable
+                      ? () => context.push('/results/${widget.reportId}')
+                      : null,
+                  child: const Text('Open laboratory evidence'),
+                ),
+                if (draft != null) ...[
+                  Text(
+                    'Analysis ${draft.analysisId} · version ${draft.version}',
                   ),
-                if (canReview) ...[
-                  for (final editor in editors.values)
-                    editor.widget(editable, () => setState(() {})),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Unresolved qualifications',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    'Leave a reason only for issues you explicitly acknowledge as unresolved. Every blocking issue must be corrected or qualified.',
-                  ),
-                  for (final issue in [
-                    ...draft.issues,
-                    for (final row in draft.rows) ...row.issues,
-                  ]) ...[
-                    Text(
-                      '${issue.severity.value} · ${issue.field}: ${issue.message}',
+                  if (report!.reviewStatus == ReviewStatus.pending)
+                    FilledButton(
+                      onPressed: editable ? begin : null,
+                      child: const Text('Begin review'),
                     ),
-                    TextField(
-                      key: ValueKey('unresolved-${issue.issueId}'),
-                      controller: unresolved[issue.issueId],
-                      enabled: editable,
-                      maxLength: 2000,
-                      decoration: const InputDecoration(
-                        labelText: 'Unresolved reason (optional if corrected)',
+                  if (canReview) ...[
+                    for (final editor in editors.values)
+                      editor.widget(editable, () => setState(() {})),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Unresolved qualifications',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      'Leave a reason only for issues you explicitly acknowledge as unresolved. Every blocking issue must be corrected or qualified.',
+                    ),
+                    for (final issue in [
+                      ...draft.issues,
+                      for (final row in draft.rows) ...row.issues,
+                    ]) ...[
+                      Text(
+                        '${issue.severity.value} · ${issue.field}: ${issue.message}',
                       ),
-                      onChanged: (_) => setState(() {}),
-                    ),
+                      TextField(
+                        key: ValueKey('unresolved-${issue.issueId}'),
+                        controller: unresolved[issue.issueId],
+                        enabled: editable,
+                        maxLength: 2000,
+                        decoration: const InputDecoration(
+                          labelText:
+                              'Unresolved reason (optional if corrected)',
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ],
                   ],
                 ],
-              ],
-              TextField(
-                controller: comment,
-                enabled: editable,
-                maxLength: 2000,
-                decoration: const InputDecoration(
-                  labelText: 'Decision / reprocessing reason',
-                ),
-              ),
-              if (canReview) ...[
-                FilledButton(
-                  onPressed: editable
-                      ? () => decide(ReviewDecision.approved)
-                      : null,
-                  child: Text(
-                    qualified
-                        ? 'Approve with qualifications'
-                        : corrected
-                        ? 'Correct and approve'
-                        : 'Approve',
+                TextField(
+                  controller: comment,
+                  enabled: editable,
+                  maxLength: 2000,
+                  decoration: const InputDecoration(
+                    labelText: 'Decision / reprocessing reason',
                   ),
                 ),
-                OutlinedButton(
-                  onPressed: editable
-                      ? () => decide(ReviewDecision.rejected)
-                      : null,
-                  child: const Text('Reject analysis'),
-                ),
-              ],
-              if ({
-                ProcessingStatus.succeeded,
-                ProcessingStatus.failed,
-                ProcessingStatus.rejected,
-              }.contains(report!.processingStatus))
-                OutlinedButton(
-                  onPressed: editable ? reprocess : null,
-                  child: const Text('Request reprocessing'),
-                ),
-              const Divider(),
-              const Text(
-                'Immutable review history',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              for (final record in history)
-                ExpansionTile(
-                  title: Text(
-                    '${record.request.decision.value}${record.request.corrections.isNotEmpty ? ' · corrected' : ''}${record.request.unresolvedAcknowledgements.isNotEmpty ? ' · qualified' : ''} · review ${record.version}',
-                  ),
-                  subtitle: Text(
-                    '${record.reviewerId} · ${record.reviewedAt.toLocal()}',
-                  ),
-                  children: [
-                    Text(
-                      'Analysis ${record.request.analysisId} · version ${record.request.expectedAnalysisVersion}',
+                if (canReview) ...[
+                  FilledButton(
+                    onPressed: editable
+                        ? () => decide(ReviewDecision.approved)
+                        : null,
+                    child: Text(
+                      qualified
+                          ? 'Approve with qualifications'
+                          : corrected
+                          ? 'Correct and approve'
+                          : 'Approve',
                     ),
-                    if (record.request.comment != null)
-                      Text(record.request.comment!),
-                    for (final original in record.originalRows)
-                      SelectableText(
-                        'Original AI row ${original.rowId}: ${original.analyte} · ${original.result} · ${original.unit ?? 'No unit'} · ${original.referenceRange ?? 'No range'}\n${original.evidence.map((item) => 'Page ${item.page}: ${item.quotation}').join('\n')}',
-                      ),
-                    for (final change in record.request.corrections)
+                  ),
+                  OutlinedButton(
+                    onPressed: editable
+                        ? () => decide(ReviewDecision.rejected)
+                        : null,
+                    child: const Text('Reject analysis'),
+                  ),
+                ],
+                if ({
+                  ProcessingStatus.succeeded,
+                  ProcessingStatus.failed,
+                  ProcessingStatus.rejected,
+                }.contains(report!.processingStatus))
+                  OutlinedButton(
+                    onPressed: editable ? reprocess : null,
+                    child: const Text('Request reprocessing'),
+                  ),
+                const Divider(),
+                const Text(
+                  'Immutable review history',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                for (final record in history)
+                  ExpansionTile(
+                    title: Text(
+                      '${record.request.decision.value}${record.request.corrections.isNotEmpty ? ' · corrected' : ''}${record.request.unresolvedAcknowledgements.isNotEmpty ? ' · qualified' : ''} · review ${record.version}',
+                    ),
+                    subtitle: Text(
+                      '${record.reviewerId} · ${record.reviewedAt.toLocal()}',
+                    ),
+                    children: [
                       Text(
-                        '${change.rowId}: ${change.reason}\nCorrected: ${change.correctedRow.analyte} · ${change.correctedRow.result} · ${change.correctedRow.unit ?? 'No unit'} · ${change.correctedRow.referenceRange ?? 'No range'}\n${change.correctedRow.evidence.map((item) => 'Page ${item.page}: ${item.quotation}').join('\n')}',
+                        'Analysis ${record.request.analysisId} · version ${record.request.expectedAnalysisVersion}',
                       ),
-                    for (final item
-                        in record.request.unresolvedAcknowledgements)
-                      Text('Unresolved · ${item.issueId}: ${item.reason}'),
-                  ],
-                ),
-              if (cursor != null)
-                TextButton(
-                  onPressed: editable ? moreHistory : null,
-                  child: const Text('Load more reviews'),
-                ),
+                      if (record.request.comment != null)
+                        Text(record.request.comment!),
+                      for (final original in record.originalRows)
+                        SelectableText(
+                          'Original AI row ${original.rowId}: ${original.analyte} · ${original.result} · ${original.unit ?? 'No unit'} · ${original.referenceRange ?? 'No range'}\n${original.evidence.map((item) => 'Page ${item.page}: ${item.quotation}').join('\n')}',
+                        ),
+                      for (final change in record.request.corrections)
+                        Text(
+                          '${change.rowId}: ${change.reason}\nCorrected: ${change.correctedRow.analyte} · ${change.correctedRow.result} · ${change.correctedRow.unit ?? 'No unit'} · ${change.correctedRow.referenceRange ?? 'No range'}\n${change.correctedRow.evidence.map((item) => 'Page ${item.page}: ${item.quotation}').join('\n')}',
+                        ),
+                      for (final item
+                          in record.request.unresolvedAcknowledgements)
+                        Text('Unresolved · ${item.issueId}: ${item.reason}'),
+                    ],
+                  ),
+                if (cursor != null)
+                  TextButton(
+                    onPressed: editable ? moreHistory : null,
+                    child: const Text('Load more reviews'),
+                  ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -561,13 +568,11 @@ class _RowEditor {
     for (final field in fields) {
       values[field] = TextEditingController(text: json[field] as String? ?? '');
     }
-    final evidence = original.evidence.firstOrNull;
-    values['page'] = TextEditingController(text: '${evidence?.page ?? 1}');
-    values['quotation'] = TextEditingController(
-      text: evidence?.quotation ?? '',
-    );
     values['reason'] = TextEditingController();
-    origin = evidence?.extractionMethod ?? ExtractionMethod.native;
+    for (final item in original.evidence) {
+      evidence.add(_EvidenceEditor(item));
+    }
+    if (evidence.isEmpty) evidence.add(_EvidenceEditor(null));
   }
   final LaboratoryRow original;
   static const fields = [
@@ -579,21 +584,16 @@ class _RowEditor {
     'collectionDate',
   ];
   final values = <String, TextEditingController>{};
-  late ExtractionMethod origin;
+  final evidence = <_EvidenceEditor>[];
   bool enabled = false;
   bool get changed => enabled;
   RowCorrection correction() {
     if (values['reason']!.text.trim().isEmpty ||
         values['analyte']!.text.trim().isEmpty ||
-        values['result']!.text.trim().isEmpty ||
-        values['quotation']!.text.trim().isEmpty) {
+        values['result']!.text.trim().isEmpty) {
       throw const FormatException(
         'Each correction needs analyte, result, source quotation and a reason.',
       );
-    }
-    final page = int.tryParse(values['page']!.text);
-    if (page == null || page < 1 || page > 10) {
-      throw const FormatException('Source pages must be between 1 and 10.');
     }
     return RowCorrection(
       rowId: original.rowId,
@@ -604,18 +604,13 @@ class _RowEditor {
           field: values[field]!.text.trim().isEmpty
               ? null
               : values[field]!.text.trim(),
-        'evidence': [
-          EvidenceReference(
-            page: page,
-            quotation: values['quotation']!.text.trim(),
-            extractionMethod: origin,
-          ).toJson(),
-        ],
+        'evidence': [for (final item in evidence) item.reference().toJson()],
       }),
     );
   }
 
   Widget widget(bool editable, VoidCallback changed) => ExpansionTile(
+    maintainState: true,
     title: Text(original.analyte),
     subtitle: Text('Original AI result: ${original.result}'),
     children: [
@@ -638,31 +633,18 @@ class _RowEditor {
             maxLength: 5000,
             decoration: InputDecoration(labelText: field),
           ),
-        TextField(
-          controller: values['page'],
-          enabled: editable,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Source page'),
-        ),
-        TextField(
-          controller: values['quotation'],
-          enabled: editable,
-          maxLength: 5000,
-          decoration: const InputDecoration(labelText: 'Source quotation'),
-        ),
-        DropdownButton<ExtractionMethod>(
-          value: origin,
-          items: [
-            for (final item in ExtractionMethod.values)
-              DropdownMenuItem(value: item, child: Text(item.value)),
-          ],
-          onChanged: editable
-              ? (value) {
-                  if (value != null) origin = value;
-                  changed();
-                }
-              : null,
-        ),
+        for (var index = 0; index < evidence.length; index++)
+          evidence[index].widget(editable, changed, index),
+        if (evidence.length < 10)
+          TextButton(
+            onPressed: editable
+                ? () {
+                    evidence.add(_EvidenceEditor(null));
+                    changed();
+                  }
+                : null,
+            child: const Text('Add source reference'),
+          ),
         TextField(
           controller: values['reason'],
           enabled: editable,
@@ -676,5 +658,73 @@ class _RowEditor {
     for (final item in values.values) {
       item.dispose();
     }
+    for (final item in evidence) {
+      item.dispose();
+    }
+  }
+}
+
+class _EvidenceEditor {
+  _EvidenceEditor(EvidenceReference? original)
+    : page = TextEditingController(text: '${original?.page ?? 1}'),
+      quotation = TextEditingController(text: original?.quotation ?? ''),
+      origin = original?.extractionMethod ?? ExtractionMethod.native;
+  final TextEditingController page, quotation;
+  ExtractionMethod origin;
+  EvidenceReference reference() {
+    final number = int.tryParse(page.text);
+    if (number == null ||
+        number < 1 ||
+        number > 10 ||
+        quotation.text.trim().isEmpty) {
+      throw const FormatException(
+        'Each source reference needs a page between 1 and 10 and a quotation.',
+      );
+    }
+    return EvidenceReference(
+      page: number,
+      quotation: quotation.text.trim(),
+      extractionMethod: origin,
+    );
+  }
+
+  Widget widget(bool editable, VoidCallback changed, int index) => Column(
+    children: [
+      TextField(
+        controller: page,
+        enabled: editable,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: index == 0 ? 'Source page' : 'Source page ${index + 1}',
+        ),
+      ),
+      TextField(
+        controller: quotation,
+        enabled: editable,
+        maxLength: 5000,
+        decoration: InputDecoration(
+          labelText: index == 0
+              ? 'Source quotation'
+              : 'Source quotation ${index + 1}',
+        ),
+      ),
+      DropdownButton<ExtractionMethod>(
+        value: origin,
+        items: [
+          for (final item in ExtractionMethod.values)
+            DropdownMenuItem(value: item, child: Text(item.value)),
+        ],
+        onChanged: editable
+            ? (value) {
+                if (value != null) origin = value;
+                changed();
+              }
+            : null,
+      ),
+    ],
+  );
+  void dispose() {
+    page.dispose();
+    quotation.dispose();
   }
 }

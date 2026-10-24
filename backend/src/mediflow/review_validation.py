@@ -1,5 +1,7 @@
 """Validate review corrections against preserved source text and original blockers."""
 
+from pydantic import ValidationError
+
 from mediflow.contracts import (
     AnalysisCandidate,
     ErrorCode,
@@ -71,26 +73,41 @@ def approved_rows(candidate: AnalysisCandidate, body: ReviewRequest) -> tuple[La
             if (
                 reference.page not in pages
                 or pages[reference.page].origin != reference.extraction_method.value
+                or not pages[reference.page].supports_quote(reference.quotation)
             ):
                 raise invalid()
-        validated = validate_row(
-            PrintedRow.model_validate(
-                {
-                    **row.model_dump(
-                        mode="json", by_alias=True, exclude={"row_id", "issues", "evidence"}
-                    ),
-                    "resultKind": "qualitative",
-                    "evidence": [
-                        Citation(page=item.page, quotation=item.quotation).model_dump(by_alias=True)
-                        for item in row.evidence
-                    ],
-                }
-            ),
-            0,
-            pages,
-        )
-        if any(issue.severity == IssueSeverity.BLOCKING for issue in validated.issues):
-            raise invalid()
+        try:
+            validated = validate_row(
+                PrintedRow.model_validate(
+                    {
+                        **row.model_dump(
+                            mode="json", by_alias=True, exclude={"row_id", "issues", "evidence"}
+                        ),
+                        "resultKind": "qualitative",
+                        "evidence": [
+                            Citation(page=item.page, quotation=item.quotation).model_dump(
+                                by_alias=True
+                            )
+                            for item in row.evidence
+                        ],
+                    }
+                ),
+                0,
+                pages,
+            )
+        except ValidationError:
+            raise invalid() from None
+        for issue in validated.issues:
+            if issue.severity != IssueSeverity.BLOCKING:
+                continue
+            explicitly_unresolved = any(
+                prior.field == issue.field
+                and prior.issue_id in acknowledgements
+                and prior.severity == IssueSeverity.BLOCKING
+                for prior in original.issues
+            )
+            if issue.field in changed or not explicitly_unresolved:
+                raise invalid()
         corrections[row.row_id] = row
         changed_fields[row.row_id] = changed
     proposed = tuple(corrections.get(row.row_id, row) for row in candidate.rows)
@@ -112,7 +129,9 @@ def approved_rows(candidate: AnalysisCandidate, body: ReviewRequest) -> tuple[La
                 "collectionDate": "collection_date",
             }.get(issue.field, issue.field)
             changed = changed_fields.get(row.row_id, set())
-            resolved = field in changed or (field == "row" and bool(changed))
+            resolved = field in changed or (
+                field == "row" and issue.code == "conflicting_values" and bool(changed)
+            )
             if issue.code == "conflicting_values" and row.row_id in conflicting_ids:
                 resolved = False
             if issue.issue_id in acknowledgements or not resolved:

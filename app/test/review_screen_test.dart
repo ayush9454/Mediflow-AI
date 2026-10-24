@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,7 @@ import 'result_api_test.dart' show fixture, resultReport;
 PatientReportApi reviewApi(
   Future<http.Response> Function(http.Request) write, {
   bool Function()? revoked,
+  Map<String, dynamic>? draft,
 }) => PatientReportApi(
   Uri.parse('https://example.invalid'),
   MockClient((request) async {
@@ -24,7 +26,7 @@ PatientReportApi reviewApi(
         ? {
             'schemaVersion': '1.0',
             'kind': 'draft',
-            'draft': fixture('analysis'),
+            'draft': draft ?? fixture('analysis'),
             'approved': null,
           }
         : {
@@ -216,12 +218,18 @@ void main() {
     'correction preserves the original row reference and requires evidence and a reason',
     (tester) async {
       Map<String, dynamic>? submitted;
+      final draft = fixture('analysis');
+      draft['rows'][0]['evidence'].add({
+        'page': 2,
+        'quotation': 'Collection date 2026-10-23',
+        'extractionMethod': 'native',
+      });
       await showReview(
         tester,
         reviewApi((request) async {
           submitted = jsonDecode(request.body);
           return recorded(request);
-        }),
+        }, draft: draft),
       );
       await tester.tap(find.text('Synthetic Marker'));
       await tester.pumpAndSettle();
@@ -262,6 +270,8 @@ void main() {
       expect(correction['rowId'], 'row_1');
       expect(correction['correctedRow']['result'], '<0.60');
       expect(correction['correctedRow']['evidence'][0]['page'], 1);
+      expect(correction['correctedRow']['evidence'].length, 2);
+      expect(correction['correctedRow']['evidence'][1]['page'], 2);
       expect(correction['reason'], 'Compared with the source');
       await tester.pumpWidget(const SizedBox());
     },
@@ -321,4 +331,62 @@ void main() {
     expect(find.textContaining('cannot access'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
+  testWidgets(
+    'resume reloads authoritative state while an earlier request is still pending',
+    (tester) async {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      final old = Completer<http.Response>();
+      var reads = 0;
+      final metadata = {
+        ...resultReport().toJson(),
+        'assignedDoctorId': 'doctor_a',
+        'caseVersion': 2,
+        'reviewVersion': 0,
+        'processingStatus': 'succeeded',
+        'reviewStatus': 'under_review',
+      };
+      final api = PatientReportApi(
+        Uri.parse('https://example.invalid'),
+        MockClient((request) async {
+          Object payload;
+          if (request.url.path.endsWith('/reviews')) {
+            payload = {'schemaVersion': '1.0', 'items': [], 'nextCursor': null};
+          } else if (request.url.path.endsWith('/result')) {
+            payload = {
+              'schemaVersion': '1.0',
+              'kind': 'draft',
+              'draft': fixture('analysis'),
+              'approved': null,
+            };
+          } else {
+            if (++reads == 1) return old.future;
+            payload = metadata;
+          }
+          return http.Response.bytes(utf8.encode(jsonEncode(payload)), 200);
+        }),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DoctorReviewScreen(
+            account: doctor,
+            reportId: 'report_1',
+            api: api,
+            token: () => 'token',
+          ),
+        ),
+      );
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(reads, 2);
+      expect(find.text('Synthetic Marker'), findsOneWidget);
+      old.complete(http.Response.bytes(utf8.encode(jsonEncode(metadata)), 200));
+      await tester.pumpAndSettle();
+      expect(find.text('Synthetic Marker'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 }
