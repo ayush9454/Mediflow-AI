@@ -1,0 +1,63 @@
+{
+  "ticket": 11,
+  "verified_on": "2026-10-25",
+  "synthetic_data_only": true,
+  "apk": "final debug APK built from 49baa1f",
+  "device": "Android 15 / API 35 emulator",
+  "authentication": "real Firebase synthetic accounts and token verification",
+  "api": "localhost test API with invented in-memory cases, sources, candidates and reviews",
+  "cloud_clinical_payload_writes": false,
+  "new_cloud_resources": false,
+  "model_calls": false,
+  "installed_android_checks": {
+    "administrator_assignment_and_reassignment": true,
+    "active_eligible_doctor_picker": true,
+    "doctor_assigned_case_discovery": true,
+    "begin_review_advances_case_version": true,
+    "explicit_qualified_approval": true,
+    "attributed_immutable_history": true,
+    "rejection_with_reason": true,
+    "private_temporary_pdf_files_after_flow": 0,
+    "filtered_flutter_error_diagnostics": "empty"
+  },
+  "automated_checks": {
+    "linux_backend": {
+      "passed": 190,
+      "skipped": 1,
+      "skip": "optional Firebase token/rules test; Firestore review transactions run separately"
+    },
+    "real_firestore_emulator": {
+      "passed": 28
+    },
+    "flutter": {
+      "passed": 52
+    },
+    "focused_assignment_review_flutter": {
+      "passed": 7
+    },
+    "python_format_lint_and_mypy": "passed; 42 source files",
+    "generated_contracts": "8 artifacts checked",
+    "flutter_analysis_and_dart_smoke": "passed",
+    "hosting_probe_tests": 9,
+    "deployment_guard_tests": 2,
+    "apk_build_install": "passed"
+  },
+  "review": {
+    "baseline": "8e7ebd3",
+    "final_code": "49baa1f",
+    "standards_unresolved": 0,
+    "spec_unresolved": 0
+  },
+  "limits": [
+    "Installed-app acceptance uses invented local fixtures, not hosted full-journey acceptance.",
+    "Correction submission, exact retries, multiple citations, in-flight resume and access loss also verified through public Flutter/API tests.",
+    "The hosted full journey and extraction-accuracy release gates remain in tickets 12 and 14."
+  ],
+  "teardown": {
+    "test_api": "stopped",
+    "android_app": "stopped",
+    "android_emulator": "stopped; adb lists no devices",
+    "firebase_emulators": "stopped after successful exec",
+    "linux_vm": "stopped; colima status confirms not running"
+  }
+}

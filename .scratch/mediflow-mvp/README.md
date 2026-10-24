@@ -24,14 +24,14 @@ This directory records the shared understanding confirmed by the user. The origi
 | [07](issues/07-pdf-ocr-evidence.md) | Native PDF extraction, OCR, and page evidence | completed | 03 |
 | [08](issues/08-laboratory-ai-validation.md) | Laboratory extraction, validation, and summaries | completed | 03, 06, 07 |
 | [09](issues/09-android-upload-status.md) | Android upload and processing-status workflow | completed | 05, 06 |
-| [10](issues/10-evidence-result-viewer.md) | Extracted results and PDF evidence viewer | ready-for-agent | 08, 09 |
-| [11](issues/11-assignment-doctor-review.md) | Administrator assignment and versioned doctor review | ready-for-agent | 04, 10 |
+| [10](issues/10-evidence-result-viewer.md) | Extracted results and PDF evidence viewer | completed | 08, 09 |
+| [11](issues/11-assignment-doctor-review.md) | Administrator assignment and versioned doctor review | completed | 04, 10 |
 | [12](issues/12-role-workflows-patient-results.md) | Complete role workflows and approved patient results | ready-for-agent | 09, 11 |
 | [13](issues/13-retention-operations.md) | Retention, expiry, operational limits, and diagnostics | ready-for-agent | 05, 06, 08, 11 |
 | [14](issues/14-release-evaluation-hardening.md) | Held-out evaluation and release verification | ready-for-agent | 03, 07, 08, 10, 11, 12, 13 |
 | [15](issues/15-android-release-handoff.md) | Signed APK, documentation, and recorded demonstration | ready-for-agent | 01, 14 |
 
-A readiness label describes whether the ticket is specified for its intended implementer. It does not override dependencies: start a ticket only when every listed blocker is completed. Review the acceptance criteria before marking work complete. Tickets 01–09 are complete, including actual Azure OCR/Android acceptance and confirmed temporary-resource deletion. Ticket 08 records live development measurements and the remaining scanned-quality limitation for ticket 14; no held-out release gate is claimed passed. Ticket 09 records real hosted upload/recovery, protected originals, account separation and cold-start retry. Tickets 10–15 remain unimplemented, and their listed dependencies still apply.
+A readiness label describes whether the ticket is specified for its intended implementer. It does not override dependencies: start a ticket only when every listed blocker is completed. Review the acceptance criteria before marking work complete. Tickets 01–11 are complete, including actual Azure OCR/Android acceptance and confirmed temporary-resource deletion. Ticket 08 records live development measurements and the remaining scanned-quality limitation for ticket 14; no held-out release gate is claimed passed. Ticket 09 records real hosted upload/recovery, protected originals, account separation and cold-start retry. Ticket 11 adds assignment and immutable version-specific review; ticket 10 records the read-only evidence viewer. Tickets 12–15 remain unimplemented, and their listed dependencies still apply.
 
 ## Design tree
 

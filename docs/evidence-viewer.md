@@ -1,8 +1,8 @@
 # Laboratory results and PDF evidence
 
-Ticket 10 implements a read-only result/evidence viewer. Assignment and review
-writes belong to ticket 11; the viewer must consume their persisted versions
-without constructing an approval from an AI candidate on the device.
+Ticket 10 implements the result/evidence viewer. The [ticket 11 assignment and
+review workflow](assignment-review.md) writes persisted versions; the viewer never
+constructs an approval from an AI candidate on the device.
 
 ## Renderer decision
 
@@ -61,10 +61,10 @@ never supplies patient-visible rows or removes the saved approval.
 
 The authenticated `/results/:reportId` route owns the viewer. Its complete widget
 and HTTP client are keyed to hospital, user, role and report. The patient report
-detail links to an existing approved snapshot. Until ticket 11 supplies assigned
-case discovery, doctors can open an assigned report by its server-created reference
-from their workspace. Administrators and anonymous/preview sessions cannot open
-this route. No assignment, approval, correction or rejection writes are added here.
+detail links to an existing approved snapshot. Doctors open evidence from their
+assigned-case list and can navigate from the viewer to the version-specific review
+editor. Administrators and anonymous/preview sessions cannot open this route.
+The viewer reads persisted results; review writes belong to the separate editor.
 
 The viewer preserves printed strings and shows absent fields, validation issues,
 field-level unresolved qualifications, source methods, summary and provenance.
