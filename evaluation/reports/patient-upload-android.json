@@ -63,20 +63,24 @@
     "azure": {
       "temporary_resource_group_exists": true,
       "all_temporary_resources_deleted": false,
-      "checked_at": "2026-10-24T18:08:47.455577+00:00"
+      "checked_at": "2026-10-24T18:26:13.566536+00:00",
+      "remaining_resource_types": [
+        "Microsoft.App/managedEnvironments"
+      ],
+      "environment_state": "ScheduledForDelete"
     },
     "firestore": {
       "payloads_deleted": true,
       "remaining_documents": 0,
       "remaining_reservations": 0,
-      "checked_at": "2026-10-24T18:08:49.992308+00:00"
+      "checked_at": "2026-10-24T18:26:19.025635+00:00"
     },
     "local_android_emulator_stopped": true,
     "local_container_vm_stopped": true
   },
   "limitations": [
     "Development APK uses debug signing.",
-    "Temporary acceptance endpoint will be removed; configure a new live API for further use.",
+    "Temporary acceptance API has been removed; configure a new live API for further use.",
     "Cold-start first health check showed unavailable/starting; manual retry succeeded. The UI does not expose the underlying HTTP cause.",
     "This verifies patient upload/status only; approved results and doctor/admin actions are later tickets."
   ],

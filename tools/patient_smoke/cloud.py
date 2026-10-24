@@ -542,6 +542,23 @@ class Probe(JobProbe):
         if not evidence["payloads_deleted"]:
             raise RuntimeError("Run-owned payloads remain")
 
+    def cleanup_environment(self):
+        # Retry only the exact empty, tagged run environment after group cleanup.
+        state = self.state()
+        self.guard(state)
+        resources = self.az(
+            "cleanup-retry-resources", "resource", "list", "--resource-group", state["group"]
+        )
+        expected = (
+            self.group(state)
+            + "/providers/Microsoft.App/managedEnvironments/"
+            + state["environment"]
+        )
+        if any(item["id"].lower() != expected.lower() for item in resources):
+            raise RuntimeError("Other run resources remain; use normal cleanup first")
+        self.rest("environment-cleanup-retry", expected, "DELETE")
+        print("Deletion retried for the exact empty temporary environment", flush=True)
+
     def cleanup_status(self):
         from container_job_probe import ContainerJobProbe
 
@@ -562,6 +579,14 @@ class Probe(JobProbe):
                 sorted({item["type"] for item in resources}),
                 flush=True,
             )
+            for item in resources:
+                if item["type"].lower() == "microsoft.app/managedenvironments":
+                    environment = self.rest("cleanup-environment-status", item["id"])
+                    print(
+                        "Environment state:",
+                        environment.get("properties", {}).get("provisioningState"),
+                        flush=True,
+                    )
         self.verify_payload_cleanup(self.database())
         print("Run-owned Firestore payloads and reservations deleted: True", flush=True)
 
@@ -580,6 +605,7 @@ def main():
             "collect",
             "cleanup",
             "cleanup-status",
+            "cleanup-environment",
         ),
     )
     parser.add_argument("--docker-binary", default="/Volumes/Ayush_External/homebrew/bin/docker")
