@@ -94,6 +94,22 @@ class FirestoreDatabase:
         except GoogleAPICallError:
             raise unavailable() from None
 
+    def scoped_page(
+        self, collection: str, filters: dict[str, str], after: str | None, limit: int
+    ) -> list[tuple[str, Record]]:
+        try:
+            query = self.db.collection(collection)
+            for field, value in filters.items():
+                query = query.where(filter=FieldFilter(field, "==", value))
+            query = query.order_by("__name__").limit(limit)
+            if after is not None:
+                query = query.start_after(
+                    {"__name__": self.db.collection(collection).document(after)}
+                )
+            return [(snapshot.id, snapshot.to_dict()) for snapshot in query.stream(timeout=10)]
+        except GoogleAPICallError:
+            raise unavailable() from None
+
 
 class BlobDocuments:
     def __init__(self, account_url: str, container: str, credential: Any) -> None:

@@ -1,7 +1,7 @@
 # 09: Build Android upload and persistent processing-status experience
 
 Status: in-progress
-Progress: repository/API investigation complete; test-interface confirmation pending
+Progress: all three test interfaces confirmed; implementation active
 Type: task
 Blocked by: 05, 06
 Estimate: 10 hours
@@ -58,8 +58,8 @@ Proposed testing interfaces: (1) Android upload/API/recovery workflow for retrie
 restart and account changes; (2) patient screens/lifecycle for status messages and
 polling; (3) backend case-list/document HTTP APIs for pagination and permissions.
 The TDD skill requires explicit confirmation before tests at new interfaces.
-Confirmation was requested; no new tests or application implementation yet.
-Real Android and hosted API acceptance remain outstanding.
+The user confirmed all three areas on 2026-10-24. Implementation and real Android/
+hosted API acceptance are now in progress.
 
 ## Comments
 

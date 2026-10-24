@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mediflow_ai/app.dart';
 import 'package:mediflow_ai/core/config/app_config.dart';
 import 'package:mediflow_ai/core/contracts/contracts.g.dart';
 import 'package:mediflow_ai/core/routing/app_router.dart';
 import 'package:mediflow_ai/features/auth/preview_controller.dart';
 import 'package:mediflow_ai/features/auth/session.dart';
+import 'package:mediflow_ai/features/reports/report_screen.dart';
+import 'report_workflow_test.dart' show DeviceFiles;
 
 class SeededGateway implements SessionGateway {
   SeededGateway(this.role);
@@ -44,6 +48,9 @@ void main() {
             const AppConfig(apiBaseUrl: null, enableRolePreview: false),
           ),
           sessionGatewayProvider.overrideWithValue(SeededGateway(role)),
+          reportHttpClientFactoryProvider.overrideWithValue(()=>MockClient((request) async =>
+            http.Response('{"schemaVersion":"1.0","items":[],"nextCursor":null}',200))),
+          reportPlatformProvider.overrideWithValue(DeviceFiles()),
         ],
       );
       addTearDown(scope.dispose);
@@ -61,7 +68,7 @@ void main() {
       );
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
-      expect(find.text('${role.label} workspace'), findsOneWidget);
+      expect(find.text(role==Role.patient?'Your laboratory reports':'${role.label} workspace'), findsOneWidget);
       scope
           .read(appRouterProvider)
           .go('/${role == Role.patient ? 'administrator' : 'patient'}');

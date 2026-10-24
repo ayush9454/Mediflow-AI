@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mediflow_ai/core/contracts/contracts.g.dart';
 import 'package:mediflow_ai/features/auth/session.dart';
+import 'package:mediflow_ai/core/api/api_client.dart';
 
 class Accounts implements SessionGateway {
   Role role = Role.patient;
@@ -35,7 +36,34 @@ class ExpiringAccount extends Accounts {
       );
 }
 
+class OfflineAccount extends Accounts {
+  bool offline = false;
+  @override
+  Future<Account> account(String token) async {
+    if (offline) {
+      throw const ApiFailure('Cannot reach the service.', retryable: true);
+    }
+    return super.account(token);
+  }
+}
+
 void main() {
+  test(
+    'temporary offline resume preserves the verified session until actual expiry',
+    () async {
+      final gateway = OfflineAccount();
+      final controller = SessionController(gateway, SensitiveCache());
+      addTearDown(controller.dispose);
+      await controller.signIn('synthetic@example.test', 'password');
+      gateway.offline = true;
+      await controller.revalidate();
+      expect(controller.state.account?.role, Role.patient);
+      expect(controller.state.token, isNotNull);
+      gateway.offline = false;
+      await controller.revalidate();
+      expect(controller.state.account?.role, Role.patient);
+    },
+  );
   test(
     'trusted role controls session and logout wipes temporary bytes',
     () async {

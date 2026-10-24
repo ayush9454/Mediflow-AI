@@ -216,6 +216,7 @@ class CaseSummary(VersionedModel):
     version: Annotated[int, Field(ge=1)]
     review_version: Annotated[int, Field(ge=0)]
     created_at: AwareDatetime
+    expires_at: AwareDatetime | None = None
 
 
 class CasePage(VersionedModel):

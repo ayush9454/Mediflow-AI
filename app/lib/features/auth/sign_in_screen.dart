@@ -229,7 +229,7 @@ class _ServiceStatus extends ConsumerWidget {
         .when(
           data: (health) => health == null
               ? 'Backend connection not configured'
-              : 'API reachable · clinical services not connected yet',
+              : 'Service reachable · sign in to continue',
           loading: () => 'Checking service connection…',
           error: (_, __) => 'Service unavailable · it may be starting',
         );

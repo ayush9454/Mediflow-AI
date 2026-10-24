@@ -93,7 +93,7 @@ independent scheduled Job for missed dispatches and expired leases. The normal
 provider runs the configured [laboratory extraction pipeline](laboratory-extraction.md)
 and never substitutes test rows. See [job deployment, recovery and retry bounds](jobs.md).
 
-Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Real sign-in requires the public `FIREBASE_API_KEY` and an API configured with Firebase/Firestore credentials. Workflow panels remain placeholders for their later tickets. Tokens and temporary clinical bytes stay in memory and are cleared on logout/account change/expiry.
+Debug builds provide clearly labeled patient, doctor and administrator previews, independent of authentication. `ENABLE_ROLE_PREVIEW=false` disables them; release/profile cannot enable them. Real sign-in requires the public `FIREBASE_API_KEY` and an API configured with Firebase/Firestore credentials. The patient Reports/History tabs implement [PDF upload and status recovery](patient-upload.md); doctor/admin panels remain placeholders for later tickets. Tokens and temporary clinical bytes stay in memory and are cleared on logout/account change/expiry.
 
 ## PDF/OCR worker and verification
 
@@ -109,7 +109,7 @@ Node 24, Java 25 and the pinned Firebase CLI to exercise actual emulator token a
 Firestore-rule behavior. These tests need no production credentials. Local Android
 builds continue to use JDK 17.
 
-`API_BASE_URL` must be an origin URL without credentials, query or fragment. Local HTTP is debug-only; profile/release requires HTTPS. Android backup is disabled. Release signing remains unconfigured until ticket 15; debug signing is never used for a release. The debug APK is a foundation interface build.
+`API_BASE_URL` must be an origin URL without credentials, query or fragment. Local HTTP is debug-only; profile/release requires HTTPS. Android backup is disabled. Release signing remains unconfigured until ticket 15; debug signing is never used for a release. The debug APK includes patient upload/status screens when configured with a live API.
 
 ## Verification record
 
@@ -127,4 +127,4 @@ See [sanitized evidence](../.scratch/mediflow-mvp/hosting-evidence.json), [costs
 
 ## Private uploads (ticket 05)
 
-See [private upload setup and verification](private-uploads.md) for Azure managed identity, private container provisioning, bounded admission, transaction records for ticket 06, and trusted orphan cleanup. The API image now includes English Tesseract for stored-byte PDF verification. The app upload screen and actual queue/worker dispatch remain tickets 09 and 06. No hosted production API was deployed by ticket 05.
+See [private upload setup and verification](private-uploads.md) for Azure managed identity, private container provisioning, bounded admission, transaction records for ticket 06, and trusted orphan cleanup. The API image now includes English Tesseract for stored-byte PDF verification. The app upload screen is documented in [patient uploads](patient-upload.md), and actual queue/worker dispatch in [jobs](jobs.md). No hosted production API was deployed by ticket 05.

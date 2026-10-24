@@ -6,6 +6,8 @@ import '../../core/contracts/contracts.g.dart';
 import '../../core/theme/app_theme.dart';
 import '../auth/preview_controller.dart';
 import '../auth/session.dart';
+import '../reports/report_screen.dart';
+import '../reports/report_platform.dart';
 
 class WorkspaceScreen extends ConsumerStatefulWidget {
   const WorkspaceScreen({required this.role, this.preview = true, super.key});
@@ -57,7 +59,15 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
           TextButton(
             onPressed: () {
               ref.read(previewRoleProvider.notifier).close();
-              if (!widget.preview) ref.read(sessionProvider.notifier).signOut();
+              if (!widget.preview) {
+                final account = ref.read(sessionProvider).account;
+                if (account != null) {
+                  AndroidReportPlatform()
+                      .clear('${account.hospitalId}/${account.uid}')
+                      .catchError((_) {});
+                }
+                ref.read(sessionProvider.notifier).signOut();
+              }
               context.go('/sign-in');
             },
             child: Text(widget.preview ? 'Leave preview' : 'Sign out'),
@@ -65,124 +75,141 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
           const SizedBox(width: 8),
         ],
       ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: ListView(
-              padding: const EdgeInsets.all(24),
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: paleTeal,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Text(
-                    widget.preview
-                        ? 'Interface preview · no sign-in or patient data'
-                        : 'Synthetic demonstration · ${ref.watch(sessionProvider).account?.displayName ?? ''}',
-                    style: TextStyle(
-                      color: brandTeal,
-                      fontWeight: FontWeight.w600,
-                    ),
+      body:
+          !widget.preview &&
+              role == Role.patient &&
+              selectedTab < 2 &&
+              ref.watch(sessionProvider).account != null
+          ? SafeArea(
+              child: PatientReportsHost(
+                key: ValueKey(
+                  '${ref.watch(sessionProvider).account!.uid}-$selectedTab',
+                ),
+                account: ref.watch(sessionProvider).account!,
+                history: selectedTab == 1,
+              ),
+            )
+          : SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: ListView(
+                    padding: const EdgeInsets.all(24),
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: paleTeal,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          widget.preview
+                              ? 'Interface preview · no sign-in or patient data'
+                              : 'Synthetic demonstration · ${ref.watch(sessionProvider).account?.displayName ?? ''}',
+                          style: TextStyle(
+                            color: brandTeal,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      Text(
+                        '${role.label} workspace',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(switch (role) {
+                        Role.patient =>
+                          'Your reports, with every review in view.',
+                        Role.doctor => 'Source evidence beside every review.',
+                        Role.administrator =>
+                          'Clear assignments. Visible progress.',
+                      }),
+                      const SizedBox(height: 26),
+                      if (selectedTab == 2)
+                        _Panel(
+                          icon: Icons.person_outline,
+                          title: widget.preview
+                              ? 'No signed-in account'
+                              : '${ref.watch(sessionProvider).account?.displayName}',
+                          body: widget.preview
+                              ? 'This is an interface preview. Account details will appear after secure sign-in is connected.'
+                              : 'Signed in as ${role.label}. Your hospital controls account access.',
+                        )
+                      else if (selectedTab == 1)
+                        _Panel(
+                          icon: role == Role.administrator
+                              ? Icons.badge_outlined
+                              : Icons.history,
+                          title: role == Role.administrator
+                              ? 'Doctor directory'
+                              : tabs[1],
+                          body: role == Role.administrator
+                              ? 'Active doctor profiles and assignment options will appear here. No directory data is loaded.'
+                              : 'Completed activity will appear here when the workflow is connected. No records are loaded.',
+                        )
+                      else ...[
+                        _Panel(
+                          icon: switch (role) {
+                            Role.patient => Icons.upload_file_outlined,
+                            Role.doctor => Icons.fact_check_outlined,
+                            Role.administrator => Icons.assignment_ind_outlined,
+                          },
+                          title: switch (role) {
+                            Role.patient => 'Your report workspace',
+                            Role.doctor => 'Your assigned cases',
+                            Role.administrator => 'Case assignment workspace',
+                          },
+                          body: switch (role) {
+                            Role.patient =>
+                              'Upload a synthetic laboratory PDF, follow its progress, and view results after doctor approval.',
+                            Role.doctor =>
+                              'Assigned laboratory cases will appear here with extracted fields, validation flags, and the original PDF.',
+                            Role.administrator =>
+                              'Assign each case to an eligible doctor and follow its status. Clinical documents remain restricted.',
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        if (role == Role.patient) ...[
+                          FilledButton.icon(
+                            onPressed: null,
+                            icon: const Icon(Icons.add),
+                            label: const Text('Upload laboratory PDF'),
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Upload is not connected yet. Supported scope: English PDFs, up to 10 pages and 10 MB.',
+                          ),
+                          const SizedBox(height: 26),
+                        ],
+                        Text(
+                          'From document to reviewed record',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 14),
+                        const _Step(
+                          number: '01',
+                          title: 'Upload securely',
+                          detail: 'One synthetic report creates one case.',
+                        ),
+                        const _Step(
+                          number: '02',
+                          title: 'Extract with evidence',
+                          detail:
+                              'Keep printed values linked to their source page.',
+                        ),
+                        const _Step(
+                          number: '03',
+                          title: 'Review and approve',
+                          detail:
+                              'A doctor checks the result before the patient sees it.',
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                const SizedBox(height: 28),
-                Text(
-                  '${role.label} workspace',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(switch (role) {
-                  Role.patient => 'Your reports, with every review in view.',
-                  Role.doctor => 'Source evidence beside every review.',
-                  Role.administrator => 'Clear assignments. Visible progress.',
-                }),
-                const SizedBox(height: 26),
-                if (selectedTab == 2)
-                  _Panel(
-                    icon: Icons.person_outline,
-                    title: widget.preview
-                        ? 'No signed-in account'
-                        : '${ref.watch(sessionProvider).account?.displayName}',
-                    body: widget.preview
-                        ? 'This is an interface preview. Account details will appear after secure sign-in is connected.'
-                        : 'Signed in as ${role.label}. Your hospital controls account access.',
-                  )
-                else if (selectedTab == 1)
-                  _Panel(
-                    icon: role == Role.administrator
-                        ? Icons.badge_outlined
-                        : Icons.history,
-                    title: role == Role.administrator
-                        ? 'Doctor directory'
-                        : tabs[1],
-                    body: role == Role.administrator
-                        ? 'Active doctor profiles and assignment options will appear here. No directory data is loaded.'
-                        : 'Completed activity will appear here when the workflow is connected. No records are loaded.',
-                  )
-                else ...[
-                  _Panel(
-                    icon: switch (role) {
-                      Role.patient => Icons.upload_file_outlined,
-                      Role.doctor => Icons.fact_check_outlined,
-                      Role.administrator => Icons.assignment_ind_outlined,
-                    },
-                    title: switch (role) {
-                      Role.patient => 'Your report workspace',
-                      Role.doctor => 'Your assigned cases',
-                      Role.administrator => 'Case assignment workspace',
-                    },
-                    body: switch (role) {
-                      Role.patient =>
-                        'Upload a synthetic laboratory PDF, follow its progress, and view results after doctor approval.',
-                      Role.doctor =>
-                        'Assigned laboratory cases will appear here with extracted fields, validation flags, and the original PDF.',
-                      Role.administrator =>
-                        'Assign each case to an eligible doctor and follow its status. Clinical documents remain restricted.',
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  if (role == Role.patient) ...[
-                    FilledButton.icon(
-                      onPressed: null,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Upload laboratory PDF'),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Upload is not connected yet. Supported scope: English PDFs, up to 10 pages and 10 MB.',
-                    ),
-                    const SizedBox(height: 26),
-                  ],
-                  Text(
-                    'From document to reviewed record',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 14),
-                  const _Step(
-                    number: '01',
-                    title: 'Upload securely',
-                    detail: 'One synthetic report creates one case.',
-                  ),
-                  const _Step(
-                    number: '02',
-                    title: 'Extract with evidence',
-                    detail: 'Keep printed values linked to their source page.',
-                  ),
-                  const _Step(
-                    number: '03',
-                    title: 'Review and approve',
-                    detail:
-                        'A doctor checks the result before the patient sees it.',
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedTab,
         onDestinationSelected: (index) => setState(() => selectedTab = index),

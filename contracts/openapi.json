@@ -438,6 +438,18 @@
             "title": "Createdat",
             "type": "string"
           },
+          "expiresAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiresat"
+          },
           "patientId": {
             "maxLength": 128,
             "minLength": 1,

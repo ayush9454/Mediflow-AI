@@ -150,8 +150,18 @@ class SessionController extends StateNotifier<SessionState> {
         cache.clear();
       }
       state = SessionState(account: account, token: token);
-    } catch (_) {
-      if (mounted && generation == _generation) expire();
+    } catch (error) {
+      if (mounted && generation == _generation) {
+        if (error is ApiFailure && error.retryable) {
+          state = SessionState(
+            account: state.account,
+            token: token,
+            message: error.message,
+          );
+        } else {
+          expire();
+        }
+      }
     }
   }
 

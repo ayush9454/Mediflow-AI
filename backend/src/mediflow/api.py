@@ -267,7 +267,14 @@ async def list_cases(
     limit: int = Query(default=20, ge=1, le=100),
     account: Account = Depends(current_account),
 ) -> CasePage:
-    pending()
+    from mediflow.cases import patient_cases
+
+    await run_in_threadpool(
+        authorization(request).require_role, account, {Role.PATIENT}, request.state.request_id
+    )
+    return await run_in_threadpool(
+        patient_cases, upload_module(request).database, account, cursor, limit
+    )
 
 
 @router.get("/doctors", response_model=DoctorPage, tags=["cases"])

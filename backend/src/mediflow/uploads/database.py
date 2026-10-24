@@ -19,6 +19,9 @@ class Database(Protocol):
     def run(self, operation: Callable[[Transaction], T]) -> T: ...
     def due(self, collection: str, field: str, now: str, limit: int) -> list[str]: ...
     def page(self, collection: str, after: str | None, limit: int) -> list[tuple[str, Record]]: ...
+    def scoped_page(
+        self, collection: str, filters: dict[str, str], after: str | None, limit: int
+    ) -> list[tuple[str, Record]]: ...
 
 
 class MemoryDatabase:
@@ -49,6 +52,18 @@ class MemoryDatabase:
                 (key, deepcopy(data))
                 for (stored_collection, key), data in sorted(self.records.items())
                 if stored_collection == collection and (after is None or key > after)
+            ][:limit]
+
+    def scoped_page(
+        self, collection: str, filters: dict[str, str], after: str | None, limit: int
+    ) -> list[tuple[str, Record]]:
+        with self.lock:
+            return [
+                (key, deepcopy(data))
+                for (stored_collection, key), data in sorted(self.records.items())
+                if stored_collection == collection
+                and (after is None or key > after)
+                and all(data.get(field) == value for field, value in filters.items())
             ][:limit]
 
 

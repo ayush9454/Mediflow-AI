@@ -5,10 +5,16 @@ import 'package:http/http.dart' as http;
 import '../contracts/contracts.g.dart';
 
 class ApiFailure implements Exception {
-  const ApiFailure(this.message, {this.code, this.requestId});
+  const ApiFailure(
+    this.message, {
+    this.code,
+    this.requestId,
+    this.retryable = false,
+  });
   final String message;
   final ErrorCode? code;
   final String? requestId;
+  final bool retryable;
 
   @override
   String toString() => message;
@@ -32,7 +38,19 @@ class ApiClient {
           )
           .timeout(const Duration(seconds: 20));
       if (response.statusCode != 200) {
-        throw const ApiFailure('Account access is unavailable. Sign in again.');
+        if (response.statusCode >= 500) {
+          throw const ApiFailure(
+            'Account services are temporarily unavailable. Retry shortly.',
+            code: ErrorCode.temporarilyUnavailable,
+            retryable: true,
+          );
+        }
+        throw ApiFailure(
+          'Account access is unavailable. Sign in again.',
+          code: response.statusCode == 401
+              ? ErrorCode.unauthenticated
+              : ErrorCode.permissionDenied,
+        );
       }
       return Account.fromJson(
         jsonDecode(response.body) as Map<String, dynamic>,
@@ -42,6 +60,8 @@ class ApiClient {
     } catch (_) {
       throw const ApiFailure(
         'Account services are unavailable. Try again shortly.',
+        code: ErrorCode.temporarilyUnavailable,
+        retryable: true,
       );
     }
   }

@@ -262,6 +262,7 @@ final class CaseSummary {
     required this.version,
     required this.reviewVersion,
     required this.createdAt,
+    required this.expiresAt,
   });
 
   final String schemaVersion;
@@ -274,6 +275,7 @@ final class CaseSummary {
   final int version;
   final int reviewVersion;
   final DateTime createdAt;
+  final DateTime? expiresAt;
 
   factory CaseSummary.fromJson(Map<String, Object?> json) => CaseSummary(
     schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
@@ -286,6 +288,7 @@ final class CaseSummary {
     version: json["version"] as int,
     reviewVersion: json["reviewVersion"] as int,
     createdAt: DateTime.parse(json["createdAt"] as String),
+    expiresAt: json["expiresAt"] == null ? null : DateTime.parse(json["expiresAt"] as String),
   );
 
   Map<String, Object?> toJson() => {
@@ -299,6 +302,7 @@ final class CaseSummary {
     "version": version,
     "reviewVersion": reviewVersion,
     "createdAt": createdAt.toUtc().toIso8601String(),
+    "expiresAt": expiresAt?.toUtc().toIso8601String(),
   };
 }
 
