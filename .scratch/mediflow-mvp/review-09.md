@@ -30,3 +30,5 @@ The real cold-start check observed zero replicas, a safe startup-unavailable sta
 Initial Standards: 3 findings, worst late PDF content after background cleanup; initial Spec: 1 finding, worst previous-hospital content retention. Three later smoke-cleanup findings were also resolved. Final unresolved findings: Standards 0, Spec 0.
 
 Azure delayed the empty environment in `ScheduledForDelete`. A final read-only review approved the guarded exact-environment DELETE retry and status diagnostics; all other resource IDs must already be absent. No additional findings.
+
+Final teardown: Azure resource-group absence and zero run-owned Firestore payload/reservation records were confirmed on 2026-10-25 (local time). No verification or review gate remains open for ticket 09.

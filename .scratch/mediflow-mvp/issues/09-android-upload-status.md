@@ -1,7 +1,7 @@
 # 09: Build Android upload and persistent processing-status experience
 
-Status: in-progress
-Progress: implementation and verification complete; confirming temporary Azure teardown
+Status: completed
+Progress: completed; Android/hosted acceptance, reviews and temporary-resource teardown verified
 Type: task
 Blocked by: 05, 06
 Estimate: 10 hours
@@ -30,11 +30,11 @@ Use mocked processing states only in explicit test configurations; the recorded 
 
 ## Acceptance criteria
 
-- [ ] Installable development APK uploads a valid PDF through the hosted API and shows its durable case/job state.
-- [ ] App close/reopen restores the same case and current server status without duplicating uploads or stopping backend work.
-- [ ] File limits, upload interruption, expired session, cold start and quota failures have actionable messages.
-- [ ] Screen transitions distinguish a document rejection from doctor rejection and avoid presenting workflow state as medical urgency.
-- [ ] No public storage URL, AI key, internal error payload or draft analysis appears in the patient UI.
+- [x] Installable development APK uploads a valid PDF through the hosted API and shows its durable case/job state.
+- [x] App close/reopen restores the same case and current server status without duplicating uploads or stopping backend work.
+- [x] File limits, upload interruption, expired session, cold start and quota failures have actionable messages.
+- [x] Screen transitions distinguish a document rejection from doctor rejection and avoid presenting workflow state as medical urgency.
+- [x] No public storage URL, AI key, internal error payload or draft analysis appears in the patient UI.
 
 ## Verification
 
@@ -48,7 +48,7 @@ All three testing interfaces were confirmed by the user on 2026-10-24: upload/AP
 
 Real hosted acceptance uses the normal API/event worker/reconciler with Firebase/Firestore, private Blob/queue and the real configured provider. The installed Android 15/API 35 development APK uploaded an invented PDF, recovered after offline interruption, and reopened the canonical case after process death. Processing continued independently from queued through processing to succeeded, with one job attempt and one immutable analysis. Repeated exact-PDF completion kept one case/job. The original PDF rendered through authenticated access. A second patient login showed no first-patient reports.
 
-Cold-start acceptance observed zero API replicas before launching the final APK. The first health check showed the safe unavailable/starting message; the displayed retry succeeded, followed by sign-in and the same completed case. All run-owned Firestore payloads/reservations are verified absent. Azure group deletion remains in progress; this ticket stays in progress until its absence is confirmed. See [patient upload behavior](../../../docs/patient-upload.md), [reproducible hosted probe](../../../tools/patient_smoke/README.md), and [review](../review-09.md).
+Cold-start acceptance observed zero API replicas before launching the final APK. The first health check showed the safe unavailable/starting message; the displayed retry succeeded, followed by sign-in and the same completed case. All run-owned Firestore payloads/reservations and the temporary Azure resource group are verified absent. Azure delayed its empty environment in `ScheduledForDelete`; the guarded retry and final absence check are recorded in the [sanitized acceptance artifact](../../../evaluation/reports/patient-upload-android.json). See [patient upload behavior](../../../docs/patient-upload.md), [reproducible hosted probe](../../../tools/patient_smoke/README.md), and [review](../review-09.md).
 
 Validation: 162 backend tests passed in Linux (one optional Firebase-emulator test skipped), 33 Flutter tests passed; Python format/lint, mypy on 38 source files, 8 generated contract artifacts, Flutter analysis, Dart contract/API smoke and the configured APK build/install passed. Separate Standards/Spec reviews found account/lifecycle cleanup gaps; failing regression tests verified the fixes. Both final corrective reviews found no unresolved findings.
 
@@ -60,3 +60,11 @@ Validation: 162 backend tests passed in Linux (one optional Firebase-emulator te
   prerequisites inspected; existing Android emulator/toolchain prepared. The
   prior confirmation concerned ticket 08's laboratory/provider/worker interfaces;
   ticket 09's proposed Android/case-list testing areas were subsequently confirmed.
+
+- 2026-10-25: Completed all five acceptance criteria after the user confirmed all
+  three testing interfaces. Real Android upload, offline retry, process-death
+  recovery, duplicate handling, protected PDF rendering, account isolation and
+  hosted cold-start recovery verified. Both review axes have no unresolved
+  findings. Temporary Azure group and run-owned Firestore payloads/reservations
+  confirmed absent; local emulator/container VM stopped. Development APK uses
+  debug signing and needs a new live API configuration after acceptance teardown.

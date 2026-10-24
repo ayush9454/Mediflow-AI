@@ -61,19 +61,17 @@
   },
   "cleanup": {
     "azure": {
-      "temporary_resource_group_exists": true,
-      "all_temporary_resources_deleted": false,
-      "checked_at": "2026-10-24T18:26:13.566536+00:00",
-      "remaining_resource_types": [
-        "Microsoft.App/managedEnvironments"
-      ],
-      "environment_state": "ScheduledForDelete"
+      "temporary_resource_group_exists": false,
+      "all_temporary_resources_deleted": true,
+      "checked_at": "2026-10-24T18:36:24.973411+00:00",
+      "remaining_resource_types": [],
+      "environment_state": "Deleted"
     },
     "firestore": {
       "payloads_deleted": true,
       "remaining_documents": 0,
       "remaining_reservations": 0,
-      "checked_at": "2026-10-24T18:26:19.025635+00:00"
+      "checked_at": "2026-10-24T18:36:27.755425+00:00"
     },
     "local_android_emulator_stopped": true,
     "local_container_vm_stopped": true
