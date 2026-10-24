@@ -24,8 +24,17 @@ requests are denied. The server cannot erase content already downloaded to a dev
 ## Doctor
 
 Assigned cases link to laboratory evidence and the version-specific review screen.
-The Reviews tab offers the same currently assigned cases with their immutable
-review history. Begin review advances the case version and records `under_review`.
+The Reviews tab shows currently assigned cases whose latest successful analysis has
+an approved/rejected decision. Pending cases include unfinished or failed processing
+and analyses awaiting review. Begin review advances the case version and records
+`under_review`. History remains available from either case view.
+
+`GET /cases?view=` supports patient `all`/`history`, doctor `all`/`pending`/`reviewed`
+and administrator `all`/`unassigned`/`assigned`. Role and relationship filters run
+before the bounded scan; view filtering runs against freshly read records. A page
+can contain no matches and still have `nextCursor`; the app provides Load more.
+Cursors are bound to hospital, account, role and view. Case metadata includes only
+whether an approval is recorded, without rows, summaries or review payloads.
 
 The review editor displays original AI values and lets a doctor correct each printed
 field, supply source page/quotation/origin and explain the change. Corrections retain

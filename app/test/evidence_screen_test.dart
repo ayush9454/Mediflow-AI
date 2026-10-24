@@ -262,6 +262,7 @@ void main() {
     (tester) async {
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       final payload = fixture('approved-result');
+      payload['approved']['provenance'] = fixture('analysis')['provenance'];
       payload['approved']['correctedRowIds'] = ['row_1'];
       payload['approved']['unresolvedAcknowledgements'] = [
         {'issueId': 'issue_1', 'reason': 'Printed unit is unclear'},
@@ -286,7 +287,11 @@ void main() {
           if (request.url.path.endsWith('/result')) {
             return jsonResponse(payload);
           }
-          return jsonResponse(resultReport().toJson());
+          return jsonResponse({
+            ...resultReport().toJson(),
+            'latestAnalysisId': 'replacement',
+            'reviewStatus': 'rejected',
+          });
         }),
       );
       await tester.pumpWidget(
@@ -303,16 +308,31 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Approved snapshot'), findsOneWidget);
       expect(
-        find.text('Unresolved · issue_1: Printed unit is unclear'),
+        find.text('Unresolved qualification: Printed unit is unclear'),
         findsOneWidget,
       );
       expect(find.text('AI candidate'), findsNothing);
+      expect(
+        find.text(
+          'The replacement was not approved. This previously approved version remains available.',
+        ),
+        findsOneWidget,
+      );
       await tester.ensureVisible(find.text('Clinician corrected · approved'));
       expect(find.text('Clinician corrected · approved'), findsOneWidget);
       expect(
         find.text('Unresolved · unit: Printed unit is unclear'),
         findsOneWidget,
       );
+      await tester.scrollUntilVisible(
+        find.text('Analysis provenance'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('Analysis provenance'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Prompt:'), findsNothing);
+      expect(find.textContaining('SHA-256:'), findsNothing);
       await tester.pumpWidget(const SizedBox());
     },
   );

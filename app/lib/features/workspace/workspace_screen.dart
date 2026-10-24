@@ -144,7 +144,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
                               ? 'No signed-in account'
                               : '${ref.watch(sessionProvider).account?.displayName}',
                           body: widget.preview
-                              ? 'This is an interface preview. Account details will appear after secure sign-in is connected.'
+                              ? 'This is an interface preview. Sign in to view your account.'
                               : 'Signed in as ${role.label}. Your hospital controls account access.',
                         )
                       else if (selectedTab == 1)
@@ -156,8 +156,8 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
                               ? 'Doctor directory'
                               : tabs[1],
                           body: role == Role.administrator
-                              ? 'Active doctor profiles and assignment options will appear here. No directory data is loaded.'
-                              : 'Completed activity will appear here when the workflow is connected. No records are loaded.',
+                              ? 'Sign in as an administrator to view eligible doctors and assign cases.'
+                              : 'Sign in to view your report and review history.',
                         )
                       else ...[
                         if (!widget.preview && role == Role.doctor) ...[
@@ -204,7 +204,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
                             Role.patient =>
                               'Upload a synthetic laboratory PDF, follow its progress, and view results after doctor approval.',
                             Role.doctor =>
-                              'Assigned laboratory cases will appear here with extracted fields, validation flags, and the original PDF.',
+                              'Sign in to review your assigned laboratory cases with extracted fields, validation flags, and the original PDF.',
                             Role.administrator =>
                               'Assign each case to an eligible doctor and follow its status. Clinical documents remain restricted.',
                           },
@@ -218,7 +218,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
                           ),
                           const SizedBox(height: 10),
                           const Text(
-                            'Upload is not connected yet. Supported scope: English PDFs, up to 10 pages and 10 MB.',
+                            'Sign in as a patient to upload an English laboratory PDF, up to 10 pages and 10 MB.',
                           ),
                           const SizedBox(height: 26),
                         ],
@@ -301,15 +301,6 @@ class _Panel extends StatelessWidget {
           Text(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 10),
           Text(body),
-          const SizedBox(height: 16),
-          const Text(
-            'No live records loaded',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: mutedInk,
-            ),
-          ),
         ],
       ),
     ),

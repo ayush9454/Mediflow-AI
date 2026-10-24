@@ -10,6 +10,44 @@ import 'package:mediflow_ai/features/workspace/workflow_screen.dart';
 import 'evidence_screen_test.dart' show doctor;
 
 void main() {
+  for (final reviewed in [false, true]) {
+    testWidgets(
+      'doctor requests the ${reviewed ? 'reviewed' : 'pending'} workspace',
+      (tester) async {
+        String? view;
+        final api = PatientReportApi(
+          Uri.parse('https://example.invalid'),
+          MockClient((request) async {
+            view = request.url.queryParameters['view'];
+            return http.Response(
+              '{"schemaVersion":"1.0","items":[],"nextCursor":"next_page"}',
+              200,
+            );
+          }),
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: WorkflowPanel(
+                account: doctor,
+                api: api,
+                token: () => 'token',
+                reviews: reviewed,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(view, reviewed ? 'reviewed' : 'pending');
+        expect(
+          find.text('No matching cases on this page. Load more to continue.'),
+          findsOneWidget,
+        );
+        expect(find.text('Load more cases'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+  }
   testWidgets(
     'administrator chooses an eligible doctor and submits the displayed case version',
     (tester) async {

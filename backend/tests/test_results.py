@@ -47,7 +47,19 @@ def test_assigned_doctor_reads_candidate_but_patient_never_receives_draft(result
     assert client.get(path, headers=headers()).status_code == 409
 
 
-def test_patient_gets_persisted_corrected_snapshot_during_replacement_processing(result_setup):
+@pytest.mark.parametrize(
+    "processing,review",
+    [
+        ("queued", "approved"),
+        ("processing", "approved"),
+        ("failed", "approved"),
+        ("rejected", "approved"),
+        ("succeeded", "rejected"),
+    ],
+)
+def test_patient_gets_persisted_corrected_snapshot_during_replacement_processing(
+    result_setup, processing, review
+):
     client, uploads, _, report, candidate = result_setup
     snapshot = json.loads(
         (Path(__file__).parents[2] / "contracts/examples/approved-result.json").read_text()
@@ -60,7 +72,10 @@ def test_patient_gets_persisted_corrected_snapshot_during_replacement_processing
     )
     snapshot["rows"][0]["result"] = "<0.60"
     report.update(
-        approvedAnalysisId="analysis_1", latestAnalysisId="replacement", reviewStatus="pending"
+        approvedAnalysisId="analysis_1",
+        latestAnalysisId="replacement",
+        reviewStatus=review,
+        processingStatus=processing,
     )
     uploads.database.run(lambda tx: tx.put("reports", report["reportId"], report))
     uploads.database.run(lambda tx: tx.put("approvedResults", report["reportId"], snapshot))
@@ -69,6 +84,8 @@ def test_patient_gets_persisted_corrected_snapshot_during_replacement_processing
     assert response.json()["approved"] == snapshot
     assert response.json()["draft"] is None
     assert "providerOutput" not in response.text
+    listing = client.get("/api/v1/cases", headers=headers()).json()
+    assert listing["items"][0]["hasApprovedResult"] is True
 
 
 @pytest.mark.parametrize("action", ["expired", "reassigned", "wrong_hospital"])

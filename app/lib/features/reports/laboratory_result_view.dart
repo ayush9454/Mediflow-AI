@@ -35,15 +35,16 @@ class LaboratoryResultView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         SelectableText(
-          'Analysis ${draft?.analysisId ?? approved!.analysisId} · version ${draft?.version ?? approved!.analysisVersion}',
+          draft != null
+              ? 'AI candidate version ${draft.version}'
+              : 'Approved version ${approved!.analysisVersion}',
         ),
         if (approved != null) ...[
           Text(
             'Reviewed by ${approved.reviewerId} · ${approved.reviewedAt.toLocal()}',
           ),
-          SelectableText('Review ${approved.reviewId}'),
           for (final item in approved.unresolvedAcknowledgements)
-            Text('Unresolved · ${item.issueId}: ${item.reason}'),
+            Text('Unresolved qualification: ${item.reason}'),
         ],
         const SizedBox(height: 12),
         const Text(
@@ -132,23 +133,10 @@ class LaboratoryResultView extends StatelessWidget {
                 'Analysis provenance was not recorded in this snapshot.',
               )
             else ...[
-              SelectableText(
-                'Pipeline: ${provenance.pipelineVersion}\nPrompt: ${provenance.promptVersion}\nProvider: ${provenance.modelProvider}\nModel: ${provenance.modelName ?? provenance.modelVersion}\nModel version: ${provenance.modelVersion}',
+              Text(
+                'Extracted using ${provenance.modelProvider} · ${provenance.modelName ?? provenance.modelVersion}. Source evidence remains linked to the original PDF.',
               ),
-              if (draft != null)
-                Text(
-                  'Schema: ${draft.schemaVersion} · Created ${draft.createdAt.toLocal()}',
-                ),
-              if (provenance.configuration != null)
-                SelectableText(
-                  'Configuration: ${provenance.configuration!.version}\nPrompt SHA-256: ${provenance.configuration!.promptSha256}\nSchema SHA-256: ${provenance.configuration!.schemaSha256}',
-                ),
-              if (provenance.sourceSha256 != null)
-                SelectableText('Source SHA-256: ${provenance.sourceSha256}'),
-              if (provenance.usage != null)
-                Text(
-                  'Provider tokens: ${provenance.usage!.inputTokens} input, ${provenance.usage!.outputTokens} output · ${provenance.usage!.elapsedSeconds.toStringAsFixed(2)} s',
-                ),
+              if (draft != null) Text('Extracted ${draft.createdAt.toLocal()}'),
             ],
           ],
         ),

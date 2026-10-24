@@ -535,6 +535,11 @@
           ],
           "default": null
         },
+        "hasApprovedResult": {
+          "default": false,
+          "title": "Hasapprovedresult",
+          "type": "boolean"
+        },
         "patientId": {
           "maxLength": 128,
           "minLength": 1,
@@ -584,6 +589,18 @@
       ],
       "title": "CaseSummary",
       "type": "object"
+    },
+    "CaseView": {
+      "enum": [
+        "all",
+        "history",
+        "pending",
+        "reviewed",
+        "unassigned",
+        "assigned"
+      ],
+      "title": "CaseView",
+      "type": "string"
     },
     "CompletionRequest": {
       "additionalProperties": false,

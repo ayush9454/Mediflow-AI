@@ -141,12 +141,12 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
     }
   }
 
-  Future<void> load() async {
+  Future<void> load({String? successMessage}) async {
     if (!foreground || busy) return;
     setState(() {
       clear();
       busy = true;
-      message = null;
+      message = successMessage;
     });
     final current = generation;
     try {
@@ -222,6 +222,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
         clear();
         message = text;
       });
+      await load(successMessage: text);
     } on ApiFailure catch (error) {
       if (current == generation) {
         if (!error.retryable) pending = null;
@@ -257,20 +258,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
           body,
           key,
         );
-        // Keep the editor only after refreshing authoritative versions.
-        final value = await widget.api.report(widget.token(), widget.reportId);
-        validateMetadata(value);
-        if (!mounted || !foreground) {
-          return 'Review started. Refresh to continue.';
-        }
-        return 'Review started. Refresh to continue.';
-      }).then((_) {
-        if (mounted &&
-            pending == null &&
-            report == null &&
-            message?.startsWith('Review started') == true) {
-          unawaited(load());
-        }
+        return 'Review started.';
       }),
     );
   }
@@ -430,7 +418,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen>
                 ),
               if (report != null) ...[
                 Text(
-                  'Case version ${report!.caseVersion} · review version ${report!.reviewVersion} · ${report!.reviewStatus.value}',
+                  'Review status: ${report!.reviewStatus.value.replaceAll('_', ' ')}',
                 ),
                 OutlinedButton(
                   onPressed: editable

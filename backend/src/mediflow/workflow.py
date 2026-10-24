@@ -93,6 +93,7 @@ def summary(
         created_at=case["createdAt"],
         expires_at=report.get("expiresAt"),
         failure_code=failure_code,
+        has_approved_result=bool(report.get("approvedAnalysisId")),
     )
 
 

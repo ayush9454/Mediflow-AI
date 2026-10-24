@@ -9,6 +9,7 @@ import '../../core/contracts/contracts.g.dart';
 import 'laboratory_result_view.dart';
 import 'report_api.dart';
 import 'report_platform.dart';
+import 'report_screen.dart' show approvedSnapshotNotice;
 
 class EvidenceResultScreen extends StatefulWidget {
   const EvidenceResultScreen({
@@ -298,7 +299,11 @@ class _EvidenceResultScreenState extends State<EvidenceResultScreen>
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Laboratory evidence'),
+      title: Text(
+        widget.account.role == Role.patient
+            ? 'Approved laboratory result'
+            : 'Laboratory evidence',
+      ),
       actions: [
         if (widget.account.role == Role.doctor && report != null)
           TextButton(
@@ -337,6 +342,13 @@ class _EvidenceResultScreenState extends State<EvidenceResultScreen>
           if (loading) const LinearProgressIndicator(),
           if (message != null)
             Padding(padding: const EdgeInsets.all(20), child: Text(message!)),
+          if (result?.approved != null &&
+              report != null &&
+              approvedSnapshotNotice(report!) != null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(approvedSnapshotNotice(report!)!),
+            ),
           if (result != null)
             Expanded(
               child: LayoutBuilder(

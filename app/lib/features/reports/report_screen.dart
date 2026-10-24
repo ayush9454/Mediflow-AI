@@ -44,6 +44,32 @@ String workflowLabel(
       : 'Awaiting doctor review';
 }
 
+String? approvedSnapshotNotice(ReportMetadata report) {
+  if (report.approvedAnalysisId == null ||
+      report.expiresAt?.isAfter(DateTime.now()) == false) {
+    return null;
+  }
+  if ({
+    ProcessingStatus.queued,
+    ProcessingStatus.processing,
+    ProcessingStatus.validating,
+  }.contains(report.processingStatus)) {
+    return 'A replacement is processing. This previously approved version remains available.';
+  }
+  if ({
+    ProcessingStatus.failed,
+    ProcessingStatus.rejected,
+  }.contains(report.processingStatus)) {
+    return 'Replacement processing could not finish. This previously approved version remains available.';
+  }
+  if (report.latestAnalysisId != report.approvedAnalysisId) {
+    return report.reviewStatus == ReviewStatus.rejected
+        ? 'The replacement was not approved. This previously approved version remains available.'
+        : 'A replacement is awaiting doctor approval. This previously approved version remains available.';
+  }
+  return null;
+}
+
 class PatientReportsHost extends ConsumerStatefulWidget {
   const PatientReportsHost({
     required this.account,
@@ -63,6 +89,7 @@ class _PatientReportsHostState extends ConsumerState<PatientReportsHost> {
     super.initState();
     controller = PatientReportsController(
       account: widget.account,
+      view: widget.history ? CaseView.history : CaseView.all,
       onSessionEnded: () => ref.read(sessionProvider.notifier).expire(),
       platform: ref.read(reportPlatformProvider),
       api: PatientReportApi(
@@ -144,6 +171,7 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
               false) {
         _clearPdf();
       }
+      if (!mounted || !TickerMode.of(context)) return;
       unawaited(controller.refresh());
     });
   }
@@ -251,6 +279,7 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
     return RefreshIndicator(
       onRefresh: () => controller.refresh(),
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(24),
         children: [
           Text(
@@ -332,20 +361,16 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
                           'The document could not be accepted. Check its format, readability and page count.',
                         ),
                       ),
-                    if (report.reviewStatus == ReviewStatus.rejected)
+                    if (report.reviewStatus == ReviewStatus.rejected &&
+                        report.approvedAnalysisId == null)
                       const Padding(
                         padding: EdgeInsets.only(top: 12),
                         child: Text(
                           'The doctor did not approve this analysis. Contact your hospital for the next step.',
                         ),
                       ),
-                    if (report.approvedAnalysisId != null &&
-                        (report.processingStatus ==
-                                ProcessingStatus.processing ||
-                            report.processingStatus == ProcessingStatus.queued))
-                      const Text(
-                        'A new version is processing. Your previous approval remains recorded.',
-                      ),
+                    if (approvedSnapshotNotice(report) case final notice?)
+                      Text(notice),
                     const SizedBox(height: 16),
                     if (report.approvedAnalysisId != null)
                       FilledButton.icon(
@@ -456,18 +481,14 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
               ),
             const SizedBox(height: 16),
             if (state.cases.isEmpty && !state.busy)
-              const Text(
-                'No reports yet. Your saved reports will appear here after upload.',
+              Text(
+                state.nextCursor != null
+                    ? 'No matching reports on this page. Load more to continue.'
+                    : widget.history
+                    ? 'No completed reports to display.'
+                    : 'No reports yet. Your saved reports will appear here after upload.',
               ),
-            for (final item in state.cases.where(
-              (item) =>
-                  !widget.history ||
-                  {
-                    ProcessingStatus.succeeded,
-                    ProcessingStatus.rejected,
-                    ProcessingStatus.failed,
-                  }.contains(item.processingStatus),
-            ))
+            for (final item in state.cases)
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.description_outlined),
@@ -480,7 +501,7 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
                     ),
                   ),
                   subtitle: Text(
-                    'Submitted ${item.createdAt.toLocal().toString().substring(0, 16)}',
+                    'Submitted ${item.createdAt.toLocal().toString().substring(0, 16)}${item.hasApprovedResult ? '\nDoctor approval recorded · open for version details' : ''}',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: state.busy

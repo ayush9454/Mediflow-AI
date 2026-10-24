@@ -245,10 +245,18 @@ class PatientReportApi {
       ReportMetadata.fromJson(
         _json(await _send(token, 'GET', '/api/v1/reports/${_id(id)}')),
       );
-  Future<CasePage> cases(String token, {String? cursor}) async {
+  Future<CasePage> cases(
+    String token, {
+    String? cursor,
+    CaseView view = CaseView.all,
+  }) async {
     final path = Uri(
       path: '/api/v1/cases',
-      queryParameters: {'limit': '20', if (cursor != null) 'cursor': cursor},
+      queryParameters: {
+        'limit': '20',
+        'view': view.value,
+        if (cursor != null) 'cursor': cursor,
+      },
     );
     return CasePage.fromJson(_json(await _send(token, 'GET', path.toString())));
   }

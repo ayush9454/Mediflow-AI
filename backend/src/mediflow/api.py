@@ -14,6 +14,7 @@ from mediflow.contracts import (
     BeginReviewRequest,
     CasePage,
     CaseSummary,
+    CaseView,
     CompletionRequest,
     DoctorPage,
     ErrorCode,
@@ -283,6 +284,7 @@ async def review(
 @router.get("/cases", response_model=CasePage, tags=["cases"])
 async def list_cases(
     request: Request,
+    view: CaseView = Query(default=CaseView.ALL),
     cursor: str | None = Query(default=None, max_length=1000),
     limit: int = Query(default=20, ge=1, le=100),
     account: Account = Depends(current_account),
@@ -296,7 +298,7 @@ async def list_cases(
         request.state.request_id,
     )
     return await run_in_threadpool(
-        role_scoped_cases, upload_module(request).database, account, cursor, limit
+        role_scoped_cases, upload_module(request).database, account, cursor, limit, view
     )
 
 

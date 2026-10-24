@@ -73,3 +73,41 @@ def test_seeded_signin_real_verifier_rules_and_reassignment():
         assert (
             client.get("/api/v1/me", headers={"Authorization": "Bearer forged"}).status_code == 401
         )
+
+
+def test_reset_seed_accounts_restores_signin_without_inserting_results():
+    project = "demo-mediflow"
+    secrets = {
+        uid: {"email": f"{uid}@example.test", "password": "reset-synthetic-password-5678"}
+        for uid in ACCOUNTS
+    }
+    bootstrap(project, secrets, reset_accounts=True)
+    host = os.environ["FIREBASE_AUTH_EMULATOR_HOST"]
+    endpoint = (
+        f"http://{host}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-key"
+    )
+    app = create_app(Settings(environment="test", firebase_project_id=project))
+    with TestClient(app) as client:
+        for uid, role in ACCOUNTS.items():
+            response = requests.post(
+                endpoint, json={**secrets[uid], "returnSecureToken": True}, timeout=10
+            )
+            assert response.status_code == 200
+            token = {"Authorization": "Bearer " + response.json()["idToken"]}
+            assert client.get("/api/v1/me", headers=token).json()["role"] == role
+            if role == "patient":
+                assert client.get(
+                    "/api/v1/reports/auth_fixture_report/result", headers=token
+                ).status_code == (501 if uid == "patient_a" else 403)
+            assert (
+                requests.post(
+                    endpoint,
+                    json={
+                        "email": secrets[uid]["email"],
+                        "password": "synthetic-password-1234",
+                        "returnSecureToken": True,
+                    },
+                    timeout=10,
+                ).status_code
+                == 400
+            )

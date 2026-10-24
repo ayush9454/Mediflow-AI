@@ -41,7 +41,23 @@ Run an end-to-end journey with two patients, two doctors and an administrator, i
 
 ## Implementation record
 
-Not started. Record actual changes, verification commands/results, measured findings, and any remaining gate here. A readiness label does not imply completion or override the Blocked by line.
+In progress. Dependencies 09 and 11 are completed. Implementation baseline:
+`d4698cb263d5ae637051044e7e4c610bfd2312a6` on `main`. Reused the existing confirmed
+HTTP, Flutter and Firebase integration boundaries from tickets 04, 09 and 11.
+
+Implemented role-authorized case views with bounded pagination and view-bound
+cursors; doctor pending/reviewed and administrator assignment filters; server-owned
+approval metadata; patient approved-version/reviewer/qualification presentation;
+safe replacement messages; automatic review-history refresh after successful
+actions; trusted seed account reset; and a repeatable synthetic sample journey.
+The hosted probe uses an isolated run prefix and removes review/approved payloads
+alongside run-owned upload/processing data.
+
+The full isolated Linux backend suite passes 196 tests (two opt-in Firebase tests
+skipped there). The full Flutter suite passes 54 tests; the subsequently added
+automatic history refresh also passes its six focused review-screen tests. Real
+Firebase seed/reset and authorization tests pass. Final emulator integration,
+hosted Android replacement checks and independent reviews remain in progress.
 
 ## Comments
 

@@ -80,6 +80,7 @@ void main() {
       var version = 2;
       String status = 'pending';
       Map<String, dynamic>? submitted;
+      Map<String, dynamic>? storedDecision;
       final draft = fixture('analysis');
       draft['issues'] = [
         {
@@ -117,6 +118,8 @@ void main() {
             };
           } else if (request.url.path.endsWith('/review')) {
             submitted = jsonDecode(request.body);
+            status = 'approved';
+            version = 4;
             code = 201;
             value = {
               'schemaVersion': '1.0',
@@ -127,8 +130,13 @@ void main() {
               'reviewedAt': '2026-10-25T10:00:00Z',
               'request': submitted,
             };
+            storedDecision = value as Map<String, dynamic>;
           } else if (request.url.path.endsWith('/reviews')) {
-            value = {'schemaVersion': '1.0', 'items': [], 'nextCursor': null};
+            value = {
+              'schemaVersion': '1.0',
+              'items': [if (storedDecision != null) storedDecision],
+              'nextCursor': null,
+            };
           } else if (request.url.path.endsWith('/result')) {
             value = {
               'schemaVersion': '1.0',
@@ -179,6 +187,8 @@ void main() {
         {'issueId': 'quality', 'reason': 'Printed scan remains unclear'},
       ]);
       expect(find.textContaining('Decision recorded'), findsOneWidget);
+      expect(find.text('Immutable review history'), findsOneWidget);
+      expect(find.text('approved · qualified · review 1'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     },
   );

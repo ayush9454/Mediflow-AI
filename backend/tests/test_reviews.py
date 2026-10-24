@@ -112,6 +112,44 @@ def decision_body(candidate, case_version=2, review_version=0, **changes):
     }
 
 
+def test_pending_and_reviewed_lists_follow_current_assignment_and_decisions(review_setup):
+    client, _, _, report, candidate = review_setup
+    assert assign(client, report).status_code == 200
+    pending = client.get("/api/v1/cases?view=pending", headers=headers("doctor_a"))
+    assert [item["reportId"] for item in pending.json()["items"]] == [report["reportId"]]
+    assert (
+        client.get("/api/v1/cases?view=reviewed", headers=headers("doctor_a")).json()["items"] == []
+    )
+    approved = client.post(
+        f"/api/v1/reports/{report['reportId']}/review",
+        headers=headers("doctor_a", "approve"),
+        json=decision_body(candidate),
+    )
+    assert approved.status_code == 201, approved.text
+    assert (
+        client.get("/api/v1/cases?view=pending", headers=headers("doctor_a")).json()["items"] == []
+    )
+    assert (
+        len(client.get("/api/v1/cases?view=reviewed", headers=headers("doctor_a")).json()["items"])
+        == 1
+    )
+    assert (
+        client.get("/api/v1/cases?view=unassigned", headers=headers("admin")).json()["items"] == []
+    )
+    assert (
+        len(client.get("/api/v1/cases?view=assigned", headers=headers("admin")).json()["items"])
+        == 1
+    )
+    assert assign(client, report, "doctor_b", 3, "reassign").status_code == 200
+    assert (
+        client.get("/api/v1/cases?view=reviewed", headers=headers("doctor_a")).json()["items"] == []
+    )
+    assert (
+        len(client.get("/api/v1/cases?view=reviewed", headers=headers("doctor_b")).json()["items"])
+        == 1
+    )
+
+
 def test_begin_review_and_duplicate_approval_create_one_attributed_snapshot_and_history(
     review_setup,
 ):

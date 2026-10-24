@@ -117,12 +117,14 @@ class PatientReportsController extends StateNotifier<PatientReportState> {
     required this.token,
     required this.platform,
     required this.api,
+    this.view = CaseView.all,
     this.onSessionEnded,
   }) : super(const PatientReportState());
   final Account account;
   final String Function() token;
   final ReportPlatform platform;
   final PatientReportApi api;
+  final CaseView view;
   final void Function()? onSessionEnded;
   PatientReportState get snapshot => state;
   PickedPdf? _file;
@@ -386,6 +388,7 @@ class PatientReportsController extends StateNotifier<PatientReportState> {
       final page = await api.cases(
         _token,
         cursor: more ? state.nextCursor : null,
+        view: view,
       );
       _active();
       if (page.items.any((item) => item.patientId != account.uid)) {

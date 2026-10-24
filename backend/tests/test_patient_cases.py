@@ -61,6 +61,36 @@ def test_list_includes_expiry_for_patient_status_without_content(patient_setup):
     assert item["expiresAt"]
 
 
+def test_history_filters_before_display_and_cursors_are_bound_to_the_view(patient_setup):
+    client, uploads, _, _ = patient_setup
+    reports = [register(client, laboratory_pdf(), key=str(i)).json()["report"] for i in range(3)]
+    reports.sort(key=lambda report: report["caseId"])
+
+    def finish(tx):
+        for report in reports[1:]:
+            case = tx.get("cases", report["caseId"])
+            case["processingStatus"] = "succeeded"
+            tx.put("cases", report["caseId"], case)
+
+    uploads.database.run(finish)
+    page = client.get("/api/v1/cases?view=history&limit=1", headers=headers()).json()
+    assert page["items"] == []  # Bounded scans may have no matching rows on this page.
+    assert page["nextCursor"]
+    following = client.get(
+        "/api/v1/cases",
+        params={"view": "history", "limit": 1, "cursor": page["nextCursor"]},
+        headers=headers(),
+    ).json()
+    assert following["items"][0]["reportId"] == reports[1]["reportId"]
+    assert (
+        client.get(
+            "/api/v1/cases", params={"cursor": page["nextCursor"]}, headers=headers()
+        ).status_code
+        == 400
+    )
+    assert client.get("/api/v1/cases?view=reviewed", headers=headers()).status_code == 403
+
+
 def test_old_authorization_fixture_is_not_presented_as_a_real_processing_case(patient_setup):
     client, uploads, _, _ = patient_setup
     record = register(client, laboratory_pdf()).json()["report"]

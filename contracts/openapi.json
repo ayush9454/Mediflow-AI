@@ -522,6 +522,11 @@
               }
             ]
           },
+          "hasApprovedResult": {
+            "default": false,
+            "title": "Hasapprovedresult",
+            "type": "boolean"
+          },
           "patientId": {
             "maxLength": 128,
             "minLength": 1,
@@ -571,6 +576,18 @@
         ],
         "title": "CaseSummary",
         "type": "object"
+      },
+      "CaseView": {
+        "enum": [
+          "all",
+          "history",
+          "pending",
+          "reviewed",
+          "unassigned",
+          "assigned"
+        ],
+        "title": "CaseView",
+        "type": "string"
       },
       "CompletionRequest": {
         "additionalProperties": false,
@@ -1970,6 +1987,15 @@
       "get": {
         "operationId": "list_cases_api_v1_cases_get",
         "parameters": [
+          {
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/CaseView",
+              "default": "all"
+            }
+          },
           {
             "in": "query",
             "name": "cursor",

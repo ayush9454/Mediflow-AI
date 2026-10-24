@@ -22,11 +22,15 @@ TAGS = {"project": "mediflow", "purpose": "issue-09-patient-smoke", "temporary":
 
 
 class Probe(JobProbe):
+    private_directory = ".tooling/issue-9/azure"
+    fixture_ticket = "ticket09"
+    ownership_tags = TAGS
+
     def __init__(self, root, docker_binary, docker_host):
         super().__init__(root, docker_binary, docker_host)
-        self.private = root / ".tooling/issue-9/azure"
+        self.private = root / self.private_directory
         self.private.mkdir(parents=True, exist_ok=True, mode=0o700)
-        self.tags = TAGS
+        self.tags = self.ownership_tags
 
     def init(self):
         if (self.private / "state.json").exists():
@@ -338,7 +342,7 @@ class Probe(JobProbe):
     def owned_reports(self, db):
         from google.cloud.firestore_v1.base_query import FieldFilter
 
-        prefix = "ticket09-" + self.state()["spike_id"][:12]
+        prefix = self.fixture_ticket + "-" + self.state()["spike_id"][:12]
         reports = list(
             db.collection("reports")
             .where(filter=FieldFilter("fileName", ">=", prefix))
@@ -353,7 +357,7 @@ class Probe(JobProbe):
     def owned_sessions(self, db):
         from google.cloud.firestore_v1.base_query import FieldFilter
 
-        prefix = "ticket09-" + self.state()["spike_id"][:12]
+        prefix = self.fixture_ticket + "-" + self.state()["spike_id"][:12]
         sessions = list(
             db.collection("uploadSessions")
             .where(filter=FieldFilter("request.fileName", ">=", prefix))
@@ -427,6 +431,8 @@ class Probe(JobProbe):
             manifest["reservations"].append([record["hospitalId"], report_id])
             for collection in (
                 "analyses",
+                "reviews",
+                "reviewIndex",
                 "processingJobs",
                 "jobDispatches",
                 "uploadHashes",
@@ -455,6 +461,30 @@ class Probe(JobProbe):
                                 .stream(timeout=20)
                             ):
                                 paths.add(child.reference.path)
+                        for operation in (
+                            db.collection("reprocessKeys")
+                            .where(filter=FieldFilter("jobId", "==", item.id))
+                            .stream(timeout=20)
+                        ):
+                            paths.add(operation.reference.path)
+                        from mediflow.uploads import scoped_key
+
+                        day = item.to_dict()["createdAt"][:10]
+                        paths.add("reprocessQuotas/" + scoped_key(report_id, day))
+                    if collection == "reviews":
+                        for operation in (
+                            db.collection("reviewKeys")
+                            .where(filter=FieldFilter("reviewId", "==", item.id))
+                            .stream(timeout=20)
+                        ):
+                            paths.add(operation.reference.path)
+            for collection in ("assignmentKeys", "beginReviewKeys"):
+                for operation in (
+                    db.collection(collection)
+                    .where(filter=FieldFilter("response.reportId", "==", report_id))
+                    .stream(timeout=20)
+                ):
+                    paths.add(operation.reference.path)
             for collection, key in (
                 ("cases", record["caseId"]),
                 ("reports", report_id),
@@ -462,6 +492,8 @@ class Probe(JobProbe):
                 ("jobHeads", report_id),
                 ("sourceArtifacts", report_id),
                 ("uploadGarbage", report_id),
+                ("approvedResults", report_id),
+                ("reprocessRates", report_id),
             ):
                 paths.add(collection + "/" + key)
         manifest["paths"] = sorted(paths)

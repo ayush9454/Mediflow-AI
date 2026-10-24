@@ -17,6 +17,14 @@ backend/.venv/bin/python -m mediflow.seed --confirm-project PROJECT --synthetic-
 
 This creates one synthetic hospital, five active users and an access-control report/case fixture (patient A, doctor A). It has no uploaded PDF or analysis. Existing Auth passwords are preserved; rerunning restores seeded server roles/active status but preserves assignment on an existing fixture. The seed validates every credential before mutation, but is not a cross-provider transaction; a failed run can be retried. The CLI has no HTTP route and requires both Auth administration and Firestore write privileges. Never give this identity to clients.
 
+Add `--reset-accounts` to restore the five passwords from the same private file,
+enable their Auth accounts and revoke existing sessions. The command verifies all
+five synthetic email/UID pairs and email uniqueness before writing. It preserves
+uploaded reports, assignments, reviews and truthful quota usage; it never seeds a
+successful analysis or approval. A password-file change is applied only with this
+explicit flag. To repeat the workflow with clean cases, use a new run prefix and
+the run-owned payload cleanup in the [sample journey](sample-journey.md).
+
 ## Authorization seam for later tickets
 
 Every route authenticates first. `Authorization.report_access(account, report_id, action, request_id)` loads current report and case records and enforces hospital, patient ownership, current doctor assignment and operation role. Call it before retrieving payloads; never authorize a future document/result from a mobile field or stale assignment. The Firestore adapter obtains assignment/version from `cases`, overriding copies in report metadata. Administrators can access workflow metadata but are denied document/result/review/reprocess access. Missing/forbidden resource IDs produce the same 403. The current document/result/upload/assignment implementations remain unavailable after successful authorization until their respective tickets land.

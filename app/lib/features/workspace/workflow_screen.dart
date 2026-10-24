@@ -132,6 +132,12 @@ class _WorkflowPanelState extends State<WorkflowPanel>
   Timer? poll;
   CaseSummary? pendingCase;
   String? pendingDoctor, pendingKey;
+  CaseView assignmentView = CaseView.all;
+  CaseView get view => widget.account.role == Role.doctor
+      ? widget.reviews
+            ? CaseView.reviewed
+            : CaseView.pending
+      : assignmentView;
 
   bool get foreground =>
       mounted &&
@@ -203,6 +209,7 @@ class _WorkflowPanelState extends State<WorkflowPanel>
         final page = await widget.api.cases(
           widget.token(),
           cursor: more ? cursor : null,
+          view: view,
         );
         if (!mounted || current != generation || !foreground) return;
         setState(() {
@@ -281,7 +288,7 @@ class _WorkflowPanelState extends State<WorkflowPanel>
       if (!mounted || current != generation || !foreground) return;
       setState(() {
         cases.removeWhere((row) => row.caseId == item.caseId);
-        cases.insert(0, item);
+        if (assignmentView != CaseView.unassigned) cases.insert(0, item);
         pendingCase = null;
         pendingDoctor = null;
         pendingKey = null;
@@ -339,13 +346,34 @@ class _WorkflowPanelState extends State<WorkflowPanel>
           widget.directory
               ? 'Active eligible doctors'
               : widget.reviews
-              ? 'Assigned cases · review history'
+              ? 'Reviewed cases · currently assigned'
               : widget.account.role == Role.administrator
               ? 'Hospital case assignments'
-              : 'Your assigned cases',
+              : 'Pending cases · currently assigned',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const Text('Synthetic workflow demonstration'),
+        if (!widget.directory && widget.account.role == Role.administrator)
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final entry in {
+                CaseView.all: 'All cases',
+                CaseView.unassigned: 'Awaiting assignment',
+                CaseView.assigned: 'Assigned',
+              }.entries)
+                ChoiceChip(
+                  label: Text(entry.value),
+                  selected: assignmentView == entry.key,
+                  onSelected: editable
+                      ? (_) {
+                          assignmentView = entry.key;
+                          unawaited(load());
+                        }
+                      : null,
+                ),
+            ],
+          ),
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton.icon(
@@ -362,6 +390,12 @@ class _WorkflowPanelState extends State<WorkflowPanel>
             child: const Text('Retry same assignment'),
           ),
         if (widget.directory) ...[
+          if (doctors.isEmpty && !busy)
+            Text(
+              doctorCursor == null
+                  ? 'No eligible doctors are available.'
+                  : 'No eligible doctors on this page. Load more to continue.',
+            ),
           for (final doctor in doctors)
             ListTile(
               title: Text(doctor.displayName),
@@ -373,7 +407,12 @@ class _WorkflowPanelState extends State<WorkflowPanel>
               child: const Text('Load more doctors'),
             ),
         ] else ...[
-          if (cases.isEmpty && !busy) const Text('No cases to display.'),
+          if (cases.isEmpty && !busy)
+            Text(
+              cursor != null
+                  ? 'No matching cases on this page. Load more to continue.'
+                  : 'No matching cases to display.',
+            ),
           for (final item in cases)
             Card(
               child: Padding(
@@ -395,11 +434,11 @@ class _WorkflowPanelState extends State<WorkflowPanel>
                     Text(
                       'Assigned doctor: ${item.assignedDoctorId ?? 'Awaiting assignment'}',
                     ),
-                    Text(
-                      'Created ${item.createdAt.toLocal()} · case version ${item.version}',
-                    ),
+                    Text('Submitted ${item.createdAt.toLocal()}'),
                     if (item.failureCode != null)
-                      Text('Processing diagnostic: ${item.failureCode!.value}'),
+                      const Text(
+                        'Processing could not finish. The assigned doctor can check the case and retry.',
+                      ),
                     if (widget.account.role == Role.administrator)
                       OutlinedButton(
                         onPressed:

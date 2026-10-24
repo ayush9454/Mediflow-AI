@@ -206,6 +206,15 @@ class ReportMetadata(VersionedModel):
         return self
 
 
+class CaseView(StrEnum):
+    ALL = "all"
+    HISTORY = "history"
+    PENDING = "pending"
+    REVIEWED = "reviewed"
+    UNASSIGNED = "unassigned"
+    ASSIGNED = "assigned"
+
+
 class CaseSummary(VersionedModel):
     case_id: Identifier
     report_id: Identifier
@@ -218,6 +227,7 @@ class CaseSummary(VersionedModel):
     created_at: AwareDatetime
     expires_at: AwareDatetime | None = None
     failure_code: ErrorCode | None = None
+    has_approved_result: bool = False
 
 
 class CasePage(VersionedModel):

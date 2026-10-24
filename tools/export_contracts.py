@@ -5,9 +5,10 @@ import argparse
 import inspect
 import json
 import re
+from enum import Enum
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 
 from mediflow import contracts
 from mediflow.main import create_app
@@ -236,6 +237,8 @@ def main():
     args = parser.parse_args()
     definitions = {}
     for name, cls in inspect.getmembers(contracts, inspect.isclass):
+        if cls.__module__ == contracts.__name__ and issubclass(cls, Enum):
+            definitions[name] = TypeAdapter(cls).json_schema()
         if (
             cls.__module__ == contracts.__name__
             and issubclass(cls, BaseModel)

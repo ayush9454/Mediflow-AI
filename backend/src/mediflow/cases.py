@@ -7,6 +7,7 @@ from mediflow.contracts import (
     AssignmentRequest,
     CasePage,
     CaseSummary,
+    CaseView,
     DoctorPage,
     DoctorSummary,
     Role,
@@ -29,16 +30,25 @@ from mediflow.workflow import (
 
 
 def role_scoped_cases(
-    database: Database, account: Account, cursor: str | None, limit: int
+    database: Database,
+    account: Account,
+    cursor: str | None,
+    limit: int,
+    view: CaseView = CaseView.ALL,
 ) -> CasePage:
-    if not account.active:
+    allowed = {
+        Role.PATIENT: {CaseView.ALL, CaseView.HISTORY},
+        Role.DOCTOR: {CaseView.ALL, CaseView.PENDING, CaseView.REVIEWED},
+        Role.ADMINISTRATOR: {CaseView.ALL, CaseView.UNASSIGNED, CaseView.ASSIGNED},
+    }
+    if not account.active or view not in allowed[account.role]:
         raise denied()
     filters = {"hospitalId": account.hospital_id}
     if account.role == Role.PATIENT:
         filters["patientId"] = account.uid
     elif account.role == Role.DOCTOR:
         filters["assignedDoctorId"] = account.uid
-    scope = page_scope(account, "cases")
+    scope = page_scope(account, "cases", view.value)
     page = database.scoped_page("cases", filters, decode_cursor(cursor, scope), limit + 1)
     items = []
     for case_id, _ in page[:limit]:
@@ -65,9 +75,30 @@ def role_scoped_cases(
             return summary(case_id, case, report, job.get("failureCode") if job else None)
 
         item = database.run(read)
-        if item is not None:
+        if item is not None and matches_view(item, view):
             items.append(item)
     return CasePage(items=tuple(items), next_cursor=next_cursor(page, limit, scope))
+
+
+def matches_view(item: CaseSummary, view: CaseView) -> bool:
+    """Filter a bounded role-scoped page without scanning the hospital unboundedly."""
+    if view == CaseView.HISTORY:
+        return item.processing_status in {"succeeded", "failed", "rejected"}
+    if view == CaseView.PENDING:
+        return item.processing_status != "succeeded" or item.review_status not in {
+            "approved",
+            "rejected",
+        }
+    if view == CaseView.REVIEWED:
+        return item.processing_status == "succeeded" and item.review_status in {
+            "approved",
+            "rejected",
+        }
+    if view == CaseView.UNASSIGNED:
+        return item.assigned_doctor_id is None
+    if view == CaseView.ASSIGNED:
+        return item.assigned_doctor_id is not None
+    return True
 
 
 def doctors(database: Database, account: Account, cursor: str | None, limit: int) -> DoctorPage:

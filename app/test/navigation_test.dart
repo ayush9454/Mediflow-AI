@@ -180,7 +180,7 @@ void main() {
           role == Role.patient
               ? 'Your laboratory reports'
               : role == Role.doctor
-              ? 'Your assigned cases'
+              ? 'Pending cases · currently assigned'
               : 'Hospital case assignments',
         ),
         findsOneWidget,

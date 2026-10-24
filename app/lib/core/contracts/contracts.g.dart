@@ -304,6 +304,7 @@ final class CaseSummary {
     required this.createdAt,
     required this.expiresAt,
     required this.failureCode,
+    required this.hasApprovedResult,
   });
 
   final String schemaVersion;
@@ -318,6 +319,7 @@ final class CaseSummary {
   final DateTime createdAt;
   final DateTime? expiresAt;
   final ErrorCode? failureCode;
+  final bool hasApprovedResult;
 
   factory CaseSummary.fromJson(Map<String, Object?> json) => CaseSummary(
     schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
@@ -332,6 +334,7 @@ final class CaseSummary {
     createdAt: DateTime.parse(json["createdAt"] as String),
     expiresAt: json["expiresAt"] == null ? null : DateTime.parse(json["expiresAt"] as String),
     failureCode: json["failureCode"] == null ? null : ErrorCode.fromJson(json["failureCode"] as String),
+    hasApprovedResult: (json["hasApprovedResult"] ?? false) as bool,
   );
 
   Map<String, Object?> toJson() => {
@@ -347,7 +350,25 @@ final class CaseSummary {
     "createdAt": createdAt.toUtc().toIso8601String(),
     "expiresAt": expiresAt?.toUtc().toIso8601String(),
     "failureCode": failureCode?.toJson(),
+    "hasApprovedResult": hasApprovedResult,
   };
+}
+
+enum CaseView {
+  all("all"),
+  history("history"),
+  pending("pending"),
+  reviewed("reviewed"),
+  unassigned("unassigned"),
+  assigned("assigned");
+
+  const CaseView(this.value);
+  final String value;
+  String toJson() => value;
+  static CaseView fromJson(String value) => values.firstWhere(
+    (item) => item.value == value,
+    orElse: () => throw const FormatException('Unknown CaseView value'),
+  );
 }
 
 final class CompletionRequest {
