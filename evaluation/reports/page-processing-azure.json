@@ -830,8 +830,8 @@
     }
   ],
   "cleanup": {
-    "temporary_resource_group_exists": true,
-    "all_temporary_resources_deleted": false,
-    "checked_at": "2026-10-23T21:12:47.906211+00:00"
+    "temporary_resource_group_exists": false,
+    "all_temporary_resources_deleted": true,
+    "checked_at": "2026-10-24T16:04:01.777699+00:00"
   }
 }

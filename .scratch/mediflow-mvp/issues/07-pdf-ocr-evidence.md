@@ -1,7 +1,7 @@
 # 07: Extract bounded page text with native parsing and OCR fallback
 
-Status: in-progress
-Progress: actual Azure OCR acceptance passed; temporary resource deletion confirmation pending
+Status: completed
+Progress: actual Azure OCR acceptance passed; all temporary Azure resources confirmed deleted
 Type: task
 Blocked by: 03
 Estimate: 12 hours
@@ -103,3 +103,5 @@ before mutation; no subscription conversion or public document access was added.
 - 2026-10-23: Integrated with ticket 04. Combined Linux suite: 74 passed, one opt-in emulator skip; real OCR exercised. Standards and Spec implementation reviews found no actionable findings. Azure guard stopped at owner authentication error `AADSTS530035` before mutation; no temporary resources were created. Guarded cloud build/run/collection/cleanup tooling is in `tools/processing_smoke/`. Actual Azure job acceptance remains unchecked.
 
 - 2026-10-23: Owner browser reauthentication succeeded during ticket 05; its independent real private-Blob checks passed and temporary groups were deleted. This does not run or satisfy ticket 07's actual Azure OCR job acceptance gate.
+
+- 2026-10-24: Resumed cleanup verification using `backend/.venv/bin/python tools/processing_smoke/cloud.py cleanup-status`. Azure reports the temporary resource group absent; sanitized cleanup evidence confirms all temporary resources deleted. Ticket completed.
