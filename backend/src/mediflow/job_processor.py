@@ -12,11 +12,11 @@ from datetime import UTC, datetime
 
 from mediflow.config import Settings
 from mediflow.contracts import AnalysisCandidate, AnalysisProvenance, ErrorCode, ValidationIssue
+from mediflow.errors import ProcessingFailure
 from mediflow.jobs import Lease
 from mediflow.laboratory import GeminiProvider, extract_laboratory
 from mediflow.laboratory.provider import CandidateProvider
 from mediflow.processing import Limits, process_pdf
-from mediflow.worker import ProcessingFailure
 
 
 class LaboratoryProcessor:

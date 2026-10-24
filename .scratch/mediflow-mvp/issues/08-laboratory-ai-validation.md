@@ -65,8 +65,8 @@ tests **2 passed**; hosting probe tests **9 passed**. Final two-axis review pend
 
 Live development evaluation: all **20** synthetic PDFs produced candidates using
 real Linux OCR and real `gemini-3.5-flash-lite` calls; no held-out examples or gold
-transcripts were model input. Strict row precision/recall: **63.06%/62.50%** overall,
-**96.43%/96.43%** digital, **29.09%/28.57%** scanned. Scanned units/characters,
+transcripts were model input. Strict row precision/recall: **58.56%/58.04%** overall,
+**96.43%/96.43%** digital, **20.00%/19.64%** scanned. Scanned units/characters,
 flags and one omitted row remain release-quality limitations. Quotes and fields
 with deterministic discrepancies carry blocking issues; all OCR rows require
 visual review. The scorer was not weakened. Ticket 14's held-out target is not

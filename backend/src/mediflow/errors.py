@@ -3,6 +3,15 @@
 from mediflow.contracts import ErrorCode
 
 
+class ProcessingFailure(Exception):
+    """Shared across CLI entrypoints and provider/worker process boundaries."""
+
+    def __init__(self, code: ErrorCode, *, transient: bool = False):
+        super().__init__(code.value)
+        self.code = code
+        self.transient = transient
+
+
 class ApplicationError(Exception):
     def __init__(self, code: ErrorCode, status_code: int, message: str) -> None:
         super().__init__(message)

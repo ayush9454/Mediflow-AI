@@ -51,7 +51,8 @@ def validate_row(row: PrintedRow, index: int, pages: dict[int, PageText]) -> Lab
             )
         )
 
-    if row.result_kind == "numeric" and not re.fullmatch(
+    numeric_looking = re.match(r"^[<>≤≥=+−-]*\s*(?:\d|\.\d)", row.result.strip())
+    if (row.result_kind == "numeric" or numeric_looking) and not re.fullmatch(
         r"(?:<=|>=|<|>|≤|≥)?\s*[+−-]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+−-]?\d+)?",
         row.result.strip(),
     ):
@@ -88,6 +89,9 @@ def validate_row(row: PrintedRow, index: int, pages: dict[int, PageText]) -> Lab
         if page is None:
             flag("evidence", "invalid_evidence_page", "Citation refers to an absent source page.")
             continue
+        if not page.supports_quote(reference.quotation):
+            flag("evidence", "evidence_mismatch", "Quotation does not match the cited page text.")
+            continue
         evidence.append(
             EvidenceReference(
                 page=reference.page,
@@ -95,8 +99,6 @@ def validate_row(row: PrintedRow, index: int, pages: dict[int, PageText]) -> Lab
                 extraction_method=page.origin,
             )
         )
-        if not page.supports_quote(reference.quotation):
-            flag("evidence", "evidence_mismatch", "Quotation does not match the cited page text.")
     if not evidence:
         flag("evidence", "missing_evidence", "No citation identifies an available source page.")
     supported_quotes = [
@@ -123,7 +125,11 @@ def validate_row(row: PrintedRow, index: int, pages: dict[int, PageText]) -> Lab
                 "field_not_in_evidence",
                 "Printed field is not supported by a valid citation.",
             )
-    if any(pages[reference.page].origin == "ocr" for reference in evidence):
+    if any(
+        pages[reference.page].origin == "ocr"
+        for reference in row.evidence
+        if reference.page in pages
+    ):
         issues.append(
             ValidationIssue(
                 issue_id=f"{row_id}_ocr",

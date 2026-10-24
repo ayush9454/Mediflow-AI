@@ -133,6 +133,9 @@ def test_wrong_page_or_changed_quotation_blocks_review_without_rewriting(citatio
     row = result.rows[0]
     assert any(issue.code == code and issue.severity == "blocking" for issue in row.issues)
     assert row.result == "<0.50"
+    assert row.evidence == ()
+    assert any(issue.code == "missing_evidence" for issue in row.issues)
+    assert json.loads(result.provider_output)["rows"][0]["evidence"] == [citation]
 
 
 @pytest.mark.parametrize(
@@ -146,7 +149,8 @@ def test_matching_quote_does_not_excuse_fields_that_are_not_supported(field, val
     )
 
 
-def test_malformed_numeric_text_is_preserved_with_a_blocking_issue():
+@pytest.mark.parametrize("kind", ["numeric", "qualitative"])
+def test_malformed_numeric_text_is_preserved_with_a_blocking_issue(kind):
     result = extract_laboratory(
         lease(),
         document("Synthetic Marker 1..20 SYN-U"),
@@ -154,6 +158,7 @@ def test_malformed_numeric_text_is_preserved_with_a_blocking_issue():
             [
                 raw_row(
                     result="1..20",
+                    resultKind=kind,
                     evidence=[
                         {
                             "page": 1,
@@ -432,9 +437,9 @@ def test_conflicting_rows_keep_both_proposals_and_require_review():
 def test_candidate_size_is_bounded_before_the_firestore_commit():
     from mediflow.worker import ProcessingFailure
 
-    rows = [raw_row(evidence=[{"page": 1, "quotation": "x" * 5000}]) for _ in range(25)]
+    rows = [raw_row(evidence=[{"page": 1, "quotation": "x" * 5000}]) for _ in range(31)]
     with pytest.raises(ProcessingFailure) as caught:
-        extract_laboratory(lease(), document("🧪" * 60_000), provider_for(rows))
+        extract_laboratory(lease(), document("x" * 5000 + "🧪" * 55_000), provider_for(rows))
     assert caught.value.code.value == "processing_limit_exceeded"
 
 

@@ -7,7 +7,7 @@ from typing import Protocol
 
 from mediflow.config import Settings
 from mediflow.contracts import AnalysisCandidate, ErrorCode
-from mediflow.errors import ApplicationError
+from mediflow.errors import ApplicationError, ProcessingFailure
 from mediflow.job_platform import JobServices, create_job_services
 from mediflow.job_queue import Queue
 from mediflow.jobs import Jobs, Lease
@@ -16,12 +16,6 @@ from mediflow.uploads import Uploads
 
 class Processor(Protocol):
     def __call__(self, lease: Lease, source: bytes) -> AnalysisCandidate: ...
-
-
-class ProcessingFailure(Exception):
-    def __init__(self, code: ErrorCode, *, transient: bool = False):
-        self.code = code
-        self.transient = transient
 
 
 def execute_one(jobs: Jobs, queue: Queue, uploads: Uploads, processor: Processor) -> bool:

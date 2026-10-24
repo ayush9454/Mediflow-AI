@@ -1,893 +1,893 @@
 {
   "dataset_version": "synthetic-labs-v1",
+  "mode": "extraction_evaluation",
   "groups": {
     "development/all": {
-      "classification_failures": 0,
-      "evidence_mismatches": 41,
-      "failure_rate": 0.0,
+      "sample_count": 20,
+      "submitted_documents": 20,
+      "missing_documents": 0,
       "failures": 0,
+      "failure_rate": 0.0,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 112,
+        "predicted": 111,
+        "correct": 65,
+        "precision": 0.5855855855855856,
+        "recall": 0.5803571428571429
+      },
       "fields": {
-        "abnormality_flag": {
-          "correct": 96,
-          "expected": 112,
-          "precision": 0.8648648648648649,
-          "predicted": 111,
-          "recall": 0.8571428571428571
-        },
         "analyte": {
+          "expected": 112,
+          "predicted": 111,
           "correct": 109,
-          "expected": 112,
           "precision": 0.9819819819819819,
-          "predicted": 111,
           "recall": 0.9732142857142857
-        },
-        "collection_date": {
-          "correct": 109,
-          "expected": 112,
-          "precision": 0.9819819819819819,
-          "predicted": 111,
-          "recall": 0.9732142857142857
-        },
-        "reference_range": {
-          "correct": 104,
-          "expected": 112,
-          "precision": 0.9369369369369369,
-          "predicted": 111,
-          "recall": 0.9285714285714286
         },
         "result": {
-          "correct": 107,
           "expected": 112,
-          "precision": 0.963963963963964,
           "predicted": 111,
+          "correct": 107,
+          "precision": 0.963963963963964,
           "recall": 0.9553571428571429
         },
         "unit": {
-          "correct": 84,
           "expected": 112,
-          "precision": 0.7567567567567568,
           "predicted": 111,
+          "correct": 84,
+          "precision": 0.7567567567567568,
           "recall": 0.75
-        }
-      },
-      "latency_seconds": {
-        "max": 28.19661225000027,
-        "mean": 11.519311327150103,
-        "measured_documents": 20
-      },
-      "missing_documents": 0,
-      "observations": {
-        "flagged_rows": {
-          "assessed_documents": 20,
-          "total": 102
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 20,
-          "total": 0.0
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 20,
-          "total": 0.0
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "unresolved_rows": {
-          "assessed_documents": 20,
-          "total": 102
-        },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
-        }
-      },
-      "resource_measured_documents": 20,
-      "resources": [
-        {
-          "amount": 9105.0,
-          "name": "provider_input_tokens",
-          "unit": "tokens"
-        },
-        {
-          "amount": 15747.0,
-          "name": "provider_output_tokens",
-          "unit": "tokens"
-        },
-        {
-          "amount": 0.0,
-          "name": "provider_thinking_tokens",
-          "unit": "tokens"
-        }
-      ],
-      "sample_count": 20,
-      "strict_rows": {
-        "correct": 70,
-        "expected": 112,
-        "precision": 0.6306306306306306,
-        "predicted": 111,
-        "recall": 0.625
-      },
-      "submitted_documents": 20
-    },
-    "development/digital": {
-      "classification_failures": 0,
-      "evidence_mismatches": 2,
-      "failure_rate": 0.0,
-      "failures": 0,
-      "fields": {
-        "abnormality_flag": {
-          "correct": 55,
-          "expected": 56,
-          "precision": 0.9821428571428571,
-          "predicted": 56,
-          "recall": 0.9821428571428571
-        },
-        "analyte": {
-          "correct": 56,
-          "expected": 56,
-          "precision": 1.0,
-          "predicted": 56,
-          "recall": 1.0
-        },
-        "collection_date": {
-          "correct": 56,
-          "expected": 56,
-          "precision": 1.0,
-          "predicted": 56,
-          "recall": 1.0
         },
         "reference_range": {
-          "correct": 54,
+          "expected": 112,
+          "predicted": 111,
+          "correct": 104,
+          "precision": 0.9369369369369369,
+          "recall": 0.9285714285714286
+        },
+        "abnormality_flag": {
+          "expected": 112,
+          "predicted": 111,
+          "correct": 96,
+          "precision": 0.8648648648648649,
+          "recall": 0.8571428571428571
+        },
+        "collection_date": {
+          "expected": 112,
+          "predicted": 111,
+          "correct": 109,
+          "precision": 0.9819819819819819,
+          "recall": 0.9732142857142857
+        }
+      },
+      "evidence_mismatches": 46,
+      "latency_seconds": {
+        "measured_documents": 20,
+        "mean": 11.519311327150103,
+        "max": 28.19661225000027
+      },
+      "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "flagged_rows": {
+          "total": 102,
+          "assessed_documents": 20
+        },
+        "unresolved_rows": {
+          "total": 102,
+          "assessed_documents": 20
+        },
+        "provider_cost_usd": {
+          "total": 0.0,
+          "assessed_documents": 20
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": 0.0,
+          "assessed_documents": 20
+        }
+      },
+      "resources": [
+        {
+          "name": "provider_input_tokens",
+          "unit": "tokens",
+          "amount": 9105.0
+        },
+        {
+          "name": "provider_output_tokens",
+          "unit": "tokens",
+          "amount": 15747.0
+        },
+        {
+          "name": "provider_thinking_tokens",
+          "unit": "tokens",
+          "amount": 0.0
+        }
+      ],
+      "resource_measured_documents": 20
+    },
+    "development/digital": {
+      "sample_count": 10,
+      "submitted_documents": 10,
+      "missing_documents": 0,
+      "failures": 0,
+      "failure_rate": 0.0,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 56,
+        "predicted": 56,
+        "correct": 54,
+        "precision": 0.9642857142857143,
+        "recall": 0.9642857142857143
+      },
+      "fields": {
+        "analyte": {
           "expected": 56,
-          "precision": 0.9642857142857143,
           "predicted": 56,
-          "recall": 0.9642857142857143
+          "correct": 56,
+          "precision": 1.0,
+          "recall": 1.0
         },
         "result": {
-          "correct": 56,
           "expected": 56,
-          "precision": 1.0,
           "predicted": 56,
+          "correct": 56,
+          "precision": 1.0,
           "recall": 1.0
         },
         "unit": {
-          "correct": 56,
           "expected": 56,
-          "precision": 1.0,
           "predicted": 56,
+          "correct": 56,
+          "precision": 1.0,
+          "recall": 1.0
+        },
+        "reference_range": {
+          "expected": 56,
+          "predicted": 56,
+          "correct": 54,
+          "precision": 0.9642857142857143,
+          "recall": 0.9642857142857143
+        },
+        "abnormality_flag": {
+          "expected": 56,
+          "predicted": 56,
+          "correct": 55,
+          "precision": 0.9821428571428571,
+          "recall": 0.9821428571428571
+        },
+        "collection_date": {
+          "expected": 56,
+          "predicted": 56,
+          "correct": 56,
+          "precision": 1.0,
           "recall": 1.0
         }
       },
+      "evidence_mismatches": 2,
       "latency_seconds": {
-        "max": 28.19661225000027,
+        "measured_documents": 10,
         "mean": 12.716514683400145,
-        "measured_documents": 10
+        "max": 28.19661225000027
       },
-      "missing_documents": 0,
       "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
         "flagged_rows": {
-          "assessed_documents": 10,
-          "total": 47
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 10,
-          "total": 0.0
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 10,
-          "total": 0.0
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
+          "total": 47,
+          "assessed_documents": 10
         },
         "unresolved_rows": {
-          "assessed_documents": 10,
-          "total": 47
+          "total": 47,
+          "assessed_documents": 10
         },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
+        "provider_cost_usd": {
+          "total": 0.0,
+          "assessed_documents": 10
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": 0.0,
+          "assessed_documents": 10
         }
       },
-      "resource_measured_documents": 10,
       "resources": [
         {
-          "amount": 4737.0,
           "name": "provider_input_tokens",
-          "unit": "tokens"
+          "unit": "tokens",
+          "amount": 4737.0
         },
         {
-          "amount": 7781.0,
           "name": "provider_output_tokens",
-          "unit": "tokens"
+          "unit": "tokens",
+          "amount": 7781.0
         },
         {
-          "amount": 0.0,
           "name": "provider_thinking_tokens",
-          "unit": "tokens"
+          "unit": "tokens",
+          "amount": 0.0
         }
       ],
-      "sample_count": 10,
-      "strict_rows": {
-        "correct": 54,
-        "expected": 56,
-        "precision": 0.9642857142857143,
-        "predicted": 56,
-        "recall": 0.9642857142857143
-      },
-      "submitted_documents": 10
+      "resource_measured_documents": 10
     },
     "development/scanned": {
-      "classification_failures": 0,
-      "evidence_mismatches": 39,
-      "failure_rate": 0.0,
+      "sample_count": 10,
+      "submitted_documents": 10,
+      "missing_documents": 0,
       "failures": 0,
+      "failure_rate": 0.0,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 56,
+        "predicted": 55,
+        "correct": 11,
+        "precision": 0.2,
+        "recall": 0.19642857142857142
+      },
       "fields": {
-        "abnormality_flag": {
-          "correct": 41,
-          "expected": 56,
-          "precision": 0.7454545454545455,
-          "predicted": 55,
-          "recall": 0.7321428571428571
-        },
         "analyte": {
+          "expected": 56,
+          "predicted": 55,
           "correct": 53,
-          "expected": 56,
           "precision": 0.9636363636363636,
-          "predicted": 55,
           "recall": 0.9464285714285714
-        },
-        "collection_date": {
-          "correct": 53,
-          "expected": 56,
-          "precision": 0.9636363636363636,
-          "predicted": 55,
-          "recall": 0.9464285714285714
-        },
-        "reference_range": {
-          "correct": 50,
-          "expected": 56,
-          "precision": 0.9090909090909091,
-          "predicted": 55,
-          "recall": 0.8928571428571429
         },
         "result": {
-          "correct": 51,
           "expected": 56,
-          "precision": 0.9272727272727272,
           "predicted": 55,
+          "correct": 51,
+          "precision": 0.9272727272727272,
           "recall": 0.9107142857142857
         },
         "unit": {
-          "correct": 28,
           "expected": 56,
-          "precision": 0.509090909090909,
           "predicted": 55,
+          "correct": 28,
+          "precision": 0.509090909090909,
           "recall": 0.5
+        },
+        "reference_range": {
+          "expected": 56,
+          "predicted": 55,
+          "correct": 50,
+          "precision": 0.9090909090909091,
+          "recall": 0.8928571428571429
+        },
+        "abnormality_flag": {
+          "expected": 56,
+          "predicted": 55,
+          "correct": 41,
+          "precision": 0.7454545454545455,
+          "recall": 0.7321428571428571
+        },
+        "collection_date": {
+          "expected": 56,
+          "predicted": 55,
+          "correct": 53,
+          "precision": 0.9636363636363636,
+          "recall": 0.9464285714285714
         }
       },
+      "evidence_mismatches": 44,
       "latency_seconds": {
-        "max": 24.71890595800005,
+        "measured_documents": 10,
         "mean": 10.32210797090006,
-        "measured_documents": 10
+        "max": 24.71890595800005
       },
-      "missing_documents": 0,
       "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
         "flagged_rows": {
-          "assessed_documents": 10,
-          "total": 55
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 10,
-          "total": 0.0
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 10,
-          "total": 0.0
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
+          "total": 55,
+          "assessed_documents": 10
         },
         "unresolved_rows": {
-          "assessed_documents": 10,
-          "total": 55
+          "total": 55,
+          "assessed_documents": 10
         },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
+        "provider_cost_usd": {
+          "total": 0.0,
+          "assessed_documents": 10
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": 0.0,
+          "assessed_documents": 10
         }
       },
-      "resource_measured_documents": 10,
       "resources": [
         {
-          "amount": 4368.0,
           "name": "provider_input_tokens",
-          "unit": "tokens"
+          "unit": "tokens",
+          "amount": 4368.0
         },
         {
-          "amount": 7966.0,
           "name": "provider_output_tokens",
-          "unit": "tokens"
+          "unit": "tokens",
+          "amount": 7966.0
         },
         {
-          "amount": 0.0,
           "name": "provider_thinking_tokens",
-          "unit": "tokens"
+          "unit": "tokens",
+          "amount": 0.0
         }
       ],
-      "sample_count": 10,
-      "strict_rows": {
-        "correct": 16,
-        "expected": 56,
-        "precision": 0.2909090909090909,
-        "predicted": 55,
-        "recall": 0.2857142857142857
-      },
-      "submitted_documents": 10
+      "resource_measured_documents": 10
     },
     "held-out/all": {
-      "classification_failures": 0,
-      "evidence_mismatches": 0,
-      "failure_rate": null,
+      "sample_count": 0,
+      "submitted_documents": 0,
+      "missing_documents": 0,
       "failures": 0,
+      "failure_rate": null,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 0,
+        "predicted": 0,
+        "correct": 0,
+        "precision": null,
+        "recall": null
+      },
       "fields": {
-        "abnormality_flag": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
         "analyte": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
-          "recall": null
-        },
-        "collection_date": {
           "correct": 0,
-          "expected": 0,
           "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
-        "reference_range": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
           "recall": null
         },
         "result": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         },
         "unit": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "reference_range": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "abnormality_flag": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "collection_date": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         }
       },
+      "evidence_mismatches": 0,
       "latency_seconds": {
-        "max": null,
+        "measured_documents": 0,
         "mean": null,
-        "measured_documents": 0
+        "max": null
       },
-      "missing_documents": 0,
       "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
         "flagged_rows": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
         "unresolved_rows": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
+        "provider_cost_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": null,
+          "assessed_documents": 0
         }
       },
-      "resource_measured_documents": 0,
       "resources": [],
-      "sample_count": 0,
-      "strict_rows": {
-        "correct": 0,
-        "expected": 0,
-        "precision": null,
-        "predicted": 0,
-        "recall": null
-      },
-      "submitted_documents": 0
+      "resource_measured_documents": 0
     },
     "held-out/digital": {
-      "classification_failures": 0,
-      "evidence_mismatches": 0,
-      "failure_rate": null,
+      "sample_count": 0,
+      "submitted_documents": 0,
+      "missing_documents": 0,
       "failures": 0,
+      "failure_rate": null,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 0,
+        "predicted": 0,
+        "correct": 0,
+        "precision": null,
+        "recall": null
+      },
       "fields": {
-        "abnormality_flag": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
         "analyte": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
-          "recall": null
-        },
-        "collection_date": {
           "correct": 0,
-          "expected": 0,
           "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
-        "reference_range": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
           "recall": null
         },
         "result": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         },
         "unit": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "reference_range": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "abnormality_flag": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "collection_date": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         }
       },
+      "evidence_mismatches": 0,
       "latency_seconds": {
-        "max": null,
+        "measured_documents": 0,
         "mean": null,
-        "measured_documents": 0
+        "max": null
       },
-      "missing_documents": 0,
       "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
         "flagged_rows": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
         "unresolved_rows": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
+        "provider_cost_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": null,
+          "assessed_documents": 0
         }
       },
-      "resource_measured_documents": 0,
       "resources": [],
-      "sample_count": 0,
-      "strict_rows": {
-        "correct": 0,
-        "expected": 0,
-        "precision": null,
-        "predicted": 0,
-        "recall": null
-      },
-      "submitted_documents": 0
+      "resource_measured_documents": 0
     },
     "held-out/scanned": {
-      "classification_failures": 0,
-      "evidence_mismatches": 0,
-      "failure_rate": null,
+      "sample_count": 0,
+      "submitted_documents": 0,
+      "missing_documents": 0,
       "failures": 0,
+      "failure_rate": null,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 0,
+        "predicted": 0,
+        "correct": 0,
+        "precision": null,
+        "recall": null
+      },
       "fields": {
-        "abnormality_flag": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
         "analyte": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
-          "recall": null
-        },
-        "collection_date": {
           "correct": 0,
-          "expected": 0,
           "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
-        "reference_range": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
           "recall": null
         },
         "result": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         },
         "unit": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "reference_range": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "abnormality_flag": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "collection_date": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         }
       },
+      "evidence_mismatches": 0,
       "latency_seconds": {
-        "max": null,
+        "measured_documents": 0,
         "mean": null,
-        "measured_documents": 0
+        "max": null
       },
-      "missing_documents": 0,
       "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
         "flagged_rows": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
         "unresolved_rows": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
+        "provider_cost_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": null,
+          "assessed_documents": 0
         }
       },
-      "resource_measured_documents": 0,
       "resources": [],
-      "sample_count": 0,
-      "strict_rows": {
-        "correct": 0,
-        "expected": 0,
-        "precision": null,
-        "predicted": 0,
-        "recall": null
-      },
-      "submitted_documents": 0
+      "resource_measured_documents": 0
     },
     "negative/all": {
-      "classification_failures": 0,
-      "evidence_mismatches": 0,
-      "failure_rate": null,
+      "sample_count": 0,
+      "submitted_documents": 0,
+      "missing_documents": 0,
       "failures": 0,
+      "failure_rate": null,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 0,
+        "predicted": 0,
+        "correct": 0,
+        "precision": null,
+        "recall": null
+      },
       "fields": {
-        "abnormality_flag": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
         "analyte": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
-          "recall": null
-        },
-        "collection_date": {
           "correct": 0,
-          "expected": 0,
           "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
-        "reference_range": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
           "recall": null
         },
         "result": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         },
         "unit": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "reference_range": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "abnormality_flag": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "collection_date": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         }
       },
+      "evidence_mismatches": 0,
       "latency_seconds": {
-        "max": null,
+        "measured_documents": 0,
         "mean": null,
-        "measured_documents": 0
+        "max": null
       },
-      "missing_documents": 0,
       "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
         "flagged_rows": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
         "unresolved_rows": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
+        "provider_cost_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": null,
+          "assessed_documents": 0
         }
       },
-      "resource_measured_documents": 0,
       "resources": [],
-      "sample_count": 0,
-      "strict_rows": {
-        "correct": 0,
-        "expected": 0,
-        "precision": null,
-        "predicted": 0,
-        "recall": null
-      },
-      "submitted_documents": 0
+      "resource_measured_documents": 0
     },
     "negative/digital": {
-      "classification_failures": 0,
-      "evidence_mismatches": 0,
-      "failure_rate": null,
+      "sample_count": 0,
+      "submitted_documents": 0,
+      "missing_documents": 0,
       "failures": 0,
+      "failure_rate": null,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 0,
+        "predicted": 0,
+        "correct": 0,
+        "precision": null,
+        "recall": null
+      },
       "fields": {
-        "abnormality_flag": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
         "analyte": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
-          "recall": null
-        },
-        "collection_date": {
           "correct": 0,
-          "expected": 0,
           "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
-        "reference_range": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
           "recall": null
         },
         "result": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         },
         "unit": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "reference_range": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "abnormality_flag": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "collection_date": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         }
       },
+      "evidence_mismatches": 0,
       "latency_seconds": {
-        "max": null,
+        "measured_documents": 0,
         "mean": null,
-        "measured_documents": 0
+        "max": null
       },
-      "missing_documents": 0,
       "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
         "flagged_rows": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
         "unresolved_rows": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
+        "provider_cost_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": null,
+          "assessed_documents": 0
         }
       },
-      "resource_measured_documents": 0,
       "resources": [],
-      "sample_count": 0,
-      "strict_rows": {
-        "correct": 0,
-        "expected": 0,
-        "precision": null,
-        "predicted": 0,
-        "recall": null
-      },
-      "submitted_documents": 0
+      "resource_measured_documents": 0
     },
     "negative/scanned": {
-      "classification_failures": 0,
-      "evidence_mismatches": 0,
-      "failure_rate": null,
+      "sample_count": 0,
+      "submitted_documents": 0,
+      "missing_documents": 0,
       "failures": 0,
+      "failure_rate": null,
+      "classification_failures": 0,
+      "strict_rows": {
+        "expected": 0,
+        "predicted": 0,
+        "correct": 0,
+        "precision": null,
+        "recall": null
+      },
       "fields": {
-        "abnormality_flag": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
         "analyte": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
-          "recall": null
-        },
-        "collection_date": {
           "correct": 0,
-          "expected": 0,
           "precision": null,
-          "predicted": 0,
-          "recall": null
-        },
-        "reference_range": {
-          "correct": 0,
-          "expected": 0,
-          "precision": null,
-          "predicted": 0,
           "recall": null
         },
         "result": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         },
         "unit": {
-          "correct": 0,
           "expected": 0,
-          "precision": null,
           "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "reference_range": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "abnormality_flag": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "collection_date": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
           "recall": null
         }
       },
+      "evidence_mismatches": 0,
       "latency_seconds": {
-        "max": null,
+        "measured_documents": 0,
         "mean": null,
-        "measured_documents": 0
+        "max": null
       },
-      "missing_documents": 0,
       "observations": {
+        "unsupported_summary_claims": {
+          "total": null,
+          "assessed_documents": 0
+        },
         "flagged_rows": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "out_of_pocket_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "provider_cost_usd": {
-          "assessed_documents": 0,
-          "total": null
-        },
-        "student_credit_charge_usd": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
         "unresolved_rows": {
-          "assessed_documents": 0,
-          "total": null
+          "total": null,
+          "assessed_documents": 0
         },
-        "unsupported_summary_claims": {
-          "assessed_documents": 0,
-          "total": null
+        "provider_cost_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "student_credit_charge_usd": {
+          "total": null,
+          "assessed_documents": 0
+        },
+        "out_of_pocket_usd": {
+          "total": null,
+          "assessed_documents": 0
         }
       },
-      "resource_measured_documents": 0,
       "resources": [],
-      "sample_count": 0,
-      "strict_rows": {
-        "correct": 0,
-        "expected": 0,
-        "precision": null,
-        "predicted": 0,
-        "recall": null
-      },
-      "submitted_documents": 0
+      "resource_measured_documents": 0
     }
   },
-  "mode": "extraction_evaluation",
   "run": {
     "benchmark": "laboratory-development-v1",
     "configuration": {
@@ -1204,23 +1204,55 @@
     ],
     "held_out_used": false,
     "page_results_reused": true,
-    "provider_cost_basis": "Confirmed free-tier project; billing disabled before run."
-  },
-  "validation_issue_counts": {
-    "not_printed": 127,
-    "ocr_requires_visual_review": 55,
-    "evidence_mismatch": 16,
-    "field_not_in_evidence": 76
-  },
-  "summary_review": {
-    "method": "All twenty deterministic count summaries inspected; no clinical narrative generated.",
-    "assessed_documents": 20,
-    "unsupported_clinical_claims_observed": 0
+    "provider_cost_basis": "Confirmed free-tier project; billing disabled before run.",
+    "post_validation": {
+      "recorded_model_responses_reused": true,
+      "additional_provider_requests": 0,
+      "original_model_outputs_preserved": true,
+      "changes": "Unsupported quotations excluded from usable evidence; malformed numeric-looking strings checked independently of model type.",
+      "strict_row_scores_changed": true,
+      "pre_review_strict_rows": {
+        "development/all": {
+          "correct": 70,
+          "expected": 112,
+          "precision": 0.6306306306306306,
+          "predicted": 111,
+          "recall": 0.625
+        },
+        "development/digital": {
+          "correct": 54,
+          "expected": 56,
+          "precision": 0.9642857142857143,
+          "predicted": 56,
+          "recall": 0.9642857142857143
+        },
+        "development/scanned": {
+          "correct": 16,
+          "expected": 56,
+          "precision": 0.2909090909090909,
+          "predicted": 55,
+          "recall": 0.2857142857142857
+        }
+      }
+    }
   },
   "scope": {
     "release_evaluation": false,
     "held_out_used": false,
     "deployment": "Linux OCR at 0.5 vCPU / 1 GiB, followed by host-side real Gemini calls; no Azure pipeline deployment in this ticket.",
     "cost": "Zero-dollar provider pricing on confirmed free tier; infrastructure billing consumption not measured in this local run."
+  },
+  "summary_review": {
+    "method": "All twenty deterministic count summaries inspected; no clinical narrative generated.",
+    "assessed_documents": 20,
+    "unsupported_clinical_claims_observed": 0
+  },
+  "validation_issue_counts": {
+    "not_printed": 127,
+    "invalid_numeric_syntax": 2,
+    "ocr_requires_visual_review": 55,
+    "evidence_mismatch": 16,
+    "missing_evidence": 16,
+    "field_not_in_evidence": 76
   }
 }

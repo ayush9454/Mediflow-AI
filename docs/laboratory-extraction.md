@@ -50,7 +50,7 @@ unknown properties, wrong types, malformed JSON, empty rows and truncated output
 fail explicitly.
 
 Each candidate retains exact structured provider output, validated rows,
-original/native page text and native/OCR origin. Invalid page references remain
+original/native page text and native/OCR origin. Invalid page references and unmatched quotes remain
 in the provider output, are excluded from usable evidence and receive blocking
 issues. Quotes use whitespace-only normalization. Fields must also occur with
 character boundaries in valid cited quotes: `0.5` cannot claim support from
@@ -60,6 +60,7 @@ Missing optional values, OCR uncertainty, suspected embedded instructions and
 ambiguous numeric dates remain visible. Malformed numeric strings, wrong pages
 or quotes, unsupported fields and different values for a repeated analyte/date
 are flagged. Repetition can be legitimate; every proposal remains for review.
+Numeric-looking strings are checked independently of the model's numeric/qualitative label.
 Neither nulls nor matching quotes guarantee that nothing was omitted.
 
 The summary deterministically describes extracted row/page/issue counts and the

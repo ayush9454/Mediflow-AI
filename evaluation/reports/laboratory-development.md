@@ -4,9 +4,9 @@ Dataset: `synthetic-labs-v1`
 
 | Split / medium | Samples | Correct / expected / predicted | Precision | Recall | Failures |
 | --- | ---: | --- | ---: | ---: | ---: |
-| development/all | 20 | 70 / 112 / 111 | 0.6306 | 0.6250 | 0 |
+| development/all | 20 | 65 / 112 / 111 | 0.5856 | 0.5804 | 0 |
 | development/digital | 10 | 54 / 56 / 56 | 0.9643 | 0.9643 | 0 |
-| development/scanned | 10 | 16 / 56 / 55 | 0.2909 | 0.2857 | 0 |
+| development/scanned | 10 | 11 / 56 / 55 | 0.2000 | 0.1964 | 0 |
 
 Missing submissions count as failures and remain in recall denominators.
 Null observations mean unmeasured. Complete field, evidence, classification, latency and resource metrics are in report.json.
@@ -23,7 +23,7 @@ This small synthetic benchmark does not establish real-world clinical accuracy.
 | abnormality_flag | 96 / 112 / 111 | 0.8649 | 0.8571 |
 | collection_date | 109 / 112 / 111 | 0.9820 | 0.9732 |
 
-Evidence mismatches: 41. Classification failures: 0. Missing submissions: 0.
+Evidence mismatches: 46. Classification failures: 0. Missing submissions: 0.
 
 Latency in seconds: {"max": 28.19661225000027, "mean": 11.519311327150103, "measured_documents": 20}.
 
@@ -83,7 +83,7 @@ Resource observations: 10 documents.
 | abnormality_flag | 41 / 56 / 55 | 0.7455 | 0.7321 |
 | collection_date | 53 / 56 / 55 | 0.9636 | 0.9464 |
 
-Evidence mismatches: 39. Classification failures: 0. Missing submissions: 0.
+Evidence mismatches: 44. Classification failures: 0. Missing submissions: 0.
 
 Latency in seconds: {"max": 24.71890595800005, "mean": 10.32210797090006, "measured_documents": 10}.
 
@@ -105,9 +105,9 @@ Resource observations: 10 documents.
 ## Development findings
 
 This is a development run, not the held-out release evaluation. All 20 documents
-returned schema-valid candidates. Strict row precision/recall were **63.06% /
-62.50%** overall: **96.43% / 96.43%** digital and **29.09% / 28.57%** scanned.
-There were 112 expected and 111 predicted rows, with 70 complete correct rows.
+returned schema-valid candidates. Strict row precision/recall were **58.56% /
+58.04%** overall: **96.43% / 96.43%** digital and **20.00% / 19.64%** scanned.
+There were 112 expected and 111 predicted rows, with 65 complete correct rows.
 The 95% held-out release target remains unmeasured and these development results
 are insufficient to claim release quality. The scorer was not weakened.
 
@@ -150,3 +150,11 @@ The first live request format using JSON Schema references returned HTTP 400.
 The final inline OpenAPI nullable schema succeeded; a provider-interface
 regression test covers that request contract. Those interrupted diagnostic
 requests are excluded from the final twenty-document timing/quality figures.
+
+The final deterministic validator was replayed against the exact recorded model
+responses after review fixes, with zero additional provider calls. Unsupported
+quotations were removed from usable evidence while retained verbatim in original
+provider output; numeric-looking strings are checked independently of model type.
+Removing unsupported quotations reduced complete correct rows from 70 to 65;
+five original quotations matched the authored transcript but not actual OCR text.
+The scorer was unchanged and the lower final scores are reported above.

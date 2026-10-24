@@ -9,11 +9,11 @@ from mediflow.contracts import (
     SourcePage,
     ValidationIssue,
 )
+from mediflow.errors import ProcessingFailure
 from mediflow.jobs import Lease
 from mediflow.laboratory.provider import PROMPT_VERSION, CandidateProvider, GeminiProvider
 from mediflow.laboratory.validation import flag_conflicts, validate_row
 from mediflow.processing import ProcessingResult
-from mediflow.worker import ProcessingFailure
 
 __all__ = ["GeminiProvider", "extract_laboratory"]
 

@@ -12,8 +12,8 @@ from pydantic.alias_generators import to_camel
 
 from mediflow.config import Settings
 from mediflow.contracts import ErrorCode, ExtractionConfiguration, ProviderUsage
+from mediflow.errors import ProcessingFailure
 from mediflow.processing import PageText
-from mediflow.worker import ProcessingFailure
 
 MODEL = "gemini-3.5-flash-lite"
 PROMPT_VERSION = "laboratory-extraction-v1"

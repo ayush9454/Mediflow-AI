@@ -16,6 +16,28 @@ def test_worker_status_is_safe_and_explicit(monkeypatch, capsys):
     assert "DO_NOT_PRINT_THIS" not in output
 
 
+def test_worker_cli_reports_missing_configuration_without_a_traceback():
+    import os
+    import subprocess
+    import sys
+
+    environment = {
+        key: value
+        for key, value in os.environ.items()
+        if key
+        not in {"GEMINI_API_KEY", "MEDIFLOW_GEMINI_MODEL", "MEDIFLOW_GEMINI_FREE_TIER_CONFIRMED"}
+    }
+    result = subprocess.run(
+        [sys.executable, "-m", "mediflow.worker", "--check-config"],
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    assert result.returncode == 0 and result.stderr == ""
+    assert json.loads(result.stdout)["analysisAdapter"] == "not_configured"
+
+
 def test_worker_cannot_pretend_to_process_jobs(monkeypatch):
     monkeypatch.setattr("sys.argv", ["worker"])
     with pytest.raises(SystemExit) as error:
