@@ -23,6 +23,45 @@ class RenderingFiles extends DeviceFiles {
 }
 
 void main() {
+  testWidgets('status polling keeps patient action buttons in place', (
+    tester,
+  ) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    final refresh = Completer<http.Response>();
+    var lists = 0;
+    final controller = PatientReportsController(
+      account: patient,
+      token: () => 'token',
+      platform: DeviceFiles(),
+      api: PatientReportApi(
+        Uri.parse('https://example.invalid'),
+        MockClient((request) async {
+          if (request.url.path.endsWith('/cases')) {
+            return ++lists == 1
+                ? http.Response('{"items":[],"nextCursor":null}', 200)
+                : refresh.future;
+          }
+          return http.Response(jsonEncode(metadata(status: 'succeeded')), 200);
+        }),
+      ),
+    );
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: PatientReportsPanel(controller: controller)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await controller.select('report_1');
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Open original PDF'));
+    final position = tester.getTopLeft(find.text('Open original PDF'));
+    await tester.pump(const Duration(seconds: 16));
+    expect(tester.getTopLeft(find.text('Open original PDF')), position);
+    refresh.complete(http.Response('{"items":[],"nextCursor":null}', 200));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+  });
   testWidgets(
     'a document download completing after background never opens or renders',
     (tester) async {

@@ -301,7 +301,9 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
           const Text(
             'Synthetic demonstration · Track processing and doctor review.',
           ),
-          if (state.busy) ...[
+          if (state.busy &&
+              (state.phase != ReportPhase.refreshing ||
+                  (report == null && state.cases.isEmpty))) ...[
             const SizedBox(height: 16),
             LinearProgressIndicator(
               value: state.phase == ReportPhase.uploading
@@ -388,7 +390,9 @@ class _PatientReportsPanelState extends State<PatientReportsPanel>
                     if (report.approvedAnalysisId != null)
                       FilledButton.icon(
                         onPressed:
-                            report.expiresAt?.isAfter(DateTime.now()) == false
+                            state.busy ||
+                                report.expiresAt?.isAfter(DateTime.now()) ==
+                                    false
                             ? null
                             : () => context.push('/results/${report.reportId}'),
                         icon: const Icon(Icons.fact_check_outlined),
