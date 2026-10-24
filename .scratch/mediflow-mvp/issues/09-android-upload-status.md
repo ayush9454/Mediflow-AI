@@ -1,6 +1,7 @@
 # 09: Build Android upload and persistent processing-status experience
 
-Status: ready-for-agent
+Status: in-progress
+Progress: repository/API investigation complete; test-interface confirmation pending
 Type: task
 Blocked by: 05, 06
 Estimate: 10 hours
@@ -41,8 +42,30 @@ Run on an Android emulator/device, including process kill/reopen, network interr
 
 ## Implementation record
 
-Not started. Record actual changes, verification commands/results, measured findings, and any remaining gate here. A readiness label does not imply completion or override the Blocked by line.
+Investigation started against baseline `67f6615`. Tickets 05 and 06 are complete.
+The upload, completion, report metadata and private original-document endpoints
+already exist. `GET /cases` remains a placeholder and needs a patient-scoped,
+paginated implementation for recovery after app restart. Android currently has
+authentication and role shells, with no upload workflow.
+
+Planned implementation uses the Android system PDF picker, bounded in-memory PDF
+bytes, an account-scoped recovery journal containing only the metadata and
+idempotency keys needed to resume an interrupted upload, authoritative server
+case/status refresh, foreground-only polling, and authenticated original-PDF
+access. PDF bytes, tokens and AI drafts must not be persisted in the journal.
+
+Proposed testing interfaces: (1) Android upload/API/recovery workflow for retries,
+restart and account changes; (2) patient screens/lifecycle for status messages and
+polling; (3) backend case-list/document HTTP APIs for pagination and permissions.
+The TDD skill requires explicit confirmation before tests at new interfaces.
+Confirmation was requested; no new tests or application implementation yet.
+Real Android and hosted API acceptance remain outstanding.
 
 ## Comments
 
 - 2026-10-20: Created from the user-confirmed project plan. No implementation performed.
+
+- 2026-10-24: User invoked implement for this ticket. Repository and hosted-service
+  prerequisites inspected; existing Android emulator/toolchain prepared. The
+  prior confirmation concerned ticket 08's laboratory/provider/worker interfaces;
+  ticket 09's proposed Android/case-list testing areas await confirmation.

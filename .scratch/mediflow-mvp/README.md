@@ -23,7 +23,7 @@ This directory records the shared understanding confirmed by the user. The origi
 | [06](issues/06-durable-processing-jobs.md) | Durable jobs, queue delivery, retries, and recovery | completed | 01, 04 |
 | [07](issues/07-pdf-ocr-evidence.md) | Native PDF extraction, OCR, and page evidence | completed | 03 |
 | [08](issues/08-laboratory-ai-validation.md) | Laboratory extraction, validation, and summaries | completed | 03, 06, 07 |
-| [09](issues/09-android-upload-status.md) | Android upload and processing-status workflow | ready-for-agent | 05, 06 |
+| [09](issues/09-android-upload-status.md) | Android upload and processing-status workflow | in-progress | 05, 06 |
 | [10](issues/10-evidence-result-viewer.md) | Extracted results and PDF evidence viewer | ready-for-agent | 08, 09 |
 | [11](issues/11-assignment-doctor-review.md) | Administrator assignment and versioned doctor review | ready-for-agent | 04, 10 |
 | [12](issues/12-role-workflows-patient-results.md) | Complete role workflows and approved patient results | ready-for-agent | 09, 11 |
