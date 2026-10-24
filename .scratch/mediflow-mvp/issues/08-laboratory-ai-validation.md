@@ -1,6 +1,6 @@
 # 08: Implement structured laboratory extraction, validation and summaries
 
-Status: in-progress
+Status: completed
 Type: task
 Blocked by: 03, 06, 07
 Estimate: 12 hours
@@ -56,12 +56,13 @@ process boundary; the regression now passes. The first live JSON-Schema request
 was rejected by the provider; the final inline nullable OpenAPI schema passed a
 real request and is covered by an HTTP-interface regression test.
 
-Verification so far: Linux backend suite **153 passed, one opt-in Firebase emulator
-test skipped**, including real Tesseract; focused extraction checks **33 passed**
-after an additional blank-field regression. Mypy checks **37 sources**; Ruff
+Final verification: Linux backend suite **156 passed, one opt-in Firebase emulator
+test skipped**, including real Tesseract; focused laboratory/worker checks **49 passed**.
+Mypy checks **37 sources**; Ruff
 lint/format, compileall and eight exported artifacts pass. Flutter **19 passed**,
 analysis/format clean, Dart contract smoke passed. Temporary deployment guard
-tests **2 passed**; hosting probe tests **9 passed**. Final two-axis review pending.
+tests **2 passed**; hosting probe tests **9 passed**. Standards review: **0 findings**;
+Spec review: **3 initial findings resolved, 0 remaining**. See [review-08.md](../review-08.md).
 
 Live development evaluation: all **20** synthetic PDFs produced candidates using
 real Linux OCR and real `gemini-3.5-flash-lite` calls; no held-out examples or gold
@@ -71,6 +72,16 @@ flags and one omitted row remain release-quality limitations. Quotes and fields
 with deterministic discrepancies carry blocking issues; all OCR rows require
 visual review. The scorer was not weakened. Ticket 14's held-out target is not
 measured or claimed passed.
+
+Final review fixes exclude unmatched quotations from usable evidence while
+preserving original provider output, check numeric-looking text independently of
+model labels, and share the processing exception across real CLI/import paths.
+The exact twenty recorded model responses were revalidated offline with zero
+additional provider calls. Strict correct rows decreased from 70 to 65 because
+five proposed quotations matched the gold transcript but not the actual OCR text.
+The final report preserves the earlier measurements and lower final results.
+The production worker image builds and its actual CLI configuration check passes;
+a normal configured subprocess also completed a real synthetic Gemini extraction.
 
 Evidence and reproduction:
 [development report](../../../evaluation/reports/laboratory-development.md),
@@ -89,3 +100,7 @@ in ignored local state.
 
 - 2026-10-24: Ticket 07 completed and all blockers satisfied. User confirmed all
   three proposed testing interfaces and authorized continuing ticket 08.
+
+- 2026-10-24: Implementation, final checks, live development measurement and both
+  review axes completed. Scanned quality remains explicitly recorded for ticket 14;
+  it does not represent a passed held-out release gate. No Azure resources created.
