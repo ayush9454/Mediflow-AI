@@ -291,7 +291,7 @@ def test_worker_rechecks_expiry_after_a_delayed_transaction_begins(accepted):
     assert jobs.candidate(job["jobId"]) is None
 
 
-@pytest.mark.parametrize("kind", ["orphan", "garbage"])
+@pytest.mark.parametrize("kind", ["orphan", "garbage", "mixed"])
 def test_failed_orphan_or_prefix_does_not_starve_another_source_in_small_batches(
     request, monkeypatch, kind
 ):
@@ -310,11 +310,6 @@ def test_failed_orphan_or_prefix_does_not_starve_another_source_in_small_batches
         prefix = f"reports/{session['report']['reportId']}/"
         sources.append((prefix, documents.keys(prefix)[0], source))
     now[0] += timedelta(hours=2)
-    if kind == "garbage":
-        assert uploads.cleanup(limit=20) == 2
-        for _, key, source in sources:
-            documents.put(key, BytesIO(source), len(source))
-        now[0] += timedelta(days=1)
     delete = documents.delete
 
     def unavailable(key):
@@ -323,8 +318,20 @@ def test_failed_orphan_or_prefix_does_not_starve_another_source_in_small_batches
         delete(key)
 
     monkeypatch.setattr(documents, "delete", unavailable)
+    if kind in {"garbage", "mixed"}:
+        if kind == "garbage":
+            monkeypatch.setattr(documents, "delete", delete)
+        assert uploads.cleanup(limit=20) == (2 if kind == "garbage" else 1)
+        for _, key, source in sources if kind == "garbage" else sources[1:]:
+            documents.put(key, BytesIO(source), len(source))
+        now[0] += timedelta(days=32 if kind == "mixed" else 1)
+        monkeypatch.setattr(documents, "delete", unavailable)
     for _ in range(10):
         uploads.cleanup(limit=1)
         now[0] += timedelta(minutes=5)
     assert documents.keys(sources[0][0])
     assert not documents.keys(sources[1][0])
+    if kind == "mixed":
+        assert uploads.database.run(lambda tx: tx.get("storageCapacity", "hospital_1"))[
+            "reservedBytes"
+        ] == 3 * len(sources[0][2])

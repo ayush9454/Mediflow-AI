@@ -636,6 +636,7 @@ class Uploads:
 
             record = self.database.run(inspect)
             if record is None:
+                self._defer_cleanup("uploadGarbage", report_id, "sweepAt")
                 continue
             try:
                 for object_key in self.documents.keys("reports/" + report_id + "/"):
