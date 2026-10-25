@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "verified_on": "2026-10-25",
+  "ticket": 13,
+  "baseline": "e705c3d76ed72f15cedf450ecbff04354d339497",
+  "reviewed_implementation": "85d3458",
+  "checks": {
+    "linux_backend": {
+      "passed": 221, "skipped": 2, "elapsed_seconds": 150.46,
+      "skip_reason": "Opt-in Firebase integration runs separately.",
+      "container": {"platform": "linux/amd64", "memory": "1GiB", "cpus": 1, "network": "none", "pids_limit": 128}
+    },
+    "firebase_integration": {
+      "passed": 115, "skipped": 1, "elapsed_seconds": 45.25,
+      "database": "actual local Firestore emulator transactions",
+      "authentication": "actual local Firebase Auth emulator",
+      "object_store": "external-boundary fake with injected failures and late writes",
+      "skip_reason": "Host OCR case; covered by the isolated Linux suite."
+    },
+    "retention_regressions": {"passed": 16},
+    "flutter": {"passed": 55, "analysis": "passed", "format": "33 files, zero changes", "contract_api_smoke": "passed"},
+    "python": {"format_and_lint": "passed", "mypy_sources": 46, "compilation": "passed"},
+    "generated_contract_artifacts": {"checked": 8, "status": "passed"},
+    "hosting_probe_regressions": {"passed": 9},
+    "deployment_guard_regressions": {"passed": 2},
+    "bicep_compilation": {"status": "passed", "warning": "Existing Azure public-cloud storage hostname linter warning."},
+    "reviews": {"standards_remaining": 0, "spec_remaining": 0}
+  },
+  "verified_behaviors": [
+    "Expired metadata and content are denied before cleanup, including expiry during storage reads and transaction waits.",
+    "Queued, processing, retrying and completed runs cannot restore removed content.",
+    "Cleanup removes source objects, analyses, page/model payloads, approvals, reviews and linked job/session records.",
+    "Lost deletion responses retain storage capacity until safe completion.",
+    "Unavailable report, orphan and prefix objects do not starve independent work in supported small/default/mixed batches.",
+    "Mixed failed-orphan and late-prefix cleanup releases only the safely removed source's capacity.",
+    "Existing Firestore Timestamp values and ISO strings are supported.",
+    "Concurrent uploads, analyses and approvals share bounded atomic capacity accounting.",
+    "Audit growth is capped, deletion capacity exceeds admission, and repeated API errors have sanitized bounded logs.",
+    "Administrator diagnostics contain only safe operational fields and correlation IDs.",
+    "Service-stop configuration blocks new work while preserving authorized unexpired reads.",
+    "Read-lock and commit aborts share five transaction attempts without repeating external processing."
+  ],
+  "deployment": {
+    "cleanup_schedule_defined_and_compiled": true,
+    "cleanup_schedule_deployed": false,
+    "cloud_resources_created_for_this_ticket": false,
+    "paid_features_enabled": false,
+    "remote_ci_run_claimed": false
+  },
+  "limits": {
+    "storage_payload_budget_bytes_per_hospital": 1000000000,
+    "source_reservation_multiplier": 3,
+    "maximum_serialized_clinical_record_bytes": 900000,
+    "audit_events_per_utc_day_per_category": 10000,
+    "audit_categories": ["access", "transition"],
+    "audit_deletions_per_maintenance_invocation": 100,
+    "maintenance_schedule_minutes": 5,
+    "api_error_log_entries_per_process_per_minute": 100
+  },
+  "limitations": [
+    "The payload ledger excludes separately bounded metadata, indexes and infrastructure billable storage.",
+    "A hosted cleanup execution and live credit balance were not measured; deployment and owner monitoring remain necessary.",
+    "No held-out extraction quality or signed Android release gate is claimed passed."
+  ]
+}

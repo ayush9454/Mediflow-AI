@@ -113,6 +113,16 @@ builds continue to use JDK 17.
 
 ## Verification record
 
+Ticket 13 verification (2026-10-25): 221 Linux backend tests passed with two opt-in
+Firebase tests skipped; 115 tests passed against actual Auth/Firestore emulators
+with one host OCR skip covered by Linux. All 55 Flutter tests, analysis/format,
+Python format/lint/compile, mypy on 46 sources, eight generated artifacts and Dart
+contract/API smoke pass. Bicep compiles the independent cleanup schedule. Both
+independent corrective review axes report zero remaining findings. The hosted
+schedule was not deployed by this ticket. See [operations](operations.md),
+[verification report](../evaluation/reports/retention-operations.json) and
+[review](../.scratch/mediflow-mvp/review-13.md).
+
 Ticket 12 verification (2026-10-25): 196 Linux backend tests passed with two opt-in
 Firebase tests skipped in that isolated run; 42 tests passed against actual Auth
 and Firestore emulators; all 55 Flutter tests passed. Python format/lint/compile,
