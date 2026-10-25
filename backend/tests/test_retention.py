@@ -8,17 +8,24 @@ from test_reviews import review_setup  # noqa: F401
 from test_uploads import headers, setup_uploads  # noqa: F401
 
 
-def test_cleanup_removes_verified_source_and_analysis_without_restoring_stale_work(accepted):
+@pytest.mark.parametrize("state", ["succeeded", "queued", "processing", "retrying"])
+def test_cleanup_removes_verified_source_and_analysis_without_restoring_stale_work(accepted, state):
+    from mediflow.contracts import ErrorCode
+
     jobs, queue, now, job, (client, uploads, _, documents) = accepted
-    lease = jobs.claim(job["jobId"])
-    assert jobs.finish(lease, candidate(lease, now[0]))
+    lease = jobs.claim(job["jobId"]) if state != "queued" else None
+    if state == "succeeded":
+        assert jobs.finish(lease, candidate(lease, now[0]))
+    elif state == "retrying":
+        assert jobs.fail(lease, ErrorCode.TEMPORARILY_UNAVAILABLE, transient=True)
     now[0] += timedelta(days=31)
     for _ in range(20):
         uploads.cleanup(limit=1)
     assert not documents.objects
     assert jobs.candidate(job["jobId"]) is None
     assert jobs.claim(job["jobId"]) is None
-    assert not jobs.finish(lease, candidate(lease, now[0]))
+    if lease:
+        assert not jobs.finish(lease, candidate(lease, now[0]))
     assert jobs.reconcile() == 0
     assert client.get("/api/v1/reports/" + job["reportId"], headers=headers()).status_code == 403
     for collection in (
@@ -34,6 +41,7 @@ def test_cleanup_removes_verified_source_and_analysis_without_restoring_stale_wo
         "uploadSessions",
         "uploadKeys",
         "uploadHashes",
+        "payloadCharges",
     ):
         assert uploads.database.page(collection, None, 100) == [], collection
 
@@ -113,8 +121,8 @@ def test_cleanup_resumes_after_partial_blob_failure_without_releasing_capacity_e
             raise OSError("PRIVATE_CLOUD_EXCEPTION")
 
     monkeypatch.setattr(documents, "delete", uncertain_delete)
-    with pytest.raises(OSError):
-        uploads.cleanup(limit=1)
+    uploads.cleanup(limit=1)
+    assert uploads.cleanup_failures == 1
     capacity = uploads.database.run(lambda tx: tx.get("storageCapacity", "hospital_1"))
     assert capacity["reservedBytes"] > 0
     now[0] += timedelta(minutes=3)
@@ -197,8 +205,9 @@ def test_approval_cannot_bypass_storage_capacity_or_partially_publish_a_result(r
     )
 
 
+@pytest.mark.parametrize("limit", [1, 20])
 def test_one_failing_report_does_not_starve_other_reports_in_small_cleanup_batches(
-    accepted, monkeypatch
+    accepted, monkeypatch, limit
 ):
     from test_uploads import complete, laboratory_pdf, register, upload
 
@@ -217,11 +226,66 @@ def test_one_failing_report_does_not_starve_other_reports_in_small_cleanup_batch
 
     monkeypatch.setattr(documents, "delete", fail_one_report)
     now[0] += timedelta(days=31)
+    from dataclasses import asdict
+
+    from mediflow.authorization import AuditEvent
+
+    def expired_audit_batch(tx):
+        for number in range(70):
+            tx.put(
+                "auditEvents",
+                f"expired_{number}",
+                asdict(
+                    AuditEvent(
+                        None,
+                        "hospital_1",
+                        None,
+                        "authenticate",
+                        "denied",
+                        f"audit_{number}",
+                        occurred_at=now[0] - timedelta(days=31),
+                        expires_at=now[0] - timedelta(days=1),
+                    )
+                ),
+            )
+
+    uploads.database.run(expired_audit_batch)
     for _ in range(30):
-        try:
-            uploads.cleanup(limit=1)
-        except OSError:
-            pass
+        uploads.cleanup(limit=limit)
         now[0] += timedelta(minutes=3)
     assert not documents.keys("reports/" + good + "/")
     assert documents.keys("reports/" + bad + "/")
+    assert uploads.database.due("auditEvents", "expires_at", now[0], 100) == []
+
+
+def test_cleanup_accepts_existing_seed_timestamps_and_continues_audit_expiry(accepted):
+    _, _, now, job, (_, uploads, _, _) = accepted
+
+    def seed(tx):
+        report = tx.get("reports", job["reportId"])
+        report.update(
+            reportId="auth_fixture_report",
+            caseId="auth_fixture_case",
+            expiresAt=now[0] + timedelta(days=30),
+        )
+        tx.put("reports", "auth_fixture_report", report)
+
+    uploads.database.run(seed)
+    uploads.cleanup(limit=20)
+    assert uploads.cleanup_failures == 0
+
+
+def test_worker_rechecks_expiry_after_a_delayed_transaction_begins(accepted):
+    from mediflow.jobs import Jobs
+
+    jobs, queue, now, job, (_, uploads, _, _) = accepted
+    lease = jobs.claim(job["jobId"])
+
+    class DelayedDatabase:
+        def run(self, operation):
+            now[0] += timedelta(days=31)
+            return uploads.database.run(operation)
+
+    delayed = Jobs(DelayedDatabase(), queue, clock=lambda: now[0])
+    assert not delayed.finish(lease, candidate(lease, now[0]))
+    assert jobs.candidate(job["jobId"]) is None

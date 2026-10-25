@@ -25,7 +25,7 @@ from mediflow.contracts import (
 from mediflow.errors import ApplicationError
 from mediflow.processing import process_pdf
 from mediflow.uploads.audit import record_audit
-from mediflow.uploads.capacity import ensure_capacity_ready
+from mediflow.uploads.capacity import adjust_capacity, ensure_capacity_ready
 from mediflow.uploads.database import Database, MemoryDatabase, Record, Transaction
 
 __all__ = ["Uploads", "MemoryDatabase", "MemoryDocuments"]
@@ -91,6 +91,7 @@ class Uploads:
         self.clock = clock
         self.storage_limit_bytes = storage_limit_bytes
         self.accept_new_work = accept_new_work
+        self.cleanup_failures = 0
         self.stream_slot = BoundedSemaphore(1)
 
     def register(
@@ -134,7 +135,7 @@ class Uploads:
             if previous is not None:
                 existing = tx.get("uploadSessions", previous["reportId"])
                 assert existing is not None
-                live(existing, now)
+                live(existing, self.clock())
                 if existing["request"] != session["request"]:
                     raise fail(ErrorCode.CONFLICT, 409, "Use a new key for a different upload.")
                 record = tx.get("reports", existing["reportId"])
@@ -144,11 +145,9 @@ class Uploads:
                 raise fail(
                     ErrorCode.TEMPORARILY_UNAVAILABLE, 503, "New uploads are temporarily stopped."
                 )
-            capacity = tx.get("storageCapacity", account.hospital_id) or {"reservedBytes": 0}
-            if capacity["reservedBytes"] + session["storageCharge"] > self.storage_limit_bytes:
-                raise fail(
-                    ErrorCode.QUOTA_EXHAUSTED, 429, "The storage capacity limit has been reached."
-                )
+            adjust_capacity(
+                tx, account.hospital_id, session["storageCharge"], self.storage_limit_bytes
+            )
             reservations = tx.get("uploadReservations", account.hospital_id) or {"items": {}}
             items = reservations["items"]
             if len(items) >= 20 or sum(uid == account.uid for uid in items.values()) >= 5:
@@ -176,8 +175,6 @@ class Uploads:
                     },
                 )
             items[report.report_id] = account.uid
-            capacity["reservedBytes"] += session["storageCharge"]
-            tx.put("storageCapacity", account.hospital_id, capacity)
             tx.put("uploadReservations", account.hospital_id, reservations)
             tx.put("uploadKeys", index_key, {"reportId": report.report_id})
             tx.put("reports", report.report_id, report.model_dump(mode="json", by_alias=True))
@@ -230,10 +227,9 @@ class Uploads:
         return str(self.session(report_id)["reportId"])
 
     def _claim(self, report_id: str, state: str, token: str) -> Record:
-        now = self.clock()
-
         def operation(tx: Transaction) -> Record:
             session = tx.get("uploadSessions", report_id)
+            now = self.clock()
             if session is None:
                 raise fail(ErrorCode.PERMISSION_DENIED, 403, "Access is denied.")
             live(session, now)
@@ -428,6 +424,7 @@ class Uploads:
                     or current["state"] != "validating"
                 ):
                     raise fail(ErrorCode.CONFLICT, 409, "The upload changed. Try again.")
+                now = self.clock()
                 live(current, now)
                 report = tx.get("reports", report_id)
                 assert report is not None
@@ -564,7 +561,11 @@ class Uploads:
         if not 1 <= limit <= 100:
             raise ValueError("Cleanup limit must be between 1 and 100.")
         now = self.clock()
-        count = 0
+        self.cleanup_failures = 0
+        from mediflow.uploads.retention import Retention
+
+        # Audit expiry runs before potentially slow document I/O.
+        count = Retention(self).sweep(limit)
         for report_id in self.database.due("uploadSessions", "cleanupAt", now.isoformat(), limit):
             token = uuid4().hex
 
@@ -592,8 +593,12 @@ class Uploads:
             session = self.database.run(claim)
             if session is None:
                 continue
-            for object_key in session["attemptKeys"]:
-                self.documents.delete(object_key)
+            try:
+                for object_key in session["attemptKeys"]:
+                    self.documents.delete(object_key)
+            except Exception:
+                self.cleanup_failures += 1
+                continue
 
             def remove(tx: Transaction, report_id: str = report_id, token: str = token) -> None:
                 current = tx.get("uploadSessions", report_id)
@@ -613,9 +618,7 @@ class Uploads:
             self.database.run(remove)
             count += 1
         self._sweep_garbage(now, limit)
-        from mediflow.uploads.retention import Retention
-
-        return count + Retention(self).sweep(limit)
+        return count
 
     def _sweep_garbage(self, now: datetime, limit: int) -> None:
         for report_id in self.database.due("uploadGarbage", "sweepAt", now.isoformat(), limit):
@@ -633,9 +636,13 @@ class Uploads:
             record = self.database.run(inspect)
             if record is None:
                 continue
-            for object_key in self.documents.keys("reports/" + report_id + "/"):
-                if object_key != record["keepKey"]:
-                    self.documents.delete(object_key)
+            try:
+                for object_key in self.documents.keys("reports/" + report_id + "/"):
+                    if object_key != record["keepKey"]:
+                        self.documents.delete(object_key)
+            except Exception:
+                self.cleanup_failures += 1
+                continue
 
             sweep_record = record
 
@@ -650,10 +657,8 @@ class Uploads:
                     and tx.get("sourceArtifacts", report_id) is None
                     and tx.get("uploadSessions", report_id) is None
                 ):
-                    capacity = tx.get("storageCapacity", current.get("hospitalId", "legacy"))
-                    if capacity:
-                        capacity["reservedBytes"] -= current.get("storageCharge", 0)
-                        tx.put("storageCapacity", current["hospitalId"], capacity)
+                    if current.get("storageCharge"):
+                        adjust_capacity(tx, current["hospitalId"], -current["storageCharge"])
                     tx.delete("uploadGarbage", report_id)
                 else:
                     current["sweepAt"] = (now + timedelta(days=1)).isoformat()

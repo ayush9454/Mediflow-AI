@@ -1,6 +1,8 @@
 """Trusted Firestore transactions and private Azure Blob storage adapters."""
 
+import random
 import re
+import time
 from collections.abc import Callable
 from datetime import datetime
 from itertools import islice
@@ -8,7 +10,7 @@ from typing import Any, BinaryIO
 
 from azure.core.exceptions import AzureError, ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient, ContentSettings
-from google.api_core.exceptions import GoogleAPICallError
+from google.api_core.exceptions import Aborted, GoogleAPICallError
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
@@ -68,10 +70,19 @@ class FirestoreDatabase:
             staged.commit_writes()
             return result
 
-        try:
-            return execute(self.db.transaction(max_attempts=5))
-        except (GoogleAPICallError, ValueError):
-            raise unavailable() from None
+        # SDK retries cover commit aborts but not read-lock aborts. Keep one shared
+        # five-attempt budget for both, with jitter before acquiring any new locks.
+        for attempt in range(5):
+            if attempt:
+                time.sleep(random.uniform(0.5, 1.5) * min(0.05 * 2 ** (attempt - 1), 0.4))
+            try:
+                return execute(self.db.transaction(max_attempts=1))
+            except (Aborted, ValueError) as error:
+                if not isinstance(error, Aborted) and not isinstance(error.__cause__, Aborted):
+                    raise unavailable() from None
+            except GoogleAPICallError:
+                raise unavailable() from None
+        raise unavailable()
 
     def due(self, collection: str, field: str, now: str | datetime, limit: int) -> list[str]:
         try:

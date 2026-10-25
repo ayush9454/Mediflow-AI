@@ -263,11 +263,11 @@ class Jobs:
         if not self.accept_new_work:
             return None
         ensure_capacity_ready(self.database)
-        now = self.clock()
 
         def operation(tx: Transaction) -> Lease | None:
             run = tx.get("jobDispatches", job_id)
             job = tx.get("processingJobs", job_id)
+            now = self.clock()
             if not run or not job or job["status"] != "queued":
                 return None
             if run["nextAttemptAt"] > now.isoformat():
@@ -396,8 +396,6 @@ class Jobs:
             tx.delete("jobWorkerSlots", run["hospitalId"])
 
     def fail(self, lease: Lease, code: ErrorCode, *, transient: bool = False) -> bool:
-        now = self.clock()
-
         def operation(tx: Transaction) -> bool:
             run = tx.get("jobDispatches", lease.job_id)
             job = tx.get("processingJobs", lease.job_id)
@@ -409,6 +407,7 @@ class Jobs:
             ):
                 return False
             report = tx.get("reports", lease.report_id)
+            now = self.clock()
             if self._expired(tx, job, run, report, now):
                 return False
             if now >= datetime.fromisoformat(run["deadline"]):
@@ -428,7 +427,6 @@ class Jobs:
             or candidate.provenance.pipeline_version != lease.pipeline_version
         ):
             raise ValueError("Candidate does not belong to this logical run.")
-        now = self.clock()
 
         def operation(tx: Transaction) -> bool:
             run = tx.get("jobDispatches", lease.job_id)
@@ -441,6 +439,7 @@ class Jobs:
             ):
                 return False
             report = tx.get("reports", lease.report_id)
+            now = self.clock()
             if self._expired(tx, job, run, report, now):
                 return False
             assert report is not None
@@ -513,7 +512,6 @@ class Jobs:
         body: ReprocessingRequest,
         key: str,
     ) -> ProcessingJob:
-        now = self.clock()
         index = scoped_key(account.hospital_id, account.uid, report_id, key)
         fingerprint = scoped_key(body.model_dump_json())
         job_id = uuid4().hex
@@ -533,6 +531,7 @@ class Jobs:
                 or case.get("assignedDoctorId") != account.uid
             ):
                 raise fail(ErrorCode.PERMISSION_DENIED, 403, "Access is denied.")
+            now = self.clock()
             if not report.get("expiresAt") or datetime.fromisoformat(report["expiresAt"]) <= now:
                 raise fail(ErrorCode.EXPIRED, 410, "This source has expired.")
             previous = tx.get("reprocessKeys", index)

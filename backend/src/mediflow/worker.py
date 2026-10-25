@@ -89,11 +89,17 @@ def main() -> int:
     try:
         services = platform(settings)
         if arguments.maintenance:
+            removed = services.uploads.cleanup(limit=arguments.limit)
             print(
                 json.dumps(
-                    {"expiredRecordsRemoved": services.uploads.cleanup(limit=arguments.limit)}
+                    {
+                        "expiredRecordsRemoved": removed,
+                        "cleanupFailures": services.uploads.cleanup_failures,
+                    }
                 )
             )
+            if services.uploads.cleanup_failures:
+                return 1
         elif arguments.reconcile:
             print(json.dumps({"dispatched": services.jobs.reconcile(limit=arguments.limit)}))
         else:

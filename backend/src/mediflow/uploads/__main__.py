@@ -2,21 +2,24 @@
 
 import argparse
 
-from mediflow.main import app
+from mediflow.config import Settings
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, default=100, choices=range(1, 101))
     args = parser.parse_args()
-    module = app.state.uploads
-    if module is None:
-        raise SystemExit("Configure trusted Firestore and private Azure storage before cleanup.")
     try:
+        from mediflow.worker import platform
+
+        module = platform(Settings.from_environment()).uploads
         removed = module.cleanup(limit=args.limit)
     except Exception:
-        raise SystemExit("Cleanup was interrupted; retry after its lease expires.") from None
+        parser.exit(2, "Cleanup is unavailable or not configured; retry after its lease expires.\n")
     print("Expired records removed:", removed)
+    print("Cleanup failures:", module.cleanup_failures)
+    if module.cleanup_failures:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

@@ -41,6 +41,24 @@ def charge_key(collection: str, key: str) -> str:
     return hashlib.sha256(f"{collection}/{key}".encode()).hexdigest()
 
 
+def adjust_capacity(
+    tx: Transaction, hospital_id: str, delta: int, limit: int | None = None
+) -> None:
+    capacity = tx.get("storageCapacity", hospital_id) or {"reservedBytes": 0}
+    total = capacity["reservedBytes"] + delta
+    if total < 0:
+        raise ApplicationError(
+            ErrorCode.INTEGRATION_NOT_CONFIGURED,
+            503,
+            "Storage accounting requires trusted maintenance.",
+        )
+    if limit is not None and total > limit:
+        raise ApplicationError(
+            ErrorCode.QUOTA_EXHAUSTED, 429, "The storage capacity limit has been reached."
+        )
+    tx.put("storageCapacity", hospital_id, {"reservedBytes": total})
+
+
 def store_payload(
     tx: Transaction,
     collection: str,
@@ -52,14 +70,11 @@ def store_payload(
 ) -> None:
     size = len(json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode())
     previous = tx.get("payloadCharges", charge_key(collection, key)) or {"bytes": 0}
-    capacity = tx.get("storageCapacity", hospital_id) or {"reservedBytes": 0}
-    total = capacity["reservedBytes"] + size - previous["bytes"]
-    if size > 900_000 or total > limit:
+    if size > 900_000:
         raise ApplicationError(
             ErrorCode.QUOTA_EXHAUSTED, 429, "The storage capacity limit has been reached."
         )
-    capacity["reservedBytes"] = total
-    tx.put("storageCapacity", hospital_id, capacity)
+    adjust_capacity(tx, hospital_id, size - previous["bytes"], limit)
     tx.put(
         "payloadCharges",
         charge_key(collection, key),
@@ -75,9 +90,6 @@ def store_payload(
 def delete_payload(tx: Transaction, collection: str, key: str) -> None:
     charge = tx.get("payloadCharges", charge_key(collection, key))
     if charge:
-        capacity = tx.get("storageCapacity", charge["hospitalId"])
-        assert capacity is not None
-        capacity["reservedBytes"] -= charge["bytes"]
-        tx.put("storageCapacity", charge["hospitalId"], capacity)
+        adjust_capacity(tx, charge["hospitalId"], -charge["bytes"])
         tx.delete("payloadCharges", charge_key(collection, key))
     tx.delete(collection, key)

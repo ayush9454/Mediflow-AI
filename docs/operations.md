@@ -29,18 +29,23 @@ uses the existing [Container Apps Jobs configuration](https://learn.microsoft.co
 Provisioning the template is required for automatic cleanup; merely running the
 API does not start a scheduler.
 
-Each sweep handles a bounded page of abandoned sessions and tracked Blob prefixes,
-then advances a persistent document-ID cursor through reports. Expired reports are
+Each sweep expires audit and auxiliary records before document I/O, advances a
+persistent document-ID cursor through reports, then handles a bounded page of
+abandoned sessions and tracked Blob prefixes. Expired reports are
 deleted in phases: source objects, analyses/page text/provider output, reviews,
 review indexes, processing runs/attempts, hash indexes, then source/session/case/report
 metadata and the approved snapshot. Each child page has at most 100 records.
 Expiry remains effective throughout these phases. A failing source does not stop
 the scan from reaching other reports. A cleanup lease lasts two minutes; retry
-after that lease if an execution stops. Object deletion and database transitions
+after that lease if an execution stops. Cleanup failures are isolated per source;
+the CLI reports a safe failure count and exits nonzero while other records progress.
+Object deletion and database transitions
 are idempotent, including when a successful delete loses its response.
 
 Each invocation also removes a bounded batch of expired idempotency responses,
-quota/rate records and audit events. Audit expiry uses its stored timestamp type.
+quota/rate records and up to 100 audit events. At five-minute scheduling, the
+audit deletion capacity is 28,800/day, above the combined 20,000/day write ceiling.
+Existing seed Timestamp values and ISO timestamp strings are both supported.
 The final expiry event retains opaque resource/hospital IDs, time, action and outcome;
 it contains no filename, rows, source text, review comment or model payload and
 expires after another 30 days. Keep running maintenance until any backlog clears;
@@ -100,6 +105,9 @@ Audit-budget exhaustion fails closed with 429; it does not drop required events
 and continue access. Idempotent state transitions do not charge the same audit event
 twice. The separate access budget keeps repeated access attempts from consuming
 the state-transition budget. Audit budgets and daily quotas are also swept.
+Firestore read-lock and commit aborts share five bounded transaction attempts with
+short randomized backoff. Transaction retries never repeat Blob or provider calls,
+and worker/upload expiry checks sample time inside each transaction attempt.
 
 ## Safe diagnostics
 
