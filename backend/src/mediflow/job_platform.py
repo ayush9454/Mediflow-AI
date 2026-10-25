@@ -40,7 +40,17 @@ def create_job_services(settings: Settings, database: Database) -> JobServices:
             settings.azure_document_container,
             credential,
         ),
+        storage_limit_bytes=settings.storage_limit_bytes,
+        accept_new_work=settings.accept_new_work,
     )
     return JobServices(
-        Jobs(database, queue, deadline_seconds=settings.job_timeout_seconds), queue, uploads
+        Jobs(
+            database,
+            queue,
+            deadline_seconds=settings.job_timeout_seconds,
+            storage_limit_bytes=settings.storage_limit_bytes,
+            accept_new_work=settings.accept_new_work,
+        ),
+        queue,
+        uploads,
     )

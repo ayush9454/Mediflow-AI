@@ -33,6 +33,8 @@ def test_worker_cli_reports_missing_configuration_without_a_traceback():
         capture_output=True,
         text=True,
         timeout=20,
+        # Let macOS use posix_spawn instead of running the parent emulator's gRPC fork hooks.
+        close_fds=False,
     )
     assert result.returncode == 0 and result.stderr == ""
     assert json.loads(result.stdout)["analysisAdapter"] == "not_configured"

@@ -10,4 +10,4 @@ RUN uv sync --locked --no-dev --no-editable --extra processing
 RUN useradd --create-home --uid 10001 mediflow
 USER mediflow
 EXPOSE 8000
-CMD ["python", "-m", "uvicorn", "mediflow.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "mediflow.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

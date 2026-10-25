@@ -84,9 +84,9 @@ class Authorization:
                 allowed = account.role == Role.ADMINISTRATOR
         self._decision(account, report_id, action, allowed, request_id)
         assert report is not None
-        if action == "document" and report.expires_at is not None:
+        if report.expires_at is not None:
             if report.expires_at <= datetime.now(UTC):
-                raise ApplicationError(ErrorCode.EXPIRED, 410, "This document has expired.")
+                raise ApplicationError(ErrorCode.EXPIRED, 410, "This report has expired.")
         return report
 
     def case_access(self, account: Account, case_id: str, request_id: str) -> ReportMetadata:

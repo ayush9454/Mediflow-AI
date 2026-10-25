@@ -1,4 +1,4 @@
-"""Trusted bounded orphan cleanup; no client-accessible administrative route."""
+"""Trusted bounded retention and orphan cleanup; no client-accessible deletion route."""
 
 import argparse
 
@@ -12,7 +12,11 @@ def main() -> None:
     module = app.state.uploads
     if module is None:
         raise SystemExit("Configure trusted Firestore and private Azure storage before cleanup.")
-    print("Expired upload reservations removed:", module.cleanup(limit=args.limit))
+    try:
+        removed = module.cleanup(limit=args.limit)
+    except Exception:
+        raise SystemExit("Cleanup was interrupted; retry after its lease expires.") from None
+    print("Expired records removed:", removed)
 
 
 if __name__ == "__main__":

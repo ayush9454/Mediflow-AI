@@ -58,6 +58,15 @@ def setup_uploads():
     documents = MemoryDocuments()
 
     class Identities(MemoryIdentityStore):
+        def audit(self, event):
+            from dataclasses import asdict
+            from uuid import uuid4
+
+            from mediflow.uploads.audit import record_audit
+
+            database.run(lambda tx: record_audit(tx, uuid4().hex, asdict(event), access=True))
+            self.events.append(event)
+
         def report(self, report_id):
             from mediflow.contracts import ReportMetadata
 
@@ -160,6 +169,103 @@ def test_private_upload_creates_retrievable_report_and_durable_job(setup_uploads
     assert document.content == source
     assert document.headers["cache-control"] == "no-store"
     assert "blob.core" not in registered.text + completed.text
+
+
+def test_expired_report_metadata_is_denied_before_cleanup_without_disclosing_filename(
+    setup_uploads,
+):
+    client, uploads, _, _ = setup_uploads
+    source = laboratory_pdf()
+    session = register(client, source).json()
+    assert upload(client, session, source).status_code == 204
+    report_id = complete(client, session).json()["reportId"]
+
+    def expire(tx):
+        report = tx.get("reports", report_id)
+        report["createdAt"] = "2019-12-01T00:00:00+00:00"
+        report["expiresAt"] = "2020-01-01T00:00:00+00:00"
+        tx.put("reports", report_id, report)
+
+    uploads.database.run(expire)
+    response = client.get("/api/v1/reports/" + report_id, headers=headers())
+    assert response.status_code == 410
+    assert response.json()["error"]["code"] == "expired"
+    assert "synthetic.pdf" not in response.text
+    assert (
+        client.get("/api/v1/reports/" + report_id, headers=headers("patient_b")).status_code == 403
+    )
+
+
+def test_storage_ceiling_is_atomic_and_idempotent_before_any_bytes_are_written(setup_uploads):
+    from concurrent.futures import ThreadPoolExecutor
+
+    from mediflow.uploads import Uploads
+
+    client, original, _, documents = setup_uploads
+    source = laboratory_pdf()
+    client.app.state.uploads = Uploads(
+        original.database, documents, storage_limit_bytes=3 * len(source)
+    )
+    with ThreadPoolExecutor(2) as pool:
+        responses = list(pool.map(lambda key: register(client, source, key), ["first", "second"]))
+    assert sorted(response.status_code for response in responses) == [201, 429]
+    winner = "first" if responses[0].status_code == 201 else "second"
+    assert register(client, source, winner).json() == next(
+        response.json() for response in responses if response.status_code == 201
+    )
+    denied = next(response for response in responses if response.status_code == 429)
+    assert denied.json()["error"]["code"] == "quota_exhausted"
+    assert "storage" in denied.json()["error"]["message"].lower()
+    assert not documents.objects
+
+
+def test_exhausted_access_audit_budget_fails_closed_without_unbounded_event_growth(setup_uploads):
+    client, uploads, _, _ = setup_uploads
+    day = datetime.now(UTC).strftime("%Y-%m-%d")
+    uploads.database.run(lambda tx: tx.put("auditBudgets", "access-" + day, {"count": 10000}))
+    before = uploads.database.page("auditEvents", None, 100)
+    for _ in range(3):
+        response = client.get("/api/v1/cases", headers=headers())
+        assert response.status_code == 429
+        assert response.json()["error"]["code"] == "quota_exhausted"
+    assert uploads.database.page("auditEvents", None, 100) == before
+
+
+def test_legacy_payloads_cannot_silently_start_with_an_empty_capacity_ledger(setup_uploads):
+    client, uploads, _, _ = setup_uploads
+    source = laboratory_pdf()
+    assert register(client, source).status_code == 201
+
+    def legacy(tx):
+        tx.delete("storagePolicy", "capacity-v1")
+        tx.delete("storageCapacity", "hospital_1")
+
+    uploads.database.run(legacy)
+    response = register(client, source, key="legacy_restart")
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "integration_not_configured"
+
+
+def test_document_expiring_during_storage_read_is_not_returned(setup_uploads, monkeypatch):
+    from datetime import timedelta
+
+    client, uploads, _, documents = setup_uploads
+    source = laboratory_pdf()
+    session = register(client, source).json()
+    assert upload(client, session, source).status_code == 204
+    report_id = complete(client, session).json()["reportId"]
+    read = documents.read
+    started = uploads.clock()
+
+    def delayed_read(key):
+        result = read(key)
+        uploads.clock = lambda: started + timedelta(days=31)
+        return result
+
+    monkeypatch.setattr(documents, "read", delayed_read)
+    response = client.get(f"/api/v1/reports/{report_id}/document", headers=headers())
+    assert response.status_code == 410
+    assert not response.content.startswith(b"%PDF")
 
 
 def test_registration_and_completion_retries_and_byte_duplicates_reuse_one_case(setup_uploads):

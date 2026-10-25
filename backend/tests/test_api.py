@@ -84,17 +84,34 @@ def test_validation_errors_do_not_echo_sensitive_request_input(app):
     assert '"input"' not in response.text
 
 
-def test_unexpected_errors_do_not_leak_exception_contents(app):
+def test_unexpected_errors_do_not_leak_exception_contents(app, caplog):
     @app.get("/test-crash")
     async def crash():
         raise RuntimeError("SENSITIVE_EXCEPTION_CONTENT")
 
-    with TestClient(app, raise_server_exceptions=False) as client:
+    with TestClient(app) as client:
         response = client.get("/test-crash")
     assert response.status_code == 500
     assert response.json()["error"]["code"] == "internal_error"
     assert "SENSITIVE_EXCEPTION_CONTENT" not in response.text
+    assert "SENSITIVE_EXCEPTION_CONTENT" not in caplog.text
     assert response.json()["error"]["requestId"] == response.headers["x-request-id"]
+    assert response.headers["x-request-id"] in caplog.text
+
+
+def test_repeated_failures_have_bounded_sanitized_logs_and_safe_responses(app, caplog):
+    @app.get("/test-repeated-crash")
+    async def crash():
+        raise RuntimeError("PRIVATE_DOCUMENT_AND_TOKEN")
+
+    with TestClient(app) as client:
+        for _ in range(105):
+            response = client.get("/test-repeated-crash")
+            assert response.status_code == 500
+    records = [record for record in caplog.records if record.name == "mediflow.main"]
+    assert len(records) == 100
+    assert "PRIVATE_DOCUMENT_AND_TOKEN" not in caplog.text
+    assert "Traceback" not in caplog.text
 
 
 def test_contracts_include_idempotency_concurrency_and_document_upload(client):

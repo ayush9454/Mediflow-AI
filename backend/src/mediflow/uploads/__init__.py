@@ -24,10 +24,13 @@ from mediflow.contracts import (
 )
 from mediflow.errors import ApplicationError
 from mediflow.processing import process_pdf
+from mediflow.uploads.audit import record_audit
+from mediflow.uploads.capacity import ensure_capacity_ready
 from mediflow.uploads.database import Database, MemoryDatabase, Record, Transaction
 
 __all__ = ["Uploads", "MemoryDatabase", "MemoryDocuments"]
 MAX_BYTES = 10_000_000
+STORAGE_LIMIT_BYTES = 1_000_000_000
 
 
 def scoped_key(*parts: str) -> str:
@@ -78,15 +81,22 @@ class Uploads:
         documents: Documents,
         *,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        storage_limit_bytes: int = STORAGE_LIMIT_BYTES,
+        accept_new_work: bool = True,
     ) -> None:
+        if not 1 <= storage_limit_bytes <= STORAGE_LIMIT_BYTES:
+            raise ValueError("Storage capacity must be between 1 and 1,000,000,000 bytes.")
         self.database = database
         self.documents = documents
         self.clock = clock
+        self.storage_limit_bytes = storage_limit_bytes
+        self.accept_new_work = accept_new_work
         self.stream_slot = BoundedSemaphore(1)
 
     def register(
         self, account: Account, body: ReportRegistration, key: str, request_id: str
     ) -> UploadSession:
+        ensure_capacity_ready(self.database)
         now = self.clock()
         report = ReportMetadata(
             report_id=uuid4().hex,
@@ -114,6 +124,8 @@ class Uploads:
             "attempts": 0,
             "objectKey": None,
             "attemptKeys": [],
+            # Three immutable attempts can remain after uncertain storage writes.
+            "storageCharge": 3 * body.byte_count,
             "request": body.model_dump(mode="json", by_alias=True),
         }
 
@@ -128,6 +140,15 @@ class Uploads:
                 record = tx.get("reports", existing["reportId"])
                 assert record is not None
                 return self._session_response(existing, ReportMetadata.model_validate(record))
+            if not self.accept_new_work:
+                raise fail(
+                    ErrorCode.TEMPORARILY_UNAVAILABLE, 503, "New uploads are temporarily stopped."
+                )
+            capacity = tx.get("storageCapacity", account.hospital_id) or {"reservedBytes": 0}
+            if capacity["reservedBytes"] + session["storageCharge"] > self.storage_limit_bytes:
+                raise fail(
+                    ErrorCode.QUOTA_EXHAUSTED, 429, "The storage capacity limit has been reached."
+                )
             reservations = tx.get("uploadReservations", account.hospital_id) or {"items": {}}
             items = reservations["items"]
             if len(items) >= 20 or sum(uid == account.uid for uid in items.values()) >= 5:
@@ -155,6 +176,8 @@ class Uploads:
                     },
                 )
             items[report.report_id] = account.uid
+            capacity["reservedBytes"] += session["storageCharge"]
+            tx.put("storageCapacity", account.hospital_id, capacity)
             tx.put("uploadReservations", account.hospital_id, reservations)
             tx.put("uploadKeys", index_key, {"reportId": report.report_id})
             tx.put("reports", report.report_id, report.model_dump(mode="json", by_alias=True))
@@ -174,6 +197,16 @@ class Uploads:
                 },
             )
             tx.put("uploadSessions", report.report_id, session)
+            tx.put(
+                "uploadGarbage",
+                report.report_id,
+                {
+                    "sweepAt": session["cleanupAt"],
+                    "until": (now + timedelta(days=31)).isoformat(),
+                    "hospitalId": account.hospital_id,
+                    "storageCharge": session["storageCharge"],
+                },
+            )
             self._audit(tx, report.report_id, session, "upload_registered", now)
             return self._session_response(session, report)
 
@@ -210,6 +243,10 @@ class Uploads:
                 session["state"] = "uploaded" if session["state"] == "validating" else "pending"
             if session["state"] == "completed":
                 return session
+            if not self.accept_new_work:
+                raise fail(
+                    ErrorCode.TEMPORARILY_UNAVAILABLE, 503, "New uploads are temporarily stopped."
+                )
             if state == "writing" and session["state"] == "uploaded":
                 return session
             if state == "validating" and session["state"] != "uploaded":
@@ -495,6 +532,8 @@ class Uploads:
 
         artifact = self.database.run(operation)
         source = self.documents.read(artifact["objectKey"])
+        # A slow storage read must not carry content across the retention boundary.
+        self.database.run(operation)
         if (
             len(source) != artifact["byteCount"]
             or hashlib.sha256(source).hexdigest() != artifact["sha256"]
@@ -574,7 +613,9 @@ class Uploads:
             self.database.run(remove)
             count += 1
         self._sweep_garbage(now, limit)
-        return count
+        from mediflow.uploads.retention import Retention
+
+        return count + Retention(self).sweep(limit)
 
     def _sweep_garbage(self, now: datetime, limit: int) -> None:
         for report_id in self.database.due("uploadGarbage", "sweepAt", now.isoformat(), limit):
@@ -601,16 +642,25 @@ class Uploads:
             def reschedule(
                 tx: Transaction, report_id: str = report_id, record: Record = sweep_record
             ) -> None:
-                if datetime.fromisoformat(record["until"]) <= now:
+                current = tx.get("uploadGarbage", report_id)
+                if current is None:
+                    return
+                if (
+                    datetime.fromisoformat(record["until"]) <= now
+                    and tx.get("sourceArtifacts", report_id) is None
+                    and tx.get("uploadSessions", report_id) is None
+                ):
+                    capacity = tx.get("storageCapacity", current.get("hospitalId", "legacy"))
+                    if capacity:
+                        capacity["reservedBytes"] -= current.get("storageCharge", 0)
+                        tx.put("storageCapacity", current["hospitalId"], capacity)
                     tx.delete("uploadGarbage", report_id)
                 else:
+                    current["sweepAt"] = (now + timedelta(days=1)).isoformat()
                     tx.put(
                         "uploadGarbage",
                         report_id,
-                        {
-                            "until": record["until"],
-                            "sweepAt": (now + timedelta(days=1)).isoformat(),
-                        },
+                        current,
                     )
 
             self.database.run(reschedule)
@@ -631,8 +681,8 @@ class Uploads:
         tx: Transaction, report_id: str, session: Record, action: str, now: datetime
     ) -> None:
         request_id = session["requestId"]
-        tx.put(
-            "auditEvents",
+        record_audit(
+            tx,
             action + "_" + report_id + "_" + request_id,
             asdict(
                 AuditEvent(

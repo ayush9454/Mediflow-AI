@@ -58,7 +58,10 @@ def platform(settings: Settings) -> JobServices:
 def main() -> int:
     parser = argparse.ArgumentParser(description="MediFlow durable processing worker")
     parser.add_argument("--check-config", action="store_true")
-    parser.add_argument("--reconcile", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--reconcile", action="store_true")
+    mode.add_argument("--maintenance", action="store_true")
+    parser.add_argument("--limit", type=int, default=20, choices=range(1, 101))
     parser.add_argument("--test-adapter", action="store_true")
     arguments = parser.parse_args()
     settings = Settings.from_environment()
@@ -85,8 +88,14 @@ def main() -> int:
         parser.exit(2, "The deterministic adapter is allowed only in the test environment.\n")
     try:
         services = platform(settings)
-        if arguments.reconcile:
-            print(json.dumps({"dispatched": services.jobs.reconcile()}))
+        if arguments.maintenance:
+            print(
+                json.dumps(
+                    {"expiredRecordsRemoved": services.uploads.cleanup(limit=arguments.limit)}
+                )
+            )
+        elif arguments.reconcile:
+            print(json.dumps({"dispatched": services.jobs.reconcile(limit=arguments.limit)}))
         else:
             from mediflow.job_processor import SubprocessProcessor
 
@@ -98,7 +107,7 @@ def main() -> int:
                     environment=settings.environment, test_adapter=arguments.test_adapter
                 ),
             )
-    except (ValueError, ApplicationError):
+    except Exception:
         parser.exit(2, "Job services are unavailable or not configured.\n")
     return 0
 

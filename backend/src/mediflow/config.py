@@ -16,12 +16,16 @@ class Settings:
     gemini_api_key: str = field(default="", repr=False)
     gemini_free_tier_confirmed: bool = False
     job_timeout_seconds: int = 270
+    storage_limit_bytes: int = 1_000_000_000
+    accept_new_work: bool = True
 
     def __post_init__(self) -> None:
         if self.environment not in {"development", "test", "production"}:
             raise ValueError("MEDIFLOW_ENV must be development, test or production.")
         if not 1 <= self.job_timeout_seconds <= 270:
             raise ValueError("MEDIFLOW_JOB_TIMEOUT_SECONDS must be between 1 and 270.")
+        if not 1 <= self.storage_limit_bytes <= 1_000_000_000:
+            raise ValueError("MEDIFLOW_STORAGE_LIMIT_BYTES must be between 1 and 1,000,000,000.")
 
     @classmethod
     def from_environment(cls) -> Self:
@@ -35,4 +39,6 @@ class Settings:
             gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
             gemini_free_tier_confirmed=os.getenv("MEDIFLOW_GEMINI_FREE_TIER_CONFIRMED") == "true",
             job_timeout_seconds=int(os.getenv("MEDIFLOW_JOB_TIMEOUT_SECONDS", "270")),
+            storage_limit_bytes=int(os.getenv("MEDIFLOW_STORAGE_LIMIT_BYTES", "1000000000")),
+            accept_new_work=os.getenv("MEDIFLOW_ACCEPT_NEW_WORK", "true") == "true",
         )

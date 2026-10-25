@@ -19,6 +19,7 @@ from mediflow.contracts import (
     DoctorPage,
     ErrorCode,
     ErrorResponse,
+    OperationalStatus,
     ProcessingJob,
     ReportMetadata,
     ReportRegistration,
@@ -187,6 +188,38 @@ async def report_metadata(
     return record
 
 
+@router.get(
+    "/reports/{report_id}/operations", response_model=OperationalStatus, tags=["operations"]
+)
+async def operational_status(
+    request: Request, report_id: ResourceId, account: Account = Depends(current_account)
+) -> OperationalStatus:
+    from mediflow.operations import status
+
+    await run_in_threadpool(
+        authorization(request).require_role,
+        account,
+        {Role.ADMINISTRATOR},
+        request.state.request_id,
+    )
+    await run_in_threadpool(
+        authorization(request).report_access,
+        account,
+        report_id,
+        "metadata",
+        request.state.request_id,
+    )
+    uploads = upload_module(request)
+    return await run_in_threadpool(
+        status,
+        uploads.database,
+        account,
+        report_id,
+        request.state.request_id,
+        uploads.storage_limit_bytes,
+    )
+
+
 @router.get("/reports/{report_id}/result", response_model=ReportResult, tags=["reports"])
 async def report_result(
     request: Request,
@@ -278,6 +311,7 @@ async def review(
         body,
         idempotency_key,
         request.state.request_id,
+        upload_module(request).storage_limit_bytes,
     )
 
 

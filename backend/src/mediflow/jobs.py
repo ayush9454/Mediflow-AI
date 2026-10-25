@@ -14,8 +14,11 @@ from mediflow.contracts import (
     ReprocessingRequest,
     Role,
 )
+from mediflow.errors import ApplicationError
 from mediflow.job_queue import Queue
-from mediflow.uploads import fail, scoped_key
+from mediflow.uploads import STORAGE_LIMIT_BYTES, fail, scoped_key
+from mediflow.uploads.audit import record_audit
+from mediflow.uploads.capacity import ensure_capacity_ready, store_payload
 from mediflow.uploads.database import Database, Record, Transaction
 from mediflow.workflow import active_account
 
@@ -68,6 +71,8 @@ class Jobs:
         *,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         deadline_seconds: int = 270,
+        storage_limit_bytes: int = STORAGE_LIMIT_BYTES,
+        accept_new_work: bool = True,
     ) -> None:
         if not 1 <= deadline_seconds <= 270:
             raise ValueError("The job deadline must be between 1 and 270 seconds.")
@@ -75,6 +80,8 @@ class Jobs:
         self.queue = queue
         self.clock = clock
         self.deadline_seconds = deadline_seconds
+        self.storage_limit_bytes = storage_limit_bytes
+        self.accept_new_work = accept_new_work
 
     def get(self, job_id: str) -> ProcessingJob:
         return ProcessingJob.model_validate(
@@ -119,8 +126,8 @@ class Jobs:
             }
         )
         attempt_event = action in {"processing_attempt_started", "processing_retry_scheduled"}
-        tx.put(
-            "auditEvents",
+        record_audit(
+            tx,
             action + "_" + (run["attemptId"] if attempt_event else run["jobId"]),
             event,
         )
@@ -183,6 +190,9 @@ class Jobs:
     def reconcile(self, limit: int = 20) -> int:
         if not 1 <= limit <= 100:
             raise ValueError("Reconciliation limit must be between 1 and 100.")
+        if not self.accept_new_work:
+            return 0
+        ensure_capacity_ready(self.database)
         self.migrate_legacy(limit)
         dispatched = 0
         for job_id in self.database.due(
@@ -250,6 +260,9 @@ class Jobs:
         return dispatched
 
     def claim(self, job_id: str) -> Lease | None:
+        if not self.accept_new_work:
+            return None
+        ensure_capacity_ready(self.database)
         now = self.clock()
 
         def operation(tx: Transaction) -> Lease | None:
@@ -271,7 +284,11 @@ class Jobs:
             assert report is not None
             count = job["attemptCount"] + 1
             attempt_id = job_id + "_" + str(count)
-            deadline = now + timedelta(seconds=self.deadline_seconds)
+            deadline = min(
+                now + timedelta(seconds=self.deadline_seconds),
+                datetime.fromisoformat(report["expiresAt"]),
+                datetime.fromisoformat(run["expiresAt"]),
+            )
             run.update(
                 attemptId=attempt_id,
                 deadline=deadline.isoformat(),
@@ -435,7 +452,19 @@ class Jobs:
                 return False
             if tx.get("analyses", lease.analysis_id) is not None:
                 return False
-            tx.put("analyses", lease.analysis_id, candidate.model_dump(mode="json", by_alias=True))
+            try:
+                store_payload(
+                    tx,
+                    "analyses",
+                    lease.analysis_id,
+                    candidate.model_dump(mode="json", by_alias=True),
+                    report["hospitalId"],
+                    lease.report_id,
+                    self.storage_limit_bytes,
+                )
+            except ApplicationError:
+                self._failure(tx, job, run, report, ErrorCode.QUOTA_EXHAUSTED, False, now)
+                return False
             tx.put(
                 "analysisCommits",
                 lease.analysis_id,
@@ -511,6 +540,10 @@ class Jobs:
                 if previous["fingerprint"] != fingerprint:
                     raise fail(ErrorCode.CONFLICT, 409, "Use a new key for a different operation.")
                 return ProcessingJob.model_validate(tx.get("processingJobs", previous["jobId"]))
+            if not self.accept_new_work:
+                raise fail(
+                    ErrorCode.TEMPORARILY_UNAVAILABLE, 503, "New processing is temporarily stopped."
+                )
             if report.get("latestAnalysisId") != body.expected_latest_analysis_id:
                 raise fail(
                     ErrorCode.CONFLICT, 409, "Refresh the latest analysis before reprocessing."

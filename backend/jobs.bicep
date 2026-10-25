@@ -15,12 +15,18 @@ param googleAdc string
 param geminiApiKey string
 param geminiModel string = 'gemini-3.5-flash-lite'
 param geminiFreeTierConfirmed bool = false
+@minValue(1)
+@maxValue(1000000000)
+param storageLimitBytes int = 1000000000
+param acceptNewWork bool = true
 
 var environment = [
   { name: 'MEDIFLOW_ENV', value: 'production' }
   { name: 'MEDIFLOW_FIREBASE_PROJECT_ID', value: firebaseProject }
   { name: 'MEDIFLOW_AZURE_STORAGE_ACCOUNT_URL', value: 'https://${storageAccount}.blob.core.windows.net' }
   { name: 'MEDIFLOW_AZURE_QUEUE_NAME', value: queueName }
+  { name: 'MEDIFLOW_STORAGE_LIMIT_BYTES', value: string(storageLimitBytes) }
+  { name: 'MEDIFLOW_ACCEPT_NEW_WORK', value: string(acceptNewWork) }
   { name: 'AZURE_CLIENT_ID', value: identityClientId }
   { name: 'GOOGLE_APPLICATION_CREDENTIALS', value: '/secrets/google-adc.json' }
 ]
@@ -79,8 +85,11 @@ resource worker 'Microsoft.App/jobs@2026-07-01' = {
   }
 }
 
-resource reconciler 'Microsoft.App/jobs@2026-07-01' = {
-  name: 'report-job-reconciler'
+resource scheduledJobs 'Microsoft.App/jobs@2026-07-01' = [for job in [
+  { name: 'report-job-reconciler', command: '--reconcile' }
+  { name: 'report-retention-cleanup', command: '--maintenance' }
+]: {
+  name: job.name
   location: location
   identity: { type: 'UserAssigned', userAssignedIdentities: { '${identityId}': {} } }
   properties: {
@@ -100,9 +109,9 @@ resource reconciler 'Microsoft.App/jobs@2026-07-01' = {
     }
     template: {
       containers: [{
-        name: 'reconciler'
+        name: 'maintenance'
         image: workerImage
-        command: ['python', '-m', 'mediflow.worker', '--reconcile']
+        command: ['python', '-m', 'mediflow.worker', job.command]
         resources: { cpu: json('0.25'), memory: '0.5Gi' }
         env: environment
         volumeMounts: [{ volumeName: 'google', mountPath: '/secrets' }]
@@ -114,4 +123,4 @@ resource reconciler 'Microsoft.App/jobs@2026-07-01' = {
       }]
     }
   }
-}
+}]

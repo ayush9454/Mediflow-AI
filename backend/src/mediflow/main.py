@@ -1,6 +1,7 @@
 """Application factory with safe errors and explicit foundation readiness."""
 
 import logging
+import time
 from collections.abc import Awaitable, Callable
 from uuid import uuid4
 
@@ -63,6 +64,17 @@ def create_app(
         redoc_url=None,
     )
     application.state.settings = settings or Settings.from_environment()
+    log_window_started = time.monotonic()
+    logged_error_count = 0
+
+    def log_error(request: Request) -> None:
+        nonlocal log_window_started, logged_error_count
+        now = time.monotonic()
+        if now - log_window_started >= 60:
+            log_window_started, logged_error_count = now, 0
+        if logged_error_count < 100:
+            logged_error_count += 1
+            logger.error("internal_error request_id=%s", request.state.request_id)
 
     if authorization is not None and application.state.settings.environment != "test":
         raise ValueError("Injected authorization adapters are allowed only in tests.")
@@ -95,7 +107,14 @@ def create_app(
     ) -> Response:
         # Generate server IDs; do not reflect untrusted request headers into logs.
         request.state.request_id = str(uuid4())
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception:
+            # Contain failures here so the ASGI server does not log raw tracebacks.
+            log_error(request)
+            response = error_response(
+                request, 500, ErrorCode.INTERNAL_ERROR, "The request could not be completed."
+            )
         response.headers["X-Request-ID"] = request.state.request_id
         if request.url.path.startswith("/api/v1/"):
             response.headers["Cache-Control"] = "no-store"
@@ -133,7 +152,7 @@ def create_app(
 
     @application.exception_handler(Exception)
     async def unexpected_error(request: Request, error: Exception) -> JSONResponse:
-        logger.error("Unhandled API error (%s)", type(error).__name__)
+        log_error(request)
         return error_response(
             request, 500, ErrorCode.INTERNAL_ERROR, "The request could not be completed."
         )

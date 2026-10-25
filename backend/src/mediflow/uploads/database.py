@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from copy import deepcopy
+from datetime import datetime
 from threading import RLock
 from typing import Any, Protocol, TypeVar
 
@@ -17,7 +18,7 @@ class Transaction(Protocol):
 
 class Database(Protocol):
     def run(self, operation: Callable[[Transaction], T]) -> T: ...
-    def due(self, collection: str, field: str, now: str, limit: int) -> list[str]: ...
+    def due(self, collection: str, field: str, now: str | datetime, limit: int) -> list[str]: ...
     def page(self, collection: str, after: str | None, limit: int) -> list[tuple[str, Record]]: ...
     def scoped_page(
         self, collection: str, filters: dict[str, str], after: str | None, limit: int
@@ -38,12 +39,14 @@ class MemoryDatabase:
             self.records = staged.records
             return result
 
-    def due(self, collection: str, field: str, now: str, limit: int) -> list[str]:
+    def due(self, collection: str, field: str, now: str | datetime, limit: int) -> list[str]:
         with self.lock:
             return [
                 key
                 for (stored_collection, key), data in self.records.items()
-                if stored_collection == collection and data.get(field, "9999") <= now
+                if stored_collection == collection
+                and data.get(field) is not None
+                and data[field] <= now
             ][:limit]
 
     def page(self, collection: str, after: str | None, limit: int) -> list[tuple[str, Record]]:

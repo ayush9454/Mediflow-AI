@@ -235,6 +235,20 @@ class CasePage(VersionedModel):
     next_cursor: str | None = None
 
 
+class OperationalStatus(VersionedModel):
+    report_id: Identifier
+    job_id: Identifier | None = None
+    attempt_id: Identifier | None = None
+    attempt_count: Annotated[int, Field(ge=0, le=3)] = 0
+    status: ProcessingStatus
+    failure_code: ErrorCode | None = None
+    updated_at: AwareDatetime | None = None
+    deadline: AwareDatetime | None = None
+    request_id: Identifier
+    storage_reserved_bytes: Annotated[int, Field(ge=0)]
+    storage_limit_bytes: Annotated[int, Field(ge=1)]
+
+
 class DoctorSummary(WireModel):
     doctor_id: Identifier
     display_name: PrintedText

@@ -2,6 +2,7 @@
 
 import re
 from collections.abc import Callable
+from datetime import datetime
 from itertools import islice
 from typing import Any, BinaryIO
 
@@ -72,7 +73,7 @@ class FirestoreDatabase:
         except (GoogleAPICallError, ValueError):
             raise unavailable() from None
 
-    def due(self, collection: str, field: str, now: str, limit: int) -> list[str]:
+    def due(self, collection: str, field: str, now: str | datetime, limit: int) -> list[str]:
         try:
             query = (
                 self.db.collection(collection)

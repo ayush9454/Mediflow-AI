@@ -75,7 +75,7 @@ jobs:
       - name: Install OCR for upload admission tests
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng
       - name: Verify real emulator tokens and deny-all client rules
-        run: firebase emulators:exec --config firebase.json --project demo-mediflow --only auth,firestore 'MEDIFLOW_ENV=test MEDIFLOW_UPLOAD_TEST_FIRESTORE=1 backend/.venv/bin/python -m pytest backend/tests/test_firebase_emulators.py backend/tests/test_uploads.py backend/tests/test_jobs.py backend/tests/test_worker.py backend/tests/test_reviews.py backend/tests/test_results.py backend/tests/test_patient_cases.py'
+        run: firebase emulators:exec --config firebase.json --project demo-mediflow --only auth,firestore 'MEDIFLOW_ENV=test MEDIFLOW_UPLOAD_TEST_FIRESTORE=1 backend/.venv/bin/python -m pytest backend/tests/test_firebase_emulators.py backend/tests/test_uploads.py backend/tests/test_jobs.py backend/tests/test_worker.py backend/tests/test_reviews.py backend/tests/test_results.py backend/tests/test_patient_cases.py backend/tests/test_retention.py'
 
   android:
     runs-on: ubuntu-latest

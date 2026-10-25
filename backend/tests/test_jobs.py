@@ -330,3 +330,75 @@ def test_processing_capacity_is_bounded_across_distinct_jobs(accepted):
     assert jobs.get(second["jobId"]).attempt_count == 0
     assert jobs.finish(lease, candidate(lease, now[0]))
     assert jobs.claim(second["jobId"]) is not None
+
+
+def test_execution_deadline_never_extends_beyond_source_retention(accepted):
+    from datetime import datetime
+
+    jobs, _, now, job, (_, uploads, _, _) = accepted
+    expires = uploads.database.run(lambda tx: tx.get("reports", job["reportId"]))["expiresAt"]
+    now[0] = datetime.fromisoformat(expires) - timedelta(seconds=5)
+    lease = jobs.claim(job["jobId"])
+    assert lease.deadline == datetime.fromisoformat(expires)
+
+
+def test_administrator_diagnostics_expose_only_safe_correlated_operational_fields(accepted):
+    from test_uploads import headers
+
+    from mediflow.contracts import ErrorCode
+
+    jobs, _, _, job, (client, _, _, _) = accepted
+    client.app.state.jobs = jobs
+    lease = jobs.claim(job["jobId"])
+    assert jobs.fail(lease, ErrorCode.QUOTA_EXHAUSTED)
+    path = "/api/v1/reports/" + job["reportId"] + "/operations"
+    response = client.get(path, headers=headers("admin"))
+    assert response.status_code == 200
+    data = response.json()
+    assert data["jobId"] == job["jobId"]
+    assert data["attemptId"] == lease.attempt_id
+    assert data["attemptCount"] == 1
+    assert data["failureCode"] == "quota_exhausted"
+    assert data["requestId"] == response.headers["x-request-id"]
+    assert set(data) == {
+        "schemaVersion",
+        "reportId",
+        "jobId",
+        "attemptId",
+        "attemptCount",
+        "status",
+        "failureCode",
+        "updatedAt",
+        "deadline",
+        "requestId",
+        "storageReservedBytes",
+        "storageLimitBytes",
+    }
+    for uid in ("patient_a", "patient_b", "doctor_a"):
+        assert client.get(path, headers=headers(uid)).status_code == 403
+
+
+def test_service_stop_blocks_new_work_and_preserves_existing_private_reads(accepted):
+    from test_uploads import headers
+
+    jobs, queue, now, job, (client, uploads, _, _) = accepted
+    uploads.accept_new_work = False
+    stopped = Jobs(jobs.database, queue, clock=lambda: now[0], accept_new_work=False)
+    assert stopped.reconcile() == 0
+    assert stopped.claim(job["jobId"]) is None
+    response = client.post(
+        "/api/v1/reports",
+        headers=headers(key="stopped"),
+        json={
+            "fileName": "new.pdf",
+            "byteCount": 100,
+            "syntheticDataAcknowledged": True,
+        },
+    )
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "temporarily_unavailable"
+    assert (
+        client.get(f"/api/v1/reports/{job['reportId']}/document", headers=headers()).status_code
+        == 200
+    )
+    assert jobs.claim(job["jobId"]) is not None

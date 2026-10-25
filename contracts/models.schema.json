@@ -1025,6 +1025,127 @@
       "title": "LaboratoryRow",
       "type": "object"
     },
+    "OperationalStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptCount": {
+          "default": 0,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Attemptcount",
+          "type": "integer"
+        },
+        "attemptId": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attemptid"
+        },
+        "deadline": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadline"
+        },
+        "failureCode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "jobId": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Jobid"
+        },
+        "reportId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Reportid",
+          "type": "string"
+        },
+        "requestId": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Requestid",
+          "type": "string"
+        },
+        "schemaVersion": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schemaversion",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ProcessingStatus"
+        },
+        "storageLimitBytes": {
+          "minimum": 1,
+          "title": "Storagelimitbytes",
+          "type": "integer"
+        },
+        "storageReservedBytes": {
+          "minimum": 0,
+          "title": "Storagereservedbytes",
+          "type": "integer"
+        },
+        "updatedAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Updatedat"
+        }
+      },
+      "required": [
+        "reportId",
+        "status",
+        "requestId",
+        "storageReservedBytes",
+        "storageLimitBytes"
+      ],
+      "title": "OperationalStatus",
+      "type": "object"
+    },
     "ProcessingJob": {
       "additionalProperties": false,
       "properties": {

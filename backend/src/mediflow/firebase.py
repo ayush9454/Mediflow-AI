@@ -16,6 +16,8 @@ from mediflow.authorization import AuditEvent, Authorization
 from mediflow.config import Settings
 from mediflow.contracts import Account, ErrorCode, ReportMetadata
 from mediflow.errors import ApplicationError
+from mediflow.uploads.audit import record_audit
+from mediflow.uploads.platform import FirestoreDatabase
 
 
 def unavailable() -> ApplicationError:
@@ -97,11 +99,8 @@ class FirestoreIdentityStore:
         return identifier if isinstance(identifier, str) else None
 
     def audit(self, event: AuditEvent) -> None:
-        try:
-            self.db.collection("auditEvents").document().create(asdict(event), timeout=10)
-        except GoogleAPICallError:
-            # A failed audit write fails closed before any protected data is returned.
-            raise unavailable() from None
+        key = uuid4().hex
+        FirestoreDatabase(self.db).run(lambda tx: record_audit(tx, key, asdict(event), access=True))
 
 
 class EmulatorCredential(credentials.Base):

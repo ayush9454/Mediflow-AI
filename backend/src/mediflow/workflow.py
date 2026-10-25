@@ -10,6 +10,7 @@ from mediflow.authorization import AuditEvent
 from mediflow.contracts import Account, CaseSummary, ErrorCode, Role
 from mediflow.errors import ApplicationError
 from mediflow.uploads import scoped_key
+from mediflow.uploads.audit import record_audit
 from mediflow.uploads.database import Record, Transaction
 
 
@@ -120,7 +121,7 @@ def audit(
         )
     )
     event.update(metadata)
-    tx.put("auditEvents", identifier, event)
+    record_audit(tx, identifier, event)
 
 
 def page_scope(account: Account, collection: str, resource: str = "") -> str:

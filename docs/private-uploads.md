@@ -95,7 +95,7 @@ read cost bounded; trusted scheduling is still required.
 
 Reservations last one hour. Verified report expiry is verification time + 30 days;
 document access is denied immediately at that boundary. Verified-content deletion
-and operational scheduling remain ticket 13. The reservation cap fails closed if
+and trusted scheduling are described in [operations](operations.md). The reservation cap fails closed if
 abandoned uploads accumulate; registration does not silently release storage slots.
 
 Run trusted orphan cleanup with the same Firestore/Blob configuration and credentials:
@@ -115,8 +115,8 @@ takeover or cleanup. The canonical verified object is preserved. This closes the
 late-writer race even when its metadata commit is correctly fenced. A successful
 verified report is never removed by orphan cleanup. Audit events use
 opaque IDs and contain no PDF/page text, tokens or provider payloads. Existing
-30-day audit/verified-content cleanup is consolidated in ticket 13; it is not yet
-an automatically deployed schedule.
+30-day audit/verified-content cleanup is consolidated in the trusted maintenance
+command and scheduled deployment template; deploy the schedule independently of API traffic.
 
 ## Reproduce verification
 

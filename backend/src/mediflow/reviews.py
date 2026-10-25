@@ -16,7 +16,8 @@ from mediflow.contracts import (
     Role,
 )
 from mediflow.review_validation import approved_rows
-from mediflow.uploads import scoped_key
+from mediflow.uploads import STORAGE_LIMIT_BYTES, scoped_key
+from mediflow.uploads.capacity import store_payload
 from mediflow.uploads.database import Database, Record, Transaction
 from mediflow.workflow import (
     active_account,
@@ -118,6 +119,7 @@ def decide(
     body: ReviewRequest,
     key: str,
     request_id: str,
+    storage_limit_bytes: int = STORAGE_LIMIT_BYTES,
 ) -> ReviewRecord:
     index = scoped_key(account.hospital_id, account.uid, report_id, "review", key)
     fingerprint = scoped_key(body.model_dump_json())
@@ -158,7 +160,15 @@ def decide(
                 summary=f"{len(candidate.rows)} laboratory rows reviewed.",
                 provenance=candidate.provenance,
             )
-            tx.put("approvedResults", report_id, snapshot.model_dump(mode="json", by_alias=True))
+            store_payload(
+                tx,
+                "approvedResults",
+                report_id,
+                snapshot.model_dump(mode="json", by_alias=True),
+                account.hospital_id,
+                report_id,
+                storage_limit_bytes,
+            )
             report["approvedAnalysisId"] = candidate.analysis_id
         case.update(
             reviewVersion=record.version,
@@ -172,7 +182,15 @@ def decide(
         )
         tx.put("cases", report["caseId"], case)
         tx.put("reports", report_id, report)
-        tx.put("reviews", review_id, record.model_dump(mode="json", by_alias=True))
+        store_payload(
+            tx,
+            "reviews",
+            review_id,
+            record.model_dump(mode="json", by_alias=True),
+            account.hospital_id,
+            report_id,
+            storage_limit_bytes,
+        )
         tx.put("reviewIndex", review_id, {"hospitalId": account.hospital_id, "reportId": report_id})
         tx.put(
             "reviewKeys",

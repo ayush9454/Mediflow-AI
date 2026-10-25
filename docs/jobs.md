@@ -113,7 +113,7 @@ by their own workflows.
 Expiry is checked against the authoritative report during claim, reconciliation
 and result commit. Removing the report/source or passing its expiry cannot lead a
 stale delivery to create analysis content. Physical deletion and rolling removal of
-job bookkeeping remain part of ticket 13.
+job bookkeeping run through the independent [retention schedule](operations.md).
 
 ## Verification
 

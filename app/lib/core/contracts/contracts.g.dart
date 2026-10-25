@@ -706,6 +706,66 @@ final class LaboratoryRow {
   };
 }
 
+final class OperationalStatus {
+  const OperationalStatus({
+    required this.schemaVersion,
+    required this.reportId,
+    required this.jobId,
+    required this.attemptId,
+    required this.attemptCount,
+    required this.status,
+    required this.failureCode,
+    required this.updatedAt,
+    required this.deadline,
+    required this.requestId,
+    required this.storageReservedBytes,
+    required this.storageLimitBytes,
+  });
+
+  final String schemaVersion;
+  final String reportId;
+  final String? jobId;
+  final String? attemptId;
+  final int attemptCount;
+  final ProcessingStatus status;
+  final ErrorCode? failureCode;
+  final DateTime? updatedAt;
+  final DateTime? deadline;
+  final String requestId;
+  final int storageReservedBytes;
+  final int storageLimitBytes;
+
+  factory OperationalStatus.fromJson(Map<String, Object?> json) => OperationalStatus(
+    schemaVersion: (json["schemaVersion"] ?? "1.0") as String,
+    reportId: json["reportId"] as String,
+    jobId: json["jobId"] == null ? null : json["jobId"] as String,
+    attemptId: json["attemptId"] == null ? null : json["attemptId"] as String,
+    attemptCount: (json["attemptCount"] ?? 0) as int,
+    status: ProcessingStatus.fromJson(json["status"] as String),
+    failureCode: json["failureCode"] == null ? null : ErrorCode.fromJson(json["failureCode"] as String),
+    updatedAt: json["updatedAt"] == null ? null : DateTime.parse(json["updatedAt"] as String),
+    deadline: json["deadline"] == null ? null : DateTime.parse(json["deadline"] as String),
+    requestId: json["requestId"] as String,
+    storageReservedBytes: json["storageReservedBytes"] as int,
+    storageLimitBytes: json["storageLimitBytes"] as int,
+  );
+
+  Map<String, Object?> toJson() => {
+    "schemaVersion": schemaVersion,
+    "reportId": reportId,
+    "jobId": jobId,
+    "attemptId": attemptId,
+    "attemptCount": attemptCount,
+    "status": status.toJson(),
+    "failureCode": failureCode?.toJson(),
+    "updatedAt": updatedAt?.toUtc().toIso8601String(),
+    "deadline": deadline?.toUtc().toIso8601String(),
+    "requestId": requestId,
+    "storageReservedBytes": storageReservedBytes,
+    "storageLimitBytes": storageLimitBytes,
+  };
+}
+
 final class ProcessingJob {
   const ProcessingJob({
     required this.schemaVersion,
