@@ -26,7 +26,7 @@ var environment = [
   { name: 'MEDIFLOW_AZURE_STORAGE_ACCOUNT_URL', value: 'https://${storageAccount}.blob.core.windows.net' }
   { name: 'MEDIFLOW_AZURE_QUEUE_NAME', value: queueName }
   { name: 'MEDIFLOW_STORAGE_LIMIT_BYTES', value: string(storageLimitBytes) }
-  { name: 'MEDIFLOW_ACCEPT_NEW_WORK', value: string(acceptNewWork) }
+  { name: 'MEDIFLOW_ACCEPT_NEW_WORK', value: acceptNewWork ? 'true' : 'false' }
   { name: 'AZURE_CLIENT_ID', value: identityClientId }
   { name: 'GOOGLE_APPLICATION_CREDENTIALS', value: '/secrets/google-adc.json' }
 ]
@@ -71,7 +71,7 @@ resource worker 'Microsoft.App/jobs@2026-07-01' = {
         resources: { cpu: json('0.5'), memory: '1Gi' }
         env: concat(environment, [
           { name: 'MEDIFLOW_GEMINI_MODEL', value: geminiModel }
-          { name: 'MEDIFLOW_GEMINI_FREE_TIER_CONFIRMED', value: string(geminiFreeTierConfirmed) }
+          { name: 'MEDIFLOW_GEMINI_FREE_TIER_CONFIRMED', value: geminiFreeTierConfirmed ? 'true' : 'false' }
           { name: 'GEMINI_API_KEY', secretRef: 'gemini-api-key' }
         ])
         volumeMounts: [{ volumeName: 'google', mountPath: '/secrets' }]

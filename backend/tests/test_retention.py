@@ -289,3 +289,42 @@ def test_worker_rechecks_expiry_after_a_delayed_transaction_begins(accepted):
     delayed = Jobs(DelayedDatabase(), queue, clock=lambda: now[0])
     assert not delayed.finish(lease, candidate(lease, now[0]))
     assert jobs.candidate(job["jobId"]) is None
+
+
+@pytest.mark.parametrize("kind", ["orphan", "garbage"])
+def test_failed_orphan_or_prefix_does_not_starve_another_source_in_small_batches(
+    request, monkeypatch, kind
+):
+    from io import BytesIO
+
+    from test_uploads import laboratory_pdf, register, upload
+
+    client, uploads, _, documents = request.getfixturevalue("setup_uploads")
+    now = [uploads.clock()]
+    uploads.clock = lambda: now[0]
+    sources = []
+    for number in range(2):
+        source = laboratory_pdf(str(number))
+        session = register(client, source, key=f"orphan_{number}").json()
+        assert upload(client, session, source).status_code == 204
+        prefix = f"reports/{session['report']['reportId']}/"
+        sources.append((prefix, documents.keys(prefix)[0], source))
+    now[0] += timedelta(hours=2)
+    if kind == "garbage":
+        assert uploads.cleanup(limit=20) == 2
+        for _, key, source in sources:
+            documents.put(key, BytesIO(source), len(source))
+        now[0] += timedelta(days=1)
+    delete = documents.delete
+
+    def unavailable(key):
+        if key.startswith(sources[0][0]):
+            raise OSError("isolated source unavailable")
+        delete(key)
+
+    monkeypatch.setattr(documents, "delete", unavailable)
+    for _ in range(10):
+        uploads.cleanup(limit=1)
+        now[0] += timedelta(minutes=5)
+    assert documents.keys(sources[0][0])
+    assert not documents.keys(sources[1][0])

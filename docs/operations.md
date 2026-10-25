@@ -39,6 +39,8 @@ Expiry remains effective throughout these phases. A failing source does not stop
 the scan from reaching other reports. A cleanup lease lasts two minutes; retry
 after that lease if an execution stops. Cleanup failures are isolated per source;
 the CLI reports a safe failure count and exits nonzero while other records progress.
+Failed orphan/prefix records move their next sweep 15 minutes forward so a supported
+one-record batch can reach other abandoned sources.
 Object deletion and database transitions
 are idempotent, including when a successful delete loses its response.
 

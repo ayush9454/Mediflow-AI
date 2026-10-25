@@ -598,6 +598,7 @@ class Uploads:
                     self.documents.delete(object_key)
             except Exception:
                 self.cleanup_failures += 1
+                self._defer_cleanup("uploadSessions", report_id, "cleanupAt", token)
                 continue
 
             def remove(tx: Transaction, report_id: str = report_id, token: str = token) -> None:
@@ -642,6 +643,7 @@ class Uploads:
                         self.documents.delete(object_key)
             except Exception:
                 self.cleanup_failures += 1
+                self._defer_cleanup("uploadGarbage", report_id, "sweepAt")
                 continue
 
             sweep_record = record
@@ -669,6 +671,17 @@ class Uploads:
                     )
 
             self.database.run(reschedule)
+
+    def _defer_cleanup(
+        self, collection: str, key: str, field: str, token: str | None = None
+    ) -> None:
+        def defer(tx: Transaction) -> None:
+            record = tx.get(collection, key)
+            if record is not None and (token is None or record.get("token") == token):
+                record[field] = (self.clock() + timedelta(minutes=15)).isoformat()
+                tx.put(collection, key, record)
+
+        self.database.run(defer)
 
     @staticmethod
     def _status(tx: Transaction, report_id: str, status: str) -> None:
